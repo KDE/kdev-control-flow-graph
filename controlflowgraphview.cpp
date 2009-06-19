@@ -19,13 +19,15 @@
 
 #include "controlflowgraphview.h"
 
+#include <QTemporaryFile>
+
 #include <kparts/part.h>
 #include <klibloader.h>
 #include <kservice.h>
 #include <kmessagebox.h>
 #include <kactioncollection.h>
 
-ControlFlowGraphView::ControlFlowGraphView(QWidget *parent) : QWidget(parent)
+ControlFlowGraphView::ControlFlowGraphView(QWidget *parent) : QWidget(parent), m_part(0), m_tempFile(0)
 {
     setupUi(this);
     KLibFactory *factory = KLibLoader::self()->factory("kgraphviewerpart");
@@ -37,9 +39,12 @@ ControlFlowGraphView::ControlFlowGraphView(QWidget *parent) : QWidget(parent)
 	    horizontalLayout->addWidget(m_part->widget());
 	    connect(zoomoutToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_out"), SIGNAL(triggered()));
 	    connect(zoominToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_in"), SIGNAL(triggered()));
+	    m_tempFile = new QTemporaryFile();
+	    if (!m_tempFile->open())
+	        KMessageBox::error(this, i18n("Could not create temporary file"));
 	}
         else
-	    KMessageBox::error(this, i18n("Part null"));
+	    KMessageBox::error(this, i18n("Could not load the KGraphViewer kpart"));
     }
     else
         KMessageBox::error(this, i18n("Could not find the KGraphViewer factory"));
@@ -47,10 +52,16 @@ ControlFlowGraphView::ControlFlowGraphView(QWidget *parent) : QWidget(parent)
 
 ControlFlowGraphView::~ControlFlowGraphView()
 {
+    if (m_part != 0) delete m_part;
+    if (m_tempFile != 0) delete m_tempFile;
 }
 
 void ControlFlowGraphView::drawGraph()
 {
-    m_part->openUrl(KUrl("file:///tmp/graph.dot"));
+    m_part->openUrl(KUrl("file://" + m_tempFile->fileName()));
 }
 
+QTemporaryFile *ControlFlowGraphView::tempFile()
+{
+    return m_tempFile;
+}

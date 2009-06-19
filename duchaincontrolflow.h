@@ -36,15 +36,16 @@ public:
     DUChainControlFlow();
     ~DUChainControlFlow();
 
-    void controlFlowFromCurrentDefinition (int maxLevel = -1);
+    void controlFlowFromCurrentDefinition (unsigned int maxLevel = 0);
 Q_SIGNALS:
     void foundRootNode (const Declaration *definition);
     void foundFunctionCall (const Declaration *source, const Declaration *target);
+    void graphDone();
 private:
     void useDeclarationsFromDefinition(const Declaration *definition, DUContext *context);
     TopDUContext *m_topContext;
-    int m_currentLevel;
-    int m_maxLevel;
+    unsigned int m_currentLevel;
+    unsigned int m_maxLevel;
 };
 
 #endif

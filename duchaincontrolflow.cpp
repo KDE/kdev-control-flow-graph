@@ -45,7 +45,7 @@ DUChainControlFlow::~DUChainControlFlow()
 {
 }
 
-void DUChainControlFlow::controlFlowFromCurrentDefinition (int maxLevel)
+void DUChainControlFlow::controlFlowFromCurrentDefinition (unsigned int maxLevel)
 {
     m_maxLevel = maxLevel;
     m_currentLevel = 1;
@@ -82,7 +82,12 @@ void DUChainControlFlow::controlFlowFromCurrentDefinition (int maxLevel)
     if (!definition) return;
     emit foundRootNode(definition);
 
-    useDeclarationsFromDefinition(definition, uppermostExecutableContext);
+    if (m_maxLevel != 1)
+    {
+        ++m_currentLevel;
+        useDeclarationsFromDefinition(definition, uppermostExecutableContext);
+    }
+    emit graphDone();
 }
 
 void DUChainControlFlow::useDeclarationsFromDefinition (const Declaration *definition, DUContext *context)
@@ -110,7 +115,11 @@ void DUChainControlFlow::useDeclarationsFromDefinition (const Declaration *defin
 		    if (!calledFunctionDefinition)
 		        continue;
 		    calledFunctionContext = calledFunctionDefinition->internalContext();
-                    useDeclarationsFromDefinition(calledFunctionDefinition, calledFunctionContext);
+		    if (m_currentLevel < m_maxLevel || m_maxLevel == 0)
+		    {
+                        ++m_currentLevel;
+                        useDeclarationsFromDefinition(calledFunctionDefinition, calledFunctionContext);
+		    }
 		}
 	        else if ((*subContextsIterator)->type() == DUContext::Other)
 		{
@@ -126,7 +135,11 @@ void DUChainControlFlow::useDeclarationsFromDefinition (const Declaration *defin
 	        if (!calledFunctionDefinition)
 	            continue;
 	        calledFunctionContext = calledFunctionDefinition->internalContext();
-                useDeclarationsFromDefinition(calledFunctionDefinition, calledFunctionContext);
+		if (m_currentLevel < m_maxLevel || m_maxLevel == 0)
+		{
+                    ++m_currentLevel;
+                    useDeclarationsFromDefinition(calledFunctionDefinition, calledFunctionContext);
+		}
 	    }
     }
     while (subContextsIterator != subContextsEnd)

@@ -51,12 +51,13 @@ public:
 	ControlFlowGraphView *cfgview = new ControlFlowGraphView(parent);
 
 	DUChainControlFlow duccf;
-	DotControlFlowGraph dcfg;
+	DotControlFlowGraph dcfg(cfgview->tempFile());
 
 	QObject::connect(&duccf, SIGNAL(foundRootNode(const Declaration*)), &dcfg, SLOT(foundRootNode(const Declaration*)));
 	QObject::connect(&duccf, SIGNAL(foundFunctionCall(const Declaration*, const Declaration*)), &dcfg, SLOT(foundFunctionCall(const Declaration*, const Declaration*)));
+	QObject::connect(&duccf, SIGNAL(graphDone()), &dcfg, SLOT(graphDone()));
 
-	duccf.controlFlowFromCurrentDefinition(2);
+	duccf.controlFlowFromCurrentDefinition(0);
 	cfgview->drawGraph();
 
         return cfgview;

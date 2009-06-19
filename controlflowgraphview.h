@@ -27,6 +27,8 @@ namespace KParts
     class ReadOnlyPart;
 };
 
+class QTemporaryFile;
+
 class ControlFlowGraphView : public QWidget, public Ui::ControlFlowGraphView
 {
     Q_OBJECT
@@ -35,8 +37,10 @@ public:
     ~ControlFlowGraphView ();
 
     void drawGraph();
+    QTemporaryFile *tempFile();
 private:
     KParts::ReadOnlyPart* m_part;
+    QTemporaryFile *m_tempFile;
 };
 
 #endif
