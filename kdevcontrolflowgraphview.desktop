@@ -1,8 +1,26 @@
 [Desktop Entry]
 Type=Service
 Comment=This plugin provides control flow graph visualization in KDevelop
+Comment[es]=Este complemento proporcioina visualización de gráficos de control de flujo en KDevelop
+Comment[pt]=Este 'plugin' permite a visualização de um gráfico do fluxo de controlo no KDevelop
+Comment[pt_BR]=Este 'plugin' permite a visualização de um gráfico do fluxo de controlo no KDevelop
+Comment[sv]=Insticksprogrammet tillhandahåller visualisering av kontrollflödesgrafer i KDevelop
+Comment[uk]=За допомогою цього додатка можна здійснювати візуалізацію потокових графів керування KDevelop
+Comment[x-test]=xxThis plugin provides control flow graph visualization in KDevelopxx
 Name=KDevelop Control Flow Graphs
+Name[es]=Gráficos de control de flujo de KDevelop
+Name[pt]=Gráficos de Fluxo de Controlo do KDevelop
+Name[pt_BR]=Gráficos de Fluxo de Controlo do KDevelop
+Name[sv]=Kdevelop kontrollflödesgrafer
+Name[uk]=Потокові графи керування KDevelop
+Name[x-test]=xxKDevelop Control Flow Graphsxx
 GenericName=KDevelop Control Glow Graphs
+GenericName[es]=Gráficos de control de flujo de KDevelop
+GenericName[pt]=Gráficos de Fluxo de Controlo do KDevelop
+GenericName[pt_BR]=Gráficos de Fluxo de Controlo do KDevelop
+GenericName[sv]=Kdevelop kontrollflödesgrafer
+GenericName[uk]=Потокові графи керування KDevelop
+GenericName[x-test]=xxKDevelop Control Glow Graphsxx
 ServiceTypes=KDevelop/Plugin
 X-KDE-Library=kdevcontrolflowgraphview
 X-KDE-PluginInfo-Name=kdevcontrolflowgraphview
