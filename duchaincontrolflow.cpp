@@ -37,7 +37,7 @@
 
 using namespace KDevelop;
 
-DUChainControlFlow::DUChainControlFlow()
+DUChainControlFlow::DUChainControlFlow() : m_previousUppermostExecutableContext(0)
 {
 }
 
@@ -66,12 +66,30 @@ void DUChainControlFlow::controlFlowFromCurrentDefinition (unsigned int maxLevel
 
     SimpleCursor cursor(view->cursorPosition());
     DUContext *context = m_topContext->findContext(cursor);
-    if (!context) return;
-    if (context->type() != DUContext::Other) return;
-    
+    if (!context)
+    {
+	emit clearGraph();
+	m_previousUppermostExecutableContext = 0;
+	return;
+    }
+
+    if (context->type() != DUContext::Other)
+    {
+	emit clearGraph();
+	m_previousUppermostExecutableContext = 0;
+	return;
+    }
+
     DUContext *uppermostExecutableContext = context;
     while (uppermostExecutableContext->parentContext()->type() == DUContext::Other)
         uppermostExecutableContext = uppermostExecutableContext->parentContext();
+
+    if (uppermostExecutableContext == m_previousUppermostExecutableContext)
+	return;
+    else
+      	emit clearGraph();
+
+    m_previousUppermostExecutableContext = uppermostExecutableContext;
 
     Declaration* definition = 0;
     if (!uppermostExecutableContext || !uppermostExecutableContext->owner())

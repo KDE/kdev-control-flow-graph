@@ -19,11 +19,15 @@
 
 #include "controlflowgraphview.h"
 
-#include <kparts/part.h>
-#include <klibloader.h>
 #include <kservice.h>
+#include <klibloader.h>
+#include <kparts/part.h>
 #include <kmessagebox.h>
 #include <kactioncollection.h>
+#include <ktexteditor/document.h>
+#include <ktexteditor/view.h>
+
+#include <interfaces/idocument.h>
 
 #include "duchaincontrolflow.h"
 #include "dotcontrolflowgraph.h"
@@ -47,10 +51,9 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
                     m_dotControlFlowGraph, SLOT  (foundRootNode(const Declaration*)));
 	    connect(m_duchainControlFlow,  SIGNAL(foundFunctionCall(const Declaration*, const Declaration*)),
                     m_dotControlFlowGraph, SLOT  (foundFunctionCall(const Declaration*, const Declaration*)));
+	    connect(m_duchainControlFlow,  SIGNAL(clearGraph()), m_dotControlFlowGraph, SLOT(clearGraph()));
 	    connect(m_duchainControlFlow,  SIGNAL(graphDone()), m_dotControlFlowGraph, SLOT(graphDone()));
-	    connect(m_dotControlFlowGraph, SIGNAL(graphSaved(const KUrl &)), m_part, SLOT(openUrl(const KUrl &)));
-
-	    m_duchainControlFlow->controlFlowFromCurrentDefinition(0);
+	    connect(m_dotControlFlowGraph, SIGNAL(openUrl(const KUrl &)), m_part, SLOT(openUrl(const KUrl &)));
 	}
         else
 	    KMessageBox::error(this, i18n("Could not load the KGraphViewer kpart"));
@@ -64,4 +67,23 @@ ControlFlowGraphView::~ControlFlowGraphView()
     if (m_duchainControlFlow != 0) delete m_duchainControlFlow;
     if (m_dotControlFlowGraph != 0) delete m_dotControlFlowGraph;
     if (m_part != 0) delete m_part;
+}
+
+void ControlFlowGraphView::textDocumentCreated(KDevelop::IDocument *document)
+{
+    connect(document->textDocument(), SIGNAL(viewCreated(KTextEditor::Document *, KTextEditor::View *)),
+	    this, SLOT(viewCreated(KTextEditor::Document *, KTextEditor::View *)));
+}
+
+void ControlFlowGraphView::viewCreated(KTextEditor::Document *document, KTextEditor::View *view)
+{
+    disconnect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
+	    this, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
+    connect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
+	    this, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
+}
+
+void ControlFlowGraphView::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
+{
+    m_duchainControlFlow->controlFlowFromCurrentDefinition(0);
 }

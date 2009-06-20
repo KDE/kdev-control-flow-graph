@@ -26,7 +26,16 @@ namespace KParts
 {
     class ReadOnlyPart;
 };
-
+namespace KDevelop
+{
+    class IDocument;
+};
+namespace KTextEditor
+{
+    class Document;
+    class View;
+    class Cursor;
+};
 class DUChainControlFlow;
 class DotControlFlowGraph;
 
@@ -36,6 +45,10 @@ class ControlFlowGraphView : public QWidget, public Ui::ControlFlowGraphView
 public:
     ControlFlowGraphView (QWidget *parent = 0);
     virtual ~ControlFlowGraphView ();
+public Q_SLOTS:
+    void textDocumentCreated(KDevelop::IDocument *document);
+    void viewCreated(KTextEditor::Document *document, KTextEditor::View *view);
+    void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
 private:
     KParts::ReadOnlyPart* m_part;
     DUChainControlFlow *m_duchainControlFlow;

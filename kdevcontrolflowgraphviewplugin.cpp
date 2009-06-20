@@ -46,8 +46,19 @@ public:
     KDevControlFlowGraphViewFactory(KDevControlFlowGraphViewPlugin *plugin) : m_plugin(plugin) {}
     virtual QWidget* create(QWidget *parent = 0)
     {
-	ControlFlowGraphView *cfgview = new ControlFlowGraphView(parent);
-        return cfgview;
+	ControlFlowGraphView *controlFlowGraphView = new ControlFlowGraphView(parent);
+
+	foreach (KDevelop::IDocument *document, m_plugin->core()->documentController()->openDocuments())
+	{
+	    controlFlowGraphView->textDocumentCreated(document);
+	    foreach (KTextEditor::View *view, document->textDocument()->views())
+		controlFlowGraphView->viewCreated(document->textDocument(), view);
+	}
+
+	QObject::connect(m_plugin->core()->documentController(), SIGNAL(textDocumentCreated(KDevelop::IDocument *)),
+		         controlFlowGraphView, SLOT(textDocumentCreated(KDevelop::IDocument *)));
+
+        return controlFlowGraphView;
     }
     virtual Qt::DockWidgetArea defaultPosition()
     {

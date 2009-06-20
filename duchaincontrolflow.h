@@ -41,9 +41,11 @@ Q_SIGNALS:
     void foundRootNode (const Declaration *definition);
     void foundFunctionCall (const Declaration *source, const Declaration *target);
     void graphDone();
+    void clearGraph();
 private:
     void useDeclarationsFromDefinition(const Declaration *definition, DUContext *context);
     TopDUContext *m_topContext;
+    DUContext *m_previousUppermostExecutableContext;
     unsigned int m_currentLevel;
     unsigned int m_maxLevel;
 };

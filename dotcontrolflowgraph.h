@@ -42,11 +42,12 @@ public:
     DotControlFlowGraph();
     virtual ~DotControlFlowGraph();
 Q_SIGNALS:
-    void graphSaved(const KUrl &url);
+    void openUrl(const KUrl &url);
 public Q_SLOTS:
     void foundRootNode (const Declaration *definition);
     void foundFunctionCall (const Declaration *source, const Declaration *target);
     void graphDone();
+    void clearGraph();
 private:
     GVC_t *m_gvc;
     graph_t *m_graph;

@@ -25,16 +25,13 @@
 
 DotControlFlowGraph::DotControlFlowGraph() : m_tempFile(0)
 {
-    m_gvc = gvContext();
     m_graph = 0;
-    m_tempFile = new QTemporaryFile();
-    m_tempFile->open();
+    m_gvc = gvContext();
 }
 
 DotControlFlowGraph::~DotControlFlowGraph()
 {
     gvFreeContext(m_gvc);
-    if (m_tempFile != 0) delete m_tempFile;
 }
 
 void DotControlFlowGraph::graphDone()
@@ -43,17 +40,29 @@ void DotControlFlowGraph::graphDone()
     {
         gvLayout(m_gvc, m_graph, "dot");
         gvRenderFilename(m_gvc, m_graph, "dot", m_tempFile->fileName().toUtf8().data());
-	emit graphSaved("file://" + m_tempFile->fileName());
+        gvFreeLayout(m_gvc, m_graph);
+        agclose(m_graph);
+	emit openUrl("file://" + m_tempFile->fileName());
+	if (m_tempFile != 0)
+	{
+	    delete m_tempFile;
+	    m_tempFile = 0;
+	}
+    }
+}
+
+void DotControlFlowGraph::clearGraph()
+{
+    if (m_tempFile == 0)
+    {
+	m_tempFile = new QTemporaryFile();
+	m_tempFile->open();
+	emit openUrl("file://" + m_tempFile->fileName());
     }
 }
 
 void DotControlFlowGraph::foundRootNode (const Declaration *definition)
 {
-    if (m_graph)
-    {
-        gvFreeLayout(m_gvc, m_graph);
-        agclose(m_graph);
-    }
     m_graph = agopen(definition->qualifiedIdentifier().toString().toUtf8().data(), AGDIGRAPH);
     Agnode_t *node = agnode(m_graph, definition->qualifiedIdentifier().toString().toUtf8().data());
     agsafeset(node, (char *) "shape", (char *) "box", (char *) "");
@@ -86,4 +95,3 @@ const QColor& DotControlFlowGraph::colorFromQualifiedIdentifier(const KDevelop::
     else
         return m_colorMap[qualifiedIdentifier.toString().split("::")[0]] = QColor::fromHsv(qrand() % 256, 255, 190);
 }
-
