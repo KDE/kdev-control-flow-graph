@@ -43,22 +43,19 @@ void DotControlFlowGraph::graphDone()
         gvFreeLayout(m_gvc, m_graph);
         agclose(m_graph);
 	emit openUrl("file://" + m_tempFile->fileName());
-	if (m_tempFile != 0)
-	{
-	    delete m_tempFile;
-	    m_tempFile = 0;
-	}
     }
 }
 
 void DotControlFlowGraph::clearGraph()
 {
-    if (m_tempFile == 0)
+    if (m_tempFile != 0)
     {
-	m_tempFile = new QTemporaryFile();
-	m_tempFile->open();
-	emit openUrl("file://" + m_tempFile->fileName());
+	delete m_tempFile;
+	m_tempFile = 0;
     }
+    m_tempFile = new QTemporaryFile();
+    m_tempFile->open();
+    emit openUrl("file://" + m_tempFile->fileName());
 }
 
 void DotControlFlowGraph::foundRootNode (const Declaration *definition)

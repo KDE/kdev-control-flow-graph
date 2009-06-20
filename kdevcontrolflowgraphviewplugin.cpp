@@ -51,12 +51,25 @@ public:
 	foreach (KDevelop::IDocument *document, m_plugin->core()->documentController()->openDocuments())
 	{
 	    controlFlowGraphView->textDocumentCreated(document);
-	    foreach (KTextEditor::View *view, document->textDocument()->views())
-		controlFlowGraphView->viewCreated(document->textDocument(), view);
+	    if (document->textDocument())
+		foreach (KTextEditor::View *view, document->textDocument()->views())
+		    controlFlowGraphView->viewCreated(document->textDocument(), view);
 	}
 
 	QObject::connect(m_plugin->core()->documentController(), SIGNAL(textDocumentCreated(KDevelop::IDocument *)),
 		         controlFlowGraphView, SLOT(textDocumentCreated(KDevelop::IDocument *)));
+
+	IDocument *doc = m_plugin->core()->documentController()->activeDocument();
+	if (doc)
+	{
+	    KTextEditor::Document *textDoc = doc->textDocument();
+	    if (textDoc)
+	    {
+		KTextEditor::View *view = textDoc->activeView();
+		if (view)
+		    controlFlowGraphView->cursorPositionChanged(view, view->cursorPosition());
+	    }
+	}
 
         return controlFlowGraphView;
     }

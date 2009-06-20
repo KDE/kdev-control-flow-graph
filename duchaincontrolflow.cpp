@@ -97,7 +97,9 @@ void DUChainControlFlow::controlFlowFromCurrentDefinition (unsigned int maxLevel
     else
         definition = uppermostExecutableContext->owner();
 
-    if (!definition) return;
+    if (!definition)
+	return;
+
     emit foundRootNode(definition);
 
     if (m_maxLevel != 1)
