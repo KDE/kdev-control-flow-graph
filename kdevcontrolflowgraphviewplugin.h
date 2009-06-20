@@ -30,8 +30,10 @@ class KDevControlFlowGraphViewPlugin : public KDevelop::IPlugin
 public:
     KDevControlFlowGraphViewPlugin(QObject *, const QVariantList & = QVariantList());
     virtual ~KDevControlFlowGraphViewPlugin();
+
+    virtual void unload();
 private:
-    class KDevControlFlowGraphViewFactory *m_factory;
+    class KDevControlFlowGraphViewFactory *m_viewFactory;
 };
 
 #endif

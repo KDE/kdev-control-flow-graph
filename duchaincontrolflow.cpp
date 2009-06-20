@@ -106,6 +106,7 @@ void DUChainControlFlow::useDeclarationsFromDefinition (const Declaration *defin
     {
 	declaration = m_topContext->usedDeclarationForIndex(uses[i].m_declarationIndex);
         if (declaration && declaration->type<KDevelop::FunctionType>())
+        {
 	    if (subContextsIterator != subContextsEnd)
 	    {
 	        if (uses[i].m_range.start < (*subContextsIterator)->range().start)
@@ -141,6 +142,7 @@ void DUChainControlFlow::useDeclarationsFromDefinition (const Declaration *defin
                     useDeclarationsFromDefinition(calledFunctionDefinition, calledFunctionContext);
 		}
 	    }
+        }
     }
     while (subContextsIterator != subContextsEnd)
 	if ((*subContextsIterator)->type() == DUContext::Other)

@@ -34,7 +34,7 @@ class DUChainControlFlow : public QObject
     Q_OBJECT
 public:
     DUChainControlFlow();
-    ~DUChainControlFlow();
+    virtual ~DUChainControlFlow();
 
     void controlFlowFromCurrentDefinition (unsigned int maxLevel = 0);
 Q_SIGNALS:

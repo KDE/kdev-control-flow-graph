@@ -33,19 +33,20 @@ namespace KDevelop {
 using namespace KDevelop;
 
 class QTemporaryFile;
+class KUrl;
 
 class DotControlFlowGraph : public QObject
 {
     Q_OBJECT
 public:
-    DotControlFlowGraph(QTemporaryFile *tempFile);
-    ~DotControlFlowGraph();
-
+    DotControlFlowGraph();
+    virtual ~DotControlFlowGraph();
+Q_SIGNALS:
+    void graphSaved(const KUrl &url);
 public Q_SLOTS:
     void foundRootNode (const Declaration *definition);
     void foundFunctionCall (const Declaration *source, const Declaration *target);
     void graphDone();
-
 private:
     GVC_t *m_gvc;
     graph_t *m_graph;

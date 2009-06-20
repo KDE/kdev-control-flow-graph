@@ -19,15 +19,18 @@
 
 #include "controlflowgraphview.h"
 
-#include <QTemporaryFile>
-
 #include <kparts/part.h>
 #include <klibloader.h>
 #include <kservice.h>
 #include <kmessagebox.h>
 #include <kactioncollection.h>
 
-ControlFlowGraphView::ControlFlowGraphView(QWidget *parent) : QWidget(parent), m_part(0), m_tempFile(0)
+#include "duchaincontrolflow.h"
+#include "dotcontrolflowgraph.h"
+
+ControlFlowGraphView::ControlFlowGraphView(QWidget *parent)
+: QWidget(parent), m_part(0),
+m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotControlFlowGraph)
 {
     setupUi(this);
     KLibFactory *factory = KLibLoader::self()->factory("kgraphviewerpart");
@@ -39,9 +42,15 @@ ControlFlowGraphView::ControlFlowGraphView(QWidget *parent) : QWidget(parent), m
 	    horizontalLayout->addWidget(m_part->widget());
 	    connect(zoomoutToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_out"), SIGNAL(triggered()));
 	    connect(zoominToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_in"), SIGNAL(triggered()));
-	    m_tempFile = new QTemporaryFile();
-	    if (!m_tempFile->open())
-	        KMessageBox::error(this, i18n("Could not create temporary file"));
+
+	    connect(m_duchainControlFlow,  SIGNAL(foundRootNode(const Declaration*)),
+                    m_dotControlFlowGraph, SLOT  (foundRootNode(const Declaration*)));
+	    connect(m_duchainControlFlow,  SIGNAL(foundFunctionCall(const Declaration*, const Declaration*)),
+                    m_dotControlFlowGraph, SLOT  (foundFunctionCall(const Declaration*, const Declaration*)));
+	    connect(m_duchainControlFlow,  SIGNAL(graphDone()), m_dotControlFlowGraph, SLOT(graphDone()));
+	    connect(m_dotControlFlowGraph, SIGNAL(graphSaved(const KUrl &)), m_part, SLOT(openUrl(const KUrl &)));
+
+	    m_duchainControlFlow->controlFlowFromCurrentDefinition(0);
 	}
         else
 	    KMessageBox::error(this, i18n("Could not load the KGraphViewer kpart"));
@@ -52,16 +61,7 @@ ControlFlowGraphView::ControlFlowGraphView(QWidget *parent) : QWidget(parent), m
 
 ControlFlowGraphView::~ControlFlowGraphView()
 {
+    if (m_duchainControlFlow != 0) delete m_duchainControlFlow;
+    if (m_dotControlFlowGraph != 0) delete m_dotControlFlowGraph;
     if (m_part != 0) delete m_part;
-    if (m_tempFile != 0) delete m_tempFile;
-}
-
-void ControlFlowGraphView::drawGraph()
-{
-    m_part->openUrl(KUrl("file://" + m_tempFile->fileName()));
-}
-
-QTemporaryFile *ControlFlowGraphView::tempFile()
-{
-    return m_tempFile;
 }

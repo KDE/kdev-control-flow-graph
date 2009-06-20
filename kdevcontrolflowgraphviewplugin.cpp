@@ -35,8 +35,6 @@
 #include <language/duchain/use.h>
 
 #include "controlflowgraphview.h"
-#include "duchaincontrolflow.h"
-#include "dotcontrolflowgraph.h"
 
 using namespace KDevelop;
 
@@ -45,21 +43,10 @@ K_EXPORT_PLUGIN(ControlFlowGraphViewFactory(KAboutData("kdevcontrolflowgraphview
 
 class KDevControlFlowGraphViewFactory: public KDevelop::IToolViewFactory{
 public:
-    KDevControlFlowGraphViewFactory(KDevControlFlowGraphViewPlugin *plugin) : mplugin(plugin) {}
+    KDevControlFlowGraphViewFactory(KDevControlFlowGraphViewPlugin *plugin) : m_plugin(plugin) {}
     virtual QWidget* create(QWidget *parent = 0)
     {
 	ControlFlowGraphView *cfgview = new ControlFlowGraphView(parent);
-
-	DUChainControlFlow duccf;
-	DotControlFlowGraph dcfg(cfgview->tempFile());
-
-	QObject::connect(&duccf, SIGNAL(foundRootNode(const Declaration*)), &dcfg, SLOT(foundRootNode(const Declaration*)));
-	QObject::connect(&duccf, SIGNAL(foundFunctionCall(const Declaration*, const Declaration*)), &dcfg, SLOT(foundFunctionCall(const Declaration*, const Declaration*)));
-	QObject::connect(&duccf, SIGNAL(graphDone()), &dcfg, SLOT(graphDone()));
-
-	duccf.controlFlowFromCurrentDefinition(0);
-	cfgview->drawGraph();
-
         return cfgview;
     }
     virtual Qt::DockWidgetArea defaultPosition()
@@ -71,18 +58,23 @@ public:
         return "org.kdevelop.ControlFlowGraphView";
     }
 private:
-    KDevControlFlowGraphViewPlugin *mplugin;
+    KDevControlFlowGraphViewPlugin *m_plugin;
 };
 
 KDevControlFlowGraphViewPlugin::KDevControlFlowGraphViewPlugin (QObject *parent, const QVariantList &)
 : KDevelop::IPlugin (ControlFlowGraphViewFactory::componentData(), parent)
 {
-    m_factory = new KDevControlFlowGraphViewFactory(this);
-    core()->uiController()->addToolView("Control Flow Graph", m_factory);
+    m_viewFactory = new KDevControlFlowGraphViewFactory(this);
+    core()->uiController()->addToolView("Control Flow Graph", m_viewFactory);
 }
 
 KDevControlFlowGraphViewPlugin::~KDevControlFlowGraphViewPlugin()
 {
+}
+
+void KDevControlFlowGraphViewPlugin::unload()
+{
+    core()->uiController()->removeToolView(m_viewFactory);
 }
 
 #include "kdevcontrolflowgraphviewplugin.moc"

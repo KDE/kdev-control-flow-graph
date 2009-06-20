@@ -27,20 +27,19 @@ namespace KParts
     class ReadOnlyPart;
 };
 
-class QTemporaryFile;
+class DUChainControlFlow;
+class DotControlFlowGraph;
 
 class ControlFlowGraphView : public QWidget, public Ui::ControlFlowGraphView
 {
     Q_OBJECT
 public:
     ControlFlowGraphView (QWidget *parent = 0);
-    ~ControlFlowGraphView ();
-
-    void drawGraph();
-    QTemporaryFile *tempFile();
+    virtual ~ControlFlowGraphView ();
 private:
     KParts::ReadOnlyPart* m_part;
-    QTemporaryFile *m_tempFile;
+    DUChainControlFlow *m_duchainControlFlow;
+    DotControlFlowGraph *m_dotControlFlowGraph;
 };
 
 #endif

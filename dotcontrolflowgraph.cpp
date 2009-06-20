@@ -23,14 +23,18 @@
 
 #include <language/duchain/declaration.h>
 
-DotControlFlowGraph::DotControlFlowGraph(QTemporaryFile *tempFile) : m_tempFile(tempFile)
+DotControlFlowGraph::DotControlFlowGraph() : m_tempFile(0)
 {
     m_gvc = gvContext();
     m_graph = 0;
+    m_tempFile = new QTemporaryFile();
+    m_tempFile->open();
 }
 
 DotControlFlowGraph::~DotControlFlowGraph()
 {
+    gvFreeContext(m_gvc);
+    if (m_tempFile != 0) delete m_tempFile;
 }
 
 void DotControlFlowGraph::graphDone()
@@ -39,21 +43,24 @@ void DotControlFlowGraph::graphDone()
     {
         gvLayout(m_gvc, m_graph, "dot");
         gvRenderFilename(m_gvc, m_graph, "dot", m_tempFile->fileName().toUtf8().data());
-        gvFreeLayout(m_gvc, m_graph);
-        agclose(m_graph);
+	emit graphSaved("file://" + m_tempFile->fileName());
     }
-    gvFreeContext(m_gvc);
 }
 
 void DotControlFlowGraph::foundRootNode (const Declaration *definition)
 {
+    if (m_graph)
+    {
+        gvFreeLayout(m_gvc, m_graph);
+        agclose(m_graph);
+    }
     m_graph = agopen(definition->qualifiedIdentifier().toString().toUtf8().data(), AGDIGRAPH);
     Agnode_t *node = agnode(m_graph, definition->qualifiedIdentifier().toString().toUtf8().data());
-    agsafeset(node, "shape", "box", "");
+    agsafeset(node, (char *) "shape", (char *) "box", (char *) "");
     QColor c = colorFromQualifiedIdentifier(definition->qualifiedIdentifier());
     char color[8];
     sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
-    agsafeset(node, "fillcolor", color, "");
+    agsafeset(node, (char *) "fillcolor", color, (char *) "");
 }
 
 void DotControlFlowGraph::foundFunctionCall (const Declaration *source, const Declaration *target)
@@ -61,14 +68,14 @@ void DotControlFlowGraph::foundFunctionCall (const Declaration *source, const De
     Agnode_t* src = agnode(m_graph, source->qualifiedIdentifier().toString().toUtf8().data());
     Agnode_t* tgt = agnode(m_graph, target->qualifiedIdentifier().toString().toUtf8().data());
     char color[8];
-    agsafeset(src, "shape", "box", "");
+    agsafeset(src, (char *) "shape", (char *) "box", (char *) "");
     QColor c = colorFromQualifiedIdentifier(source->qualifiedIdentifier());
     sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
-    agsafeset(src, "fillcolor", color, "");
-    agsafeset(tgt, "shape", "box", "");
+    agsafeset(src, (char *) "fillcolor", color, (char *) "");
+    agsafeset(tgt, (char *) "shape", (char *) "box", (char *) "");
     c = colorFromQualifiedIdentifier(target->qualifiedIdentifier());
     sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
-    agsafeset(tgt, "fillcolor", color, "");
+    agsafeset(tgt, (char *) "fillcolor", color, (char *) "");
     agedge(m_graph, src, tgt);
 }
 
