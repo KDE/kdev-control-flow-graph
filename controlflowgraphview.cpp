@@ -71,19 +71,16 @@ ControlFlowGraphView::~ControlFlowGraphView()
 
 void ControlFlowGraphView::textDocumentCreated(KDevelop::IDocument *document)
 {
+    disconnect(document->textDocument(), SIGNAL(viewCreated(KTextEditor::Document *, KTextEditor::View *)),
+	    this, SLOT(viewCreated(KTextEditor::Document *, KTextEditor::View *)));
     connect(document->textDocument(), SIGNAL(viewCreated(KTextEditor::Document *, KTextEditor::View *)),
 	    this, SLOT(viewCreated(KTextEditor::Document *, KTextEditor::View *)));
 }
 
 void ControlFlowGraphView::viewCreated(KTextEditor::Document *document, KTextEditor::View *view)
 {
-    disconnect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
-	    this, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
     connect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
-	    this, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
-}
-
-void ControlFlowGraphView::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
-{
-    m_duchainControlFlow->controlFlowFromCurrentDefinition(0);
+	    m_duchainControlFlow, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
+    connect(view, SIGNAL(destroyed(QObject *)), m_duchainControlFlow, SLOT(viewDestroyed(QObject *)));
+    connect(view, SIGNAL(focusIn(KTextEditor::View *)), m_duchainControlFlow, SLOT(focusIn(KTextEditor::View *)));
 }

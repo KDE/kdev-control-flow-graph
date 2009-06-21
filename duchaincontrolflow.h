@@ -22,11 +22,15 @@
 
 #include <QObject>
 
+namespace KTextEditor {
+    class View;
+    class Cursor;
+};
 namespace KDevelop {
     class DUContext;
     class Declaration;
     class TopDUContext;
-}
+};
 using namespace KDevelop;
 
 class DUChainControlFlow : public QObject
@@ -36,12 +40,15 @@ public:
     DUChainControlFlow();
     virtual ~DUChainControlFlow();
 
-    void controlFlowFromCurrentDefinition (unsigned int maxLevel = 0);
 Q_SIGNALS:
     void foundRootNode (const Declaration *definition);
     void foundFunctionCall (const Declaration *source, const Declaration *target);
     void graphDone();
     void clearGraph();
+public Q_SLOTS:
+    void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
+    void viewDestroyed(QObject *object);
+    void focusIn(KTextEditor::View *view);
 private:
     void useDeclarationsFromDefinition(const Declaration *definition, DUContext *context);
     TopDUContext *m_topContext;

@@ -37,7 +37,8 @@
 
 using namespace KDevelop;
 
-DUChainControlFlow::DUChainControlFlow() : m_previousUppermostExecutableContext(0)
+DUChainControlFlow::DUChainControlFlow()
+: m_previousUppermostExecutableContext(0), m_maxLevel(0)
 {
 }
 
@@ -45,27 +46,15 @@ DUChainControlFlow::~DUChainControlFlow()
 {
 }
 
-void DUChainControlFlow::controlFlowFromCurrentDefinition (unsigned int maxLevel)
+void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
 {
-    m_maxLevel = maxLevel;
     m_currentLevel = 1;
 
-    IDocument *doc = ICore::self()->documentController()->activeDocument();
-    if (!doc) return;
-
-    KTextEditor::Document *textDoc = doc->textDocument();
-    if (!textDoc) return;
-
-    KTextEditor::View *view = textDoc->activeView();
-    if (!view) return;
-
-    KDevelop::DUChainReadLocker lock(DUChain::lock());
-
-    m_topContext = DUChainUtils::standardContextForUrl(doc->url());
+    if (!view->document()) return;
+    m_topContext = DUChainUtils::standardContextForUrl(view->document()->url());
     if (!m_topContext) return;
 
-    SimpleCursor cursor(view->cursorPosition());
-    DUContext *context = m_topContext->findContext(cursor);
+    DUContext *context = m_topContext->findContext(KDevelop::SimpleCursor(cursor));
     if (!context)
     {
 	emit clearGraph();
@@ -172,3 +161,13 @@ void DUChainControlFlow::useDeclarationsFromDefinition (const Declaration *defin
 	}
 }
 
+void DUChainControlFlow::viewDestroyed(QObject *object)
+{
+    if (!ICore::self()->documentController()->activeDocument())
+        emit clearGraph();
+}
+
+void DUChainControlFlow::focusIn(KTextEditor::View *view)
+{
+    cursorPositionChanged(view, view->cursorPosition());
+}

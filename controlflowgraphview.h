@@ -48,7 +48,6 @@ public:
 public Q_SLOTS:
     void textDocumentCreated(KDevelop::IDocument *document);
     void viewCreated(KTextEditor::Document *document, KTextEditor::View *view);
-    void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
 private:
     KParts::ReadOnlyPart* m_part;
     DUChainControlFlow *m_duchainControlFlow;

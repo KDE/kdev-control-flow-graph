@@ -58,7 +58,7 @@ public:
 
 	QObject::connect(m_plugin->core()->documentController(), SIGNAL(textDocumentCreated(KDevelop::IDocument *)),
 		         controlFlowGraphView, SLOT(textDocumentCreated(KDevelop::IDocument *)));
-
+/*
 	IDocument *doc = m_plugin->core()->documentController()->activeDocument();
 	if (doc)
 	{
@@ -70,7 +70,7 @@ public:
 		    controlFlowGraphView->cursorPositionChanged(view, view->cursorPosition());
 	    }
 	}
-
+*/
         return controlFlowGraphView;
     }
     virtual Qt::DockWidgetArea defaultPosition()
