@@ -52,10 +52,9 @@ public Q_SLOTS:
     void viewDestroyed(QObject *object);
     void focusIn(KTextEditor::View *view);
 private:
-    void useDeclarationsFromDefinition(Declaration *definition, DUContext *context);
-    void processFunctionCall(Declaration *definition, Declaration *declaration, DUContext *context);
+    void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
+    void processFunctionCall(Declaration *definition, Declaration *declaration, TopDUContext *topContext);
 
-    TopDUContext *m_topContext;
     DUContext *m_previousUppermostExecutableContext;
     QSet<Declaration *> m_visitedFunctions;
     QSet< QPair<Declaration *, Declaration *> > m_arcs;

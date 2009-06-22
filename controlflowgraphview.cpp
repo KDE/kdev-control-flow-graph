@@ -77,7 +77,7 @@ void ControlFlowGraphView::textDocumentCreated(KDevelop::IDocument *document)
 	    this, SLOT(viewCreated(KTextEditor::Document *, KTextEditor::View *)));
 }
 
-void ControlFlowGraphView::viewCreated(KTextEditor::Document *document, KTextEditor::View *view)
+void ControlFlowGraphView::viewCreated(KTextEditor::Document * /* document */, KTextEditor::View *view)
 {
     connect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
 	    m_duchainControlFlow, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
