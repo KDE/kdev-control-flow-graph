@@ -57,15 +57,21 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     DUContext *context = m_topContext->findContext(KDevelop::SimpleCursor(cursor));
     if (!context)
     {
-	emit clearGraph();
-	m_previousUppermostExecutableContext = 0;
+	if (m_previousUppermostExecutableContext != 0)
+	{
+	    emit clearGraph();
+	    m_previousUppermostExecutableContext = 0;
+	}
 	return;
     }
 
     if (context->type() != DUContext::Other)
     {
-	emit clearGraph();
-	m_previousUppermostExecutableContext = 0;
+	if (m_previousUppermostExecutableContext != 0)
+	{
+	    emit clearGraph();
+	    m_previousUppermostExecutableContext = 0;
+	}
 	return;
     }
 
@@ -89,24 +95,25 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     if (!definition)
 	return;
 
+    m_visitedFunctions.clear();
+    m_arcs.clear();
     emit foundRootNode(definition);
 
     if (m_maxLevel != 1)
     {
         ++m_currentLevel;
+	m_visitedFunctions.insert(definition);
         useDeclarationsFromDefinition(definition, uppermostExecutableContext);
     }
     emit graphDone();
 }
 
-void DUChainControlFlow::useDeclarationsFromDefinition (const Declaration *definition, DUContext *context)
+void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition, DUContext *context)
 {
+    Declaration *declaration;
+
     const Use *uses = context->uses();
     unsigned int usesCount = context->usesCount();
-    Declaration *declaration;
-    FunctionDefinition *calledFunctionDefinition;
-    DUContext *calledFunctionContext;
-
     QVector<DUContext *> subContexts = context->childContexts();
     QVector<DUContext *>::iterator subContextsIterator = subContexts.begin();
     QVector<DUContext *>::iterator subContextsEnd      = subContexts.end();
@@ -119,18 +126,7 @@ void DUChainControlFlow::useDeclarationsFromDefinition (const Declaration *defin
 	    if (subContextsIterator != subContextsEnd)
 	    {
 	        if (uses[i].m_range.start < (*subContextsIterator)->range().start)
-		{
-	            emit foundFunctionCall(definition, declaration);
-		    calledFunctionDefinition = FunctionDefinition::definition(declaration);
-		    if (!calledFunctionDefinition)
-		        continue;
-		    calledFunctionContext = calledFunctionDefinition->internalContext();
-		    if (m_currentLevel < m_maxLevel || m_maxLevel == 0)
-		    {
-                        ++m_currentLevel;
-                        useDeclarationsFromDefinition(calledFunctionDefinition, calledFunctionContext);
-		    }
-		}
+		    processFunctionCall(definition, declaration, context);
 	        else if ((*subContextsIterator)->type() == DUContext::Other)
 		{
 	            useDeclarationsFromDefinition(definition, *subContextsIterator);
@@ -139,18 +135,7 @@ void DUChainControlFlow::useDeclarationsFromDefinition (const Declaration *defin
 		}
 	    }
 	    else
-	    {
-	        emit foundFunctionCall(definition, declaration);
-	        calledFunctionDefinition = FunctionDefinition::definition(declaration);
-	        if (!calledFunctionDefinition)
-	            continue;
-	        calledFunctionContext = calledFunctionDefinition->internalContext();
-		if (m_currentLevel < m_maxLevel || m_maxLevel == 0)
-		{
-                    ++m_currentLevel;
-                    useDeclarationsFromDefinition(calledFunctionDefinition, calledFunctionContext);
-		}
-	    }
+		processFunctionCall(definition, declaration, context);
         }
     }
     while (subContextsIterator != subContextsEnd)
@@ -159,6 +144,34 @@ void DUChainControlFlow::useDeclarationsFromDefinition (const Declaration *defin
             useDeclarationsFromDefinition(definition, *subContextsIterator);
 	    subContextsIterator++;
 	}
+}
+
+void DUChainControlFlow::processFunctionCall(Declaration *definition, Declaration *declaration, DUContext *context)
+{
+    FunctionDefinition *calledFunctionDefinition;
+    DUContext *calledFunctionContext;
+
+    QPair<Declaration *, Declaration *> pair(definition, declaration);
+    // For prevent duplicated arcs
+    if (!m_arcs.contains(pair))
+    {
+	m_arcs.insert(pair);
+	emit foundFunctionCall(definition, declaration);
+    }
+
+    calledFunctionDefinition = FunctionDefinition::definition(declaration);
+    if (!calledFunctionDefinition) return;
+    calledFunctionContext = calledFunctionDefinition->internalContext();
+    if (m_currentLevel < m_maxLevel || m_maxLevel == 0)
+    {
+	// For prevent endless loop in recursive methods
+	if (!m_visitedFunctions.contains(calledFunctionDefinition))
+	{
+	    ++m_currentLevel;
+	    m_visitedFunctions.insert(calledFunctionDefinition);
+	    useDeclarationsFromDefinition(calledFunctionDefinition, calledFunctionContext);
+	}
+    }
 }
 
 void DUChainControlFlow::viewDestroyed(QObject *object)

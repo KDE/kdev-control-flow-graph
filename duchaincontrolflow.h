@@ -21,6 +21,8 @@
 #define _DUCHAINCONTROLFLOW_H_
 
 #include <QObject>
+#include <QSet>
+#include <QPair>
 
 namespace KTextEditor {
     class View;
@@ -50,9 +52,13 @@ public Q_SLOTS:
     void viewDestroyed(QObject *object);
     void focusIn(KTextEditor::View *view);
 private:
-    void useDeclarationsFromDefinition(const Declaration *definition, DUContext *context);
+    void useDeclarationsFromDefinition(Declaration *definition, DUContext *context);
+    void processFunctionCall(Declaration *definition, Declaration *declaration, DUContext *context);
+
     TopDUContext *m_topContext;
     DUContext *m_previousUppermostExecutableContext;
+    QSet<Declaration *> m_visitedFunctions;
+    QSet< QPair<Declaration *, Declaration *> > m_arcs;
     unsigned int m_currentLevel;
     unsigned int m_maxLevel;
 };
