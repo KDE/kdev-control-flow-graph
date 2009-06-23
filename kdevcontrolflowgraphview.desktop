@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Service
 Comment=This plugin provides control flow graph visualization in KDevelop
-Comment[es]=Este complemento proporcioina visualización de gráficos de control de flujo en KDevelop
+Comment[es]=Este complemento proporciona visualización de gráficos de control de flujo en KDevelop
 Comment[pt]=Este 'plugin' permite a visualização de um gráfico do fluxo de controlo no KDevelop
 Comment[pt_BR]=Este 'plugin' permite a visualização de um gráfico do fluxo de controlo no KDevelop
 Comment[sv]=Insticksprogrammet tillhandahåller visualisering av kontrollflödesgrafer i KDevelop
