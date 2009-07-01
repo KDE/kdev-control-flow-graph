@@ -2,7 +2,7 @@
 Type=Service
 Comment=This plugin provides control flow graph visualization in KDevelop
 Comment[es]=Este complemento proporciona visualización de gráficos de control de flujo en KDevelop
-Comment[fr]=Ce module fournit une visualisation d'un graphique de flux de contrôle dans KDevelop
+Comment[fr]=Ce module fournit un graphique de visualisation du flot d'exécution pour KDevelop
 Comment[pt]=Este 'plugin' permite a visualização de um gráfico do fluxo de controlo no KDevelop
 Comment[pt_BR]=Este 'plugin' permite a visualização de um gráfico do fluxo de controlo no KDevelop
 Comment[sv]=Insticksprogrammet tillhandahåller visualisering av kontrollflödesgrafer i KDevelop
@@ -10,7 +10,7 @@ Comment[uk]=За допомогою цього додатка можна зді�
 Comment[x-test]=xxThis plugin provides control flow graph visualization in KDevelopxx
 Name=KDevelop Control Flow Graphs
 Name[es]=Gráficos de control de flujo de KDevelop
-Name[fr]=Graphiques de flux de contrôle KDevelop
+Name[fr]=Graphiques de visualisation du flot d'exécution pour KDevelop
 Name[pt]=Gráficos de Fluxo de Controlo do KDevelop
 Name[pt_BR]=Gráficos de Fluxo de Controlo do KDevelop
 Name[sv]=Kdevelop kontrollflödesgrafer
