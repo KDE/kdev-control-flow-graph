@@ -51,6 +51,9 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     m_currentLevel = 1;
 
     if (!view->document()) return;
+
+    DUChainReadLocker lock(DUChain::lock());
+    
     TopDUContext *topContext = DUChainUtils::standardContextForUrl(view->document()->url());
     if (!topContext) return;
 
