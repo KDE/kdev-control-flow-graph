@@ -114,6 +114,8 @@ void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition,
 {
     if (!topContext) return;
 
+    DUChainReadLocker lock(DUChain::lock());
+
     const Use *uses = context->uses();
     unsigned int usesCount = context->usesCount();
     QVector<DUContext *> subContexts = context->childContexts();
@@ -161,6 +163,8 @@ void DUChainControlFlow::processFunctionCall(Declaration *definition, Declaratio
 	m_arcs.insert(pair);
 	emit foundFunctionCall(definition, declaration);
     }
+
+    DUChainReadLocker lock(DUChain::lock());
 
     calledFunctionDefinition = FunctionDefinition::definition(declaration);
     if (!calledFunctionDefinition) return;

@@ -9,7 +9,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}
 )
 
-add_definitions(-DKDE_DEFAULT_DEBUG_AREA=9518)
+add_definitions(-DKDE_DEFAULT_DEBUG_AREA=9528)
 
 set(kdevcontrolflowgraphview_PART_SRCS
     kdevcontrolflowgraphviewplugin.cpp
