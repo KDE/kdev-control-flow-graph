@@ -22,7 +22,10 @@
 
 #include <QObject>
 #include <QSet>
+#include <QHash>
 #include <QPair>
+
+class QPoint;
 
 namespace KTextEditor {
     class View;
@@ -41,7 +44,6 @@ class DUChainControlFlow : public QObject
 public:
     DUChainControlFlow();
     virtual ~DUChainControlFlow();
-
 Q_SIGNALS:
     void foundRootNode (const Declaration *definition);
     void foundFunctionCall (const Declaration *source, const Declaration *target);
@@ -51,13 +53,15 @@ public Q_SLOTS:
     void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
     void viewDestroyed(QObject *object);
     void focusIn(KTextEditor::View *view);
+    void selectionIs(const QList<QString> list, const QPoint& point);
 private:
     void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
-    void processFunctionCall(Declaration *definition, Declaration *declaration, TopDUContext *topContext);
+    void processFunctionCall(Declaration *definition, Declaration *declaration);
 
     DUContext *m_previousUppermostExecutableContext;
     QSet<Declaration *> m_visitedFunctions;
     QSet< QPair<Declaration *, Declaration *> > m_arcs;
+    QHash<QString, Declaration *> m_identifierDeclarationMap;
     unsigned int m_currentLevel;
     unsigned int m_maxLevel;
 };

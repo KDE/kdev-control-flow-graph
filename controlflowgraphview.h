@@ -48,6 +48,8 @@ public:
 public Q_SLOTS:
     void textDocumentCreated(KDevelop::IDocument *document);
     void viewCreated(KTextEditor::Document *document, KTextEditor::View *view);
+Q_SIGNALS:
+    void setReadWrite();
 private:
     KParts::ReadOnlyPart* m_part;
     DUChainControlFlow *m_duchainControlFlow;

@@ -43,9 +43,14 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
         m_part = factory->create<KParts::ReadOnlyPart>(this);
   	if (m_part)
 	{
+	    connect(this, SIGNAL(setReadWrite()), m_part, SLOT(setReadWrite()));
+	    emit(setReadWrite());
+
 	    horizontalLayout->addWidget(m_part->widget());
 	    connect(zoomoutToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_out"), SIGNAL(triggered()));
 	    connect(zoominToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_in"), SIGNAL(triggered()));
+	    connect(m_part, SIGNAL(selectionIs(const QList<QString>, const QPoint&)),
+		    m_duchainControlFlow, SLOT(selectionIs(const QList<QString>, const QPoint&)));
 
 	    connect(m_duchainControlFlow,  SIGNAL(foundRootNode(const Declaration*)),
                     m_dotControlFlowGraph, SLOT  (foundRootNode(const Declaration*)));
@@ -53,7 +58,7 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
                     m_dotControlFlowGraph, SLOT  (foundFunctionCall(const Declaration*, const Declaration*)));
 	    connect(m_duchainControlFlow,  SIGNAL(clearGraph()), m_dotControlFlowGraph, SLOT(clearGraph()));
 	    connect(m_duchainControlFlow,  SIGNAL(graphDone()), m_dotControlFlowGraph, SLOT(graphDone()));
-	    connect(m_dotControlFlowGraph, SIGNAL(openUrl(const KUrl &)), m_part, SLOT(openUrl(const KUrl &)));
+	    connect(m_dotControlFlowGraph, SIGNAL(loadLibrary(graph_t*)), m_part, SLOT(slotLoadLibrary(graph_t*)));
 	}
         else
 	    KMessageBox::error(this, i18n("Could not load the KGraphViewer kpart"));

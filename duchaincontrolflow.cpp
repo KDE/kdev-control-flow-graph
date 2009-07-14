@@ -21,6 +21,7 @@
 
 #include <ktexteditor/view.h>
 #include <ktexteditor/document.h>
+#include <kmessagebox.h>
 
 #include <interfaces/icore.h>
 #include <interfaces/iuicontroller.h>
@@ -99,6 +100,8 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
 
     m_visitedFunctions.clear();
     m_arcs.clear();
+    m_identifierDeclarationMap.clear();
+    emit clearGraph();
     emit foundRootNode(definition);
 
     if (m_maxLevel != 1)
@@ -122,6 +125,8 @@ void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition,
     QVector<DUContext *>::iterator subContextsIterator = subContexts.begin();
     QVector<DUContext *>::iterator subContextsEnd      = subContexts.end();
 
+    m_identifierDeclarationMap[definition->qualifiedIdentifier().toString()] = definition;
+
     Declaration *declaration;
     for (unsigned int i = 0; i < usesCount; ++i)
     {
@@ -131,7 +136,7 @@ void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition,
 	    if (subContextsIterator != subContextsEnd)
 	    {
 	        if (uses[i].m_range.start < (*subContextsIterator)->range().start)
-		    processFunctionCall(definition, declaration, topContext);
+		    processFunctionCall(definition, declaration);
 	        else if ((*subContextsIterator)->type() == DUContext::Other)
 		{
 	            useDeclarationsFromDefinition(definition, topContext, *subContextsIterator);
@@ -140,7 +145,7 @@ void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition,
 		}
 	    }
 	    else
-		processFunctionCall(definition, declaration, topContext);
+		processFunctionCall(definition, declaration);
         }
     }
     while (subContextsIterator != subContextsEnd)
@@ -151,7 +156,7 @@ void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition,
 	}
 }
 
-void DUChainControlFlow::processFunctionCall(Declaration *definition, Declaration *declaration, TopDUContext *topContext)
+void DUChainControlFlow::processFunctionCall(Declaration *definition, Declaration *declaration)
 {
     FunctionDefinition *calledFunctionDefinition;
     DUContext *calledFunctionContext;
@@ -181,8 +186,9 @@ void DUChainControlFlow::processFunctionCall(Declaration *definition, Declaratio
     }
 }
 
-void DUChainControlFlow::viewDestroyed(QObject * /* object */)
+void DUChainControlFlow::viewDestroyed(QObject * object)
 {
+    Q_UNUSED(object);
     if (!ICore::self()->documentController()->activeDocument())
         emit clearGraph();
 }
@@ -190,4 +196,20 @@ void DUChainControlFlow::viewDestroyed(QObject * /* object */)
 void DUChainControlFlow::focusIn(KTextEditor::View *view)
 {
     cursorPositionChanged(view, view->cursorPosition());
+}
+
+void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& point)
+{
+/*
+    if (!list.isEmpty())
+    {
+	Declaration *definition = m_identifierDeclarationMap[list[0]];
+	if (definition)
+	{
+	    KUrl url(definition->url().str());
+	    KTextEditor::Range range = definition->range().textRange();
+	    ICore::self()->documentController()->openDocument(url, range.start());
+	}
+    }
+*/
 }

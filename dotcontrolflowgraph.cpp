@@ -19,11 +19,9 @@
 
 #include "dotcontrolflowgraph.h"
 
-#include <QTemporaryFile>
-
 #include <language/duchain/declaration.h>
 
-DotControlFlowGraph::DotControlFlowGraph() : m_tempFile(0)
+DotControlFlowGraph::DotControlFlowGraph()
 {
     m_graph = 0;
     m_gvc = gvContext();
@@ -39,28 +37,26 @@ void DotControlFlowGraph::graphDone()
     if (m_graph)
     {
         gvLayout(m_gvc, m_graph, "dot");
-        gvRenderFilename(m_gvc, m_graph, "dot", m_tempFile->fileName().toUtf8().data());
+	gvRender(m_gvc, m_graph, "dot", 0);
         gvFreeLayout(m_gvc, m_graph);
-        agclose(m_graph);
-	emit openUrl("file://" + m_tempFile->fileName());
+	emit loadLibrary(m_graph);
     }
 }
 
 void DotControlFlowGraph::clearGraph()
 {
-    if (m_tempFile != 0)
+    if (m_graph)
     {
-	delete m_tempFile;
-	m_tempFile = 0;
+        agclose(m_graph);
+	m_graph = agopen("blank", AGDIGRAPHSTRICT);
+	emit loadLibrary(m_graph);
     }
-    m_tempFile = new QTemporaryFile();
-    m_tempFile->open();
-    emit openUrl("file://" + m_tempFile->fileName());
 }
 
 void DotControlFlowGraph::foundRootNode (const Declaration *definition)
 {
-    m_graph = agopen(definition->qualifiedIdentifier().toString().toUtf8().data(), AGDIGRAPH);
+    if (m_graph) agclose(m_graph);
+    m_graph = agopen(definition->qualifiedIdentifier().toString().toUtf8().data(), AGDIGRAPHSTRICT);
     Agnode_t *node = agnode(m_graph, definition->qualifiedIdentifier().toString().toUtf8().data());
     agsafeset(node, (char *) "shape", (char *) "box", (char *) "");
     QColor c = colorFromQualifiedIdentifier(definition->qualifiedIdentifier());
