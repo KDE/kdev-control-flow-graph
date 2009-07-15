@@ -106,7 +106,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     {
         ++m_currentLevel;
 	m_visitedFunctions.insert(definition);
-        m_identifierDeclarationMap[definition->qualifiedIdentifier().toString()] = definition;
+        m_identifierDeclarationMap[nodeDefinition->qualifiedIdentifier().toString()] = nodeDefinition;
         useDeclarationsFromDefinition(definition, topContext, uppermostExecutableContext);
     }
     emit graphDone();
@@ -185,7 +185,7 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 	    ++m_currentLevel;
 	    m_visitedFunctions.insert(calledFunctionDefinition);
 	    // Recursive call for method invocation
-	    m_identifierDeclarationMap[calledFunctionDefinition->qualifiedIdentifier().toString()] = calledFunctionDefinition;
+	    m_identifierDeclarationMap[nodeTarget->qualifiedIdentifier().toString()] = nodeTarget;
 	    useDeclarationsFromDefinition(calledFunctionDefinition, calledFunctionDefinition->topContext(), calledFunctionContext);
 	}
     }
