@@ -44,9 +44,10 @@ class DUChainControlFlow : public QObject
 public:
     DUChainControlFlow();
     virtual ~DUChainControlFlow();
+    enum ControlFlowMode { ControlFlowFunction, ControlFlowClass, ControlFlowNamespace };
 Q_SIGNALS:
-    void foundRootNode (const Declaration *definition);
-    void foundFunctionCall (const Declaration *source, const Declaration *target);
+    void foundRootNode (const QString &label);
+    void foundFunctionCall (const QString &source, const QString &target);
     void graphDone();
     void clearGraph();
 public Q_SLOTS:
@@ -56,16 +57,17 @@ public Q_SLOTS:
     void selectionIs(const QList<QString> list, const QPoint& point);
 private:
     void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
-    void processFunctionCall(Declaration *definition, Declaration *declaration);
+    void processFunctionCall(Declaration *source, Declaration *target);
+    Declaration *declarationFromControlFlowMode(Declaration *definitionDeclaration);
     void newGraph();
 
     DUContext *m_previousUppermostExecutableContext;
     QSet<Declaration *> m_visitedFunctions;
-    QSet< QPair<Declaration *, Declaration *> > m_arcs;
     QHash<QString, Declaration *> m_identifierDeclarationMap;
     unsigned int m_currentLevel;
     unsigned int m_maxLevel;
     bool m_navigating;
+    ControlFlowMode m_controlFlowMode;
 };
 
 #endif

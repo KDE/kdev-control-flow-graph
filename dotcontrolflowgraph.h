@@ -41,8 +41,8 @@ public:
 Q_SIGNALS:
     bool loadLibrary(graph_t* graph);
 public Q_SLOTS:
-    void foundRootNode (const Declaration *definition);
-    void foundFunctionCall (const Declaration *source, const Declaration *target);
+    void foundRootNode (const QString &label);
+    void foundFunctionCall (const QString &source, const QString &target);
     void graphDone();
     void clearGraph();
 private:
@@ -50,7 +50,7 @@ private:
     graph_t *m_graph;
     QMap<QString, QColor> m_colorMap;
 
-    const QColor& colorFromQualifiedIdentifier(const KDevelop::QualifiedIdentifier &qualifiedIdentifier);
+    const QColor& colorFromQualifiedIdentifier(const QString &label);
 };
 
 #endif

@@ -53,10 +53,10 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 	    connect(m_part, SIGNAL(selectionIs(const QList<QString>, const QPoint&)),
 		 m_duchainControlFlow, SLOT(selectionIs(const QList<QString>, const QPoint&)));
 
-	    connect(m_duchainControlFlow,  SIGNAL(foundRootNode(const Declaration*)),
-                    m_dotControlFlowGraph, SLOT  (foundRootNode(const Declaration*)));
-	    connect(m_duchainControlFlow,  SIGNAL(foundFunctionCall(const Declaration*, const Declaration*)),
-                    m_dotControlFlowGraph, SLOT  (foundFunctionCall(const Declaration*, const Declaration*)));
+	    connect(m_duchainControlFlow,  SIGNAL(foundRootNode(const QString &)),
+                    m_dotControlFlowGraph, SLOT  (foundRootNode(const QString &)));
+	    connect(m_duchainControlFlow,  SIGNAL(foundFunctionCall(const QString &, const QString &)),
+                    m_dotControlFlowGraph, SLOT  (foundFunctionCall(const QString &, const QString &)));
 	    connect(m_duchainControlFlow,  SIGNAL(clearGraph()), m_dotControlFlowGraph, SLOT(clearGraph()));
 	    connect(m_duchainControlFlow,  SIGNAL(graphDone()), m_dotControlFlowGraph, SLOT(graphDone()));
 	    connect(m_dotControlFlowGraph, SIGNAL(loadLibrary(graph_t*)), m_part, SLOT(slotLoadLibrary(graph_t*)));

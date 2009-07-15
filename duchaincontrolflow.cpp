@@ -39,7 +39,10 @@
 using namespace KDevelop;
 
 DUChainControlFlow::DUChainControlFlow()
-: m_previousUppermostExecutableContext(0), m_maxLevel(0), m_navigating(false)
+: m_previousUppermostExecutableContext(0),
+  m_maxLevel(0),
+  m_navigating(false),
+  m_controlFlowMode(ControlFlowClass)
 {
 }
 
@@ -59,9 +62,11 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     TopDUContext *topContext = DUChainUtils::standardContextForUrl(view->document()->url());
     if (!topContext) return;
 
+    // If cursor isn't inside a function definition
     DUContext *context = topContext->findContext(KDevelop::SimpleCursor(cursor));
-    if (!context)
+    if (!context || context->type() != DUContext::Other)
     {
+	// If there is a previous graph
 	if (m_previousUppermostExecutableContext != 0)
 	{
 	    newGraph();
@@ -70,27 +75,18 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
 	return;
     }
 
-    if (context->type() != DUContext::Other)
-    {
-	if (m_previousUppermostExecutableContext != 0)
-	{
-	    newGraph();
-	    m_previousUppermostExecutableContext = 0;
-	}
-	return;
-    }
-
+    // Navigate to uppermost executable context
     DUContext *uppermostExecutableContext = context;
     while (uppermostExecutableContext->parentContext()->type() == DUContext::Other)
         uppermostExecutableContext = uppermostExecutableContext->parentContext();
 
+    // If cursor is in the same function definition
     if (uppermostExecutableContext == m_previousUppermostExecutableContext)
 	return;
-    else
-      	newGraph();
 
     m_previousUppermostExecutableContext = uppermostExecutableContext;
 
+    // Get the definition
     Declaration* definition = 0;
     if (!uppermostExecutableContext || !uppermostExecutableContext->owner())
         return;
@@ -100,7 +96,11 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     if (!definition) return;
 
     newGraph();
-    emit foundRootNode(definition);
+
+    // Convert to a declaration in accordance with control flow mode (function, class or namespace)
+    Declaration *nodeDefinition = declarationFromControlFlowMode(definition);
+
+    emit foundRootNode(nodeDefinition->qualifiedIdentifier().toString());
 
     if (m_maxLevel != 1)
     {
@@ -155,24 +155,28 @@ void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition,
 	}
 }
 
-void DUChainControlFlow::processFunctionCall(Declaration *definition, Declaration *declaration)
+void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *target)
 {
     FunctionDefinition *calledFunctionDefinition;
     DUContext *calledFunctionContext;
 
-    // For prevent duplicated arcs
-    QPair<Declaration *, Declaration *> pair(definition, declaration);
-    if (!m_arcs.contains(pair))
-    {
-	m_arcs.insert(pair);
-	emit foundFunctionCall(definition, declaration);
-    }
-
     DUChainReadLocker lock(DUChain::lock());
 
-    calledFunctionDefinition = FunctionDefinition::definition(declaration);
-    if (!calledFunctionDefinition) return;
-    calledFunctionContext = calledFunctionDefinition->internalContext();
+    // Convert to a declaration in accordance with control flow mode (function, class or namespace)
+    Declaration *nodeSource = declarationFromControlFlowMode(source);
+    Declaration *nodeTarget = declarationFromControlFlowMode(target);
+
+    // Try to acquire the called function definition
+    calledFunctionDefinition = FunctionDefinition::definition(target);
+    // If there is a flow (in accordance with control flow mode) emit signal
+    if (nodeTarget->qualifiedIdentifier().toString() != nodeSource->qualifiedIdentifier().toString() ||
+	m_controlFlowMode == ControlFlowFunction ||
+	(calledFunctionDefinition && m_visitedFunctions.contains(calledFunctionDefinition)))
+	emit foundFunctionCall(nodeSource->qualifiedIdentifier().toString(), nodeTarget->qualifiedIdentifier().toString());
+
+    if (calledFunctionDefinition) calledFunctionContext = calledFunctionDefinition->internalContext();
+    else return;
+
     if (calledFunctionContext && (m_currentLevel < m_maxLevel || m_maxLevel == 0))
     {
 	// For prevent endless loop in recursive methods
@@ -190,7 +194,6 @@ void DUChainControlFlow::processFunctionCall(Declaration *definition, Declaratio
 void DUChainControlFlow::newGraph()
 {
     m_visitedFunctions.clear();
-    m_arcs.clear();
     m_identifierDeclarationMap.clear();
     emit clearGraph();
 }
@@ -221,4 +224,21 @@ void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& po
 	    m_navigating = false;
 	}
     }
+}
+
+Declaration *DUChainControlFlow::declarationFromControlFlowMode(Declaration *definitionDeclaration)
+{
+    Declaration *nodeDeclaration = definitionDeclaration;
+
+    if (m_controlFlowMode != ControlFlowFunction && nodeDeclaration->qualifiedIdentifier().toString() != "main")
+    {
+	if (nodeDeclaration->isDefinition())
+	    nodeDeclaration = DUChainUtils::declarationForDefinition(nodeDeclaration, nodeDeclaration->topContext());
+	if (!nodeDeclaration || !nodeDeclaration->context() || !nodeDeclaration->context()->owner()) return definitionDeclaration;
+	while (nodeDeclaration->context() &&
+	       nodeDeclaration->context()->type() == ((m_controlFlowMode == ControlFlowClass) ? DUContext::Class : DUContext::Namespace) &&
+	       nodeDeclaration->context()->owner())
+	    nodeDeclaration = nodeDeclaration->context()->owner();
+    }
+    return nodeDeclaration;
 }

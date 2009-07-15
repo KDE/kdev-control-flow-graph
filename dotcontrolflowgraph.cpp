@@ -53,38 +53,38 @@ void DotControlFlowGraph::clearGraph()
     }
 }
 
-void DotControlFlowGraph::foundRootNode (const Declaration *definition)
+void DotControlFlowGraph::foundRootNode (const QString &label)
 {
     if (m_graph) agclose(m_graph);
-    m_graph = agopen(definition->qualifiedIdentifier().toString().toUtf8().data(), AGDIGRAPHSTRICT);
-    Agnode_t *node = agnode(m_graph, definition->qualifiedIdentifier().toString().toUtf8().data());
+    m_graph = agopen(label.toUtf8().data(), AGDIGRAPHSTRICT);
+    Agnode_t *node = agnode(m_graph, label.toUtf8().data());
     agsafeset(node, (char *) "shape", (char *) "box", (char *) "");
-    QColor c = colorFromQualifiedIdentifier(definition->qualifiedIdentifier());
+    QColor c = colorFromQualifiedIdentifier(label);
     char color[8];
     sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
     agsafeset(node, (char *) "fillcolor", color, (char *) "");
 }
 
-void DotControlFlowGraph::foundFunctionCall (const Declaration *source, const Declaration *target)
+void DotControlFlowGraph::foundFunctionCall (const QString &source, const QString &target)
 {
-    Agnode_t* src = agnode(m_graph, source->qualifiedIdentifier().toString().toUtf8().data());
-    Agnode_t* tgt = agnode(m_graph, target->qualifiedIdentifier().toString().toUtf8().data());
+    Agnode_t* src = agnode(m_graph, source.toUtf8().data());
+    Agnode_t* tgt = agnode(m_graph, target.toUtf8().data());
     char color[8];
     agsafeset(src, (char *) "shape", (char *) "box", (char *) "");
-    QColor c = colorFromQualifiedIdentifier(source->qualifiedIdentifier());
+    QColor c = colorFromQualifiedIdentifier(source);
     sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
     agsafeset(src, (char *) "fillcolor", color, (char *) "");
     agsafeset(tgt, (char *) "shape", (char *) "box", (char *) "");
-    c = colorFromQualifiedIdentifier(target->qualifiedIdentifier());
+    c = colorFromQualifiedIdentifier(target);
     sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
     agsafeset(tgt, (char *) "fillcolor", color, (char *) "");
     agedge(m_graph, src, tgt);
 }
 
-const QColor& DotControlFlowGraph::colorFromQualifiedIdentifier(const KDevelop::QualifiedIdentifier &qualifiedIdentifier)
+const QColor& DotControlFlowGraph::colorFromQualifiedIdentifier(const QString &label)
 {
-    if (m_colorMap.contains(qualifiedIdentifier.toString().split("::")[0]))
-        return m_colorMap[qualifiedIdentifier.toString().split("::")[0]];
+    if (m_colorMap.contains(label.split("::")[0]))
+        return m_colorMap[label.split("::")[0]];
     else
-        return m_colorMap[qualifiedIdentifier.toString().split("::")[0]] = QColor::fromHsv(qrand() % 256, 255, 190);
+        return m_colorMap[label.split("::")[0]] = QColor::fromHsv(qrand() % 256, 255, 190);
 }
