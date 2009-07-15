@@ -57,6 +57,7 @@ public Q_SLOTS:
 private:
     void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
     void processFunctionCall(Declaration *definition, Declaration *declaration);
+    void newGraph();
 
     DUContext *m_previousUppermostExecutableContext;
     QSet<Declaration *> m_visitedFunctions;
@@ -64,6 +65,7 @@ private:
     QHash<QString, Declaration *> m_identifierDeclarationMap;
     unsigned int m_currentLevel;
     unsigned int m_maxLevel;
+    bool m_navigating;
 };
 
 #endif

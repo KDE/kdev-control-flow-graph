@@ -28,6 +28,7 @@
 #include <ktexteditor/view.h>
 
 #include <interfaces/idocument.h>
+#include <interfaces/icore.h>
 
 #include "duchaincontrolflow.h"
 #include "dotcontrolflowgraph.h"
@@ -44,13 +45,13 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
   	if (m_part)
 	{
 	    connect(this, SIGNAL(setReadWrite()), m_part, SLOT(setReadWrite()));
-	    emit(setReadWrite());
+	    emit setReadWrite();
 
 	    horizontalLayout->addWidget(m_part->widget());
 	    connect(zoomoutToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_out"), SIGNAL(triggered()));
 	    connect(zoominToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_in"), SIGNAL(triggered()));
 	    connect(m_part, SIGNAL(selectionIs(const QList<QString>, const QPoint&)),
-		    m_duchainControlFlow, SLOT(selectionIs(const QList<QString>, const QPoint&)));
+		 m_duchainControlFlow, SLOT(selectionIs(const QList<QString>, const QPoint&)));
 
 	    connect(m_duchainControlFlow,  SIGNAL(foundRootNode(const Declaration*)),
                     m_dotControlFlowGraph, SLOT  (foundRootNode(const Declaration*)));
@@ -84,6 +85,8 @@ void ControlFlowGraphView::textDocumentCreated(KDevelop::IDocument *document)
 
 void ControlFlowGraphView::viewCreated(KTextEditor::Document * /* document */, KTextEditor::View *view)
 {
+    disconnect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
+	    m_duchainControlFlow, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
     connect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
 	    m_duchainControlFlow, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
     connect(view, SIGNAL(destroyed(QObject *)), m_duchainControlFlow, SLOT(viewDestroyed(QObject *)));
