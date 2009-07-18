@@ -45,6 +45,7 @@ public:
     DUChainControlFlow();
     virtual ~DUChainControlFlow();
     enum ControlFlowMode { ControlFlowFunction, ControlFlowClass, ControlFlowNamespace };
+    void setControlFlowMode(ControlFlowMode controlFlowMode);
 Q_SIGNALS:
     void foundRootNode (const QString &label);
     void foundFunctionCall (const QString &source, const QString &target);

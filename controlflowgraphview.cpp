@@ -47,7 +47,15 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 	    connect(this, SIGNAL(setReadWrite()), m_part, SLOT(setReadWrite()));
 	    emit setReadWrite();
 
-	    horizontalLayout->addWidget(m_part->widget());
+	    verticalLayout->addWidget(m_part->widget());
+
+	    updateLockIcon(lockControlFlowGraphToolButton->isChecked());
+	    connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)), this, SLOT(updateLockIcon(bool)));
+
+	    connect(modeFunctionToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
+	    connect(modeClassToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
+	    connect(modeNamespaceToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
+
 	    connect(zoomoutToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_out"), SIGNAL(triggered()));
 	    connect(zoominToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_in"), SIGNAL(triggered()));
 	    connect(m_part, SIGNAL(selectionIs(const QList<QString>, const QPoint&)),
@@ -83,12 +91,33 @@ void ControlFlowGraphView::textDocumentCreated(KDevelop::IDocument *document)
 	    this, SLOT(viewCreated(KTextEditor::Document *, KTextEditor::View *)));
 }
 
-void ControlFlowGraphView::viewCreated(KTextEditor::Document * /* document */, KTextEditor::View *view)
+void ControlFlowGraphView::viewCreated(KTextEditor::Document *document, KTextEditor::View *view)
 {
+    Q_UNUSED(document);
     disconnect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
 	    m_duchainControlFlow, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
     connect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
 	    m_duchainControlFlow, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
     connect(view, SIGNAL(destroyed(QObject *)), m_duchainControlFlow, SLOT(viewDestroyed(QObject *)));
     connect(view, SIGNAL(focusIn(KTextEditor::View *)), m_duchainControlFlow, SLOT(focusIn(KTextEditor::View *)));
+}
+
+void ControlFlowGraphView::updateLockIcon(bool checked)
+{
+    lockControlFlowGraphToolButton->setIcon(KIcon(checked ? "document-encrypt":"document-decrypt"));
+    lockControlFlowGraphToolButton->setToolTip(checked ? i18n("Unlock control flow graph"):i18n("Lock control flow graph"));
+}
+
+void ControlFlowGraphView::setControlFlowMode(bool checked)
+{
+    if (checked)
+    {
+	QToolButton *toolButton = qobject_cast<QToolButton *>(sender());
+	if (toolButton->objectName() == "modeFunctionToolButton")
+	    m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowFunction);
+	if (toolButton->objectName() == "modeClassToolButton")
+	    m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowClass);
+	if (toolButton->objectName() == "modeNamespaceToolButton")
+	    m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowNamespace);
+    }
 }

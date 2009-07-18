@@ -48,6 +48,8 @@ public:
 public Q_SLOTS:
     void textDocumentCreated(KDevelop::IDocument *document);
     void viewCreated(KTextEditor::Document *document, KTextEditor::View *view);
+    void updateLockIcon(bool checked);
+    void setControlFlowMode(bool checked);
 Q_SIGNALS:
     void setReadWrite();
 private:

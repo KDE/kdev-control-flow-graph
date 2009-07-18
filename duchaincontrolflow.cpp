@@ -42,7 +42,7 @@ DUChainControlFlow::DUChainControlFlow()
 : m_previousUppermostExecutableContext(0),
   m_maxLevel(0),
   m_navigating(false),
-  m_controlFlowMode(ControlFlowClass)
+  m_controlFlowMode(ControlFlowFunction)
 {
 }
 
@@ -106,7 +106,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     {
         ++m_currentLevel;
 	m_visitedFunctions.insert(definition);
-        m_identifierDeclarationMap[nodeDefinition->qualifiedIdentifier().toString()] = nodeDefinition;
+        m_identifierDeclarationMap[nodeDefinition->qualifiedIdentifier().toString()] = definition;
         useDeclarationsFromDefinition(definition, topContext, uppermostExecutableContext);
     }
     emit graphDone();
@@ -185,7 +185,7 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 	    ++m_currentLevel;
 	    m_visitedFunctions.insert(calledFunctionDefinition);
 	    // Recursive call for method invocation
-	    m_identifierDeclarationMap[nodeTarget->qualifiedIdentifier().toString()] = nodeTarget;
+	    m_identifierDeclarationMap[nodeTarget->qualifiedIdentifier().toString()] = target;
 	    useDeclarationsFromDefinition(calledFunctionDefinition, calledFunctionDefinition->topContext(), calledFunctionContext);
 	}
     }
@@ -214,11 +214,11 @@ void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& po
 {
     if (!list.isEmpty())
     {
-	Declaration *definition = m_identifierDeclarationMap[list[0]];
-	if (definition)
+	Declaration *declaration = m_identifierDeclarationMap[list[0]];
+	if (declaration)
 	{
-	    KUrl url(definition->url().str());
-	    KTextEditor::Range range = definition->range().textRange();
+	    KUrl url(declaration->url().str());
+	    KTextEditor::Range range = declaration->range().textRange();
 	    m_navigating = true;
 	    ICore::self()->documentController()->openDocument(url, range.start());
 	    m_navigating = false;
@@ -241,4 +241,16 @@ Declaration *DUChainControlFlow::declarationFromControlFlowMode(Declaration *def
 	    nodeDeclaration = nodeDeclaration->context()->owner();
     }
     return nodeDeclaration;
+}
+
+void DUChainControlFlow::setControlFlowMode(ControlFlowMode controlFlowMode)
+{
+    m_controlFlowMode = controlFlowMode;
+    if(ICore::self()->documentController()->activeDocument() &&
+       ICore::self()->documentController()->activeDocument()->textDocument() &&
+       ICore::self()->documentController()->activeDocument()->textDocument()->activeView())
+    {
+	m_previousUppermostExecutableContext = 0;
+	focusIn(ICore::self()->documentController()->activeDocument()->textDocument()->activeView());
+    }
 }
