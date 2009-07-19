@@ -56,6 +56,7 @@ public Q_SLOTS:
     void viewDestroyed(QObject *object);
     void focusIn(KTextEditor::View *view);
     void selectionIs(const QList<QString> list, const QPoint& point);
+    void setLocked(bool locked);
 private:
     void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
     void processFunctionCall(Declaration *source, Declaration *target);
@@ -67,7 +68,7 @@ private:
     QHash<QString, Declaration *> m_identifierDeclarationMap;
     unsigned int m_currentLevel;
     unsigned int m_maxLevel;
-    bool m_navigating;
+    bool m_locked;
     ControlFlowMode m_controlFlowMode;
 };
 

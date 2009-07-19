@@ -36,12 +36,14 @@
 #include <language/duchain/functiondefinition.h>
 #include <language/duchain/types/functiontype.h>
 
+// Agraph_t *agsubg(Agraph_t*, char*);
+
 using namespace KDevelop;
 
 DUChainControlFlow::DUChainControlFlow()
 : m_previousUppermostExecutableContext(0),
   m_maxLevel(0),
-  m_navigating(false),
+  m_locked(false),
   m_controlFlowMode(ControlFlowFunction)
 {
 }
@@ -52,7 +54,7 @@ DUChainControlFlow::~DUChainControlFlow()
 
 void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
 {
-    if (m_navigating) return;
+    if (m_locked) return;
     m_currentLevel = 1;
 
     if (!view->document()) return;
@@ -118,6 +120,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         m_identifierDeclarationMap[nodeDefinition->qualifiedIdentifier().toString()] = nodeDefinition;
         useDeclarationsFromDefinition(definition, topContext, uppermostExecutableContext);
     }
+
     emit graphDone();
 }
 
@@ -240,10 +243,12 @@ void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& po
 	    KUrl url(declaration->url().str());
 	    KTextEditor::Range range = declaration->range().textRange();
 	    // Prevent cursorPositionChanged to be called. Disconnecting signals didn't work.
-	    m_navigating = true;
+	    //bool unlock = true;
+	    //if (m_locked) unlock = false;
+	    //else m_locked = true;
 	    ICore::self()->documentController()->openDocument(url, range.start());
 	    // Restore calling of cursorPositionChanged
-	    m_navigating = false;
+	    //if (unlock) m_locked = false;
 	}
     }
 }
@@ -279,4 +284,9 @@ void DUChainControlFlow::setControlFlowMode(ControlFlowMode controlFlowMode)
 	m_previousUppermostExecutableContext = 0;
 	focusIn(ICore::self()->documentController()->activeDocument()->textDocument()->activeView());
     }
+}
+
+void DUChainControlFlow::setLocked(bool locked)
+{
+    m_locked = locked;
 }
