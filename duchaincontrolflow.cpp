@@ -100,13 +100,13 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     // Convert to a declaration in accordance with control flow mode (function, class or namespace)
     Declaration *nodeDefinition = declarationFromControlFlowMode(definition);
 
-    emit foundRootNode(nodeDefinition->qualifiedIdentifier().toString());
+    emit foundRootNode((m_controlFlowMode == ControlFlowNamespace && nodeDefinition->internalContext()->type() != DUContext::Namespace) ? "Global Namespace":nodeDefinition->qualifiedIdentifier().toString());
 
     if (m_maxLevel != 1)
     {
         ++m_currentLevel;
 	m_visitedFunctions.insert(definition);
-        m_identifierDeclarationMap[nodeDefinition->qualifiedIdentifier().toString()] = definition;
+        m_identifierDeclarationMap[nodeDefinition->qualifiedIdentifier().toString()] = nodeDefinition;
         useDeclarationsFromDefinition(definition, topContext, uppermostExecutableContext);
     }
     emit graphDone();
@@ -168,14 +168,24 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 
     // Try to acquire the called function definition
     calledFunctionDefinition = FunctionDefinition::definition(target);
+
+    QString sourceLabel = (m_controlFlowMode == ControlFlowNamespace && nodeSource->internalContext()->type() != DUContext::Namespace) ? "Global Namespace" : nodeSource->qualifiedIdentifier().toString();
+    QString targetLabel = (m_controlFlowMode == ControlFlowNamespace && nodeTarget->internalContext()->type() != DUContext::Namespace) ? "Global Namespace" : nodeTarget->qualifiedIdentifier().toString();
+
     // If there is a flow (in accordance with control flow mode) emit signal
-    if (nodeTarget->qualifiedIdentifier().toString() != nodeSource->qualifiedIdentifier().toString() ||
+    if (targetLabel != sourceLabel ||
 	m_controlFlowMode == ControlFlowFunction ||
 	(calledFunctionDefinition && m_visitedFunctions.contains(calledFunctionDefinition)))
-	emit foundFunctionCall(nodeSource->qualifiedIdentifier().toString(), nodeTarget->qualifiedIdentifier().toString());
+	emit foundFunctionCall(sourceLabel, targetLabel); 
 
-    if (calledFunctionDefinition) calledFunctionContext = calledFunctionDefinition->internalContext();
-    else return;
+    if (calledFunctionDefinition)
+	calledFunctionContext = calledFunctionDefinition->internalContext();
+    else
+    {
+	// Store method declaration for navigation
+	m_identifierDeclarationMap[nodeTarget->qualifiedIdentifier().toString()] = nodeTarget;
+	return;
+    }
 
     if (calledFunctionContext && (m_currentLevel < m_maxLevel || m_maxLevel == 0))
     {
@@ -184,8 +194,9 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 	{
 	    ++m_currentLevel;
 	    m_visitedFunctions.insert(calledFunctionDefinition);
+	    // Store method definition for navigation
+	    m_identifierDeclarationMap[nodeTarget->qualifiedIdentifier().toString()] = declarationFromControlFlowMode(calledFunctionDefinition);
 	    // Recursive call for method invocation
-	    m_identifierDeclarationMap[nodeTarget->qualifiedIdentifier().toString()] = target;
 	    useDeclarationsFromDefinition(calledFunctionDefinition, calledFunctionDefinition->topContext(), calledFunctionContext);
 	}
     }
@@ -219,8 +230,10 @@ void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& po
 	{
 	    KUrl url(declaration->url().str());
 	    KTextEditor::Range range = declaration->range().textRange();
+	    // Prevent cursorPositionChanged to be called. Disconnecting signals didn't work.
 	    m_navigating = true;
 	    ICore::self()->documentController()->openDocument(url, range.start());
+	    // Restore calling of cursorPositionChanged
 	    m_navigating = false;
 	}
     }
@@ -230,14 +243,18 @@ Declaration *DUChainControlFlow::declarationFromControlFlowMode(Declaration *def
 {
     Declaration *nodeDeclaration = definitionDeclaration;
 
-    if (m_controlFlowMode != ControlFlowFunction && nodeDeclaration->qualifiedIdentifier().toString() != "main")
+    if (m_controlFlowMode != ControlFlowFunction && nodeDeclaration->identifier().toString() != "main")
     {
 	if (nodeDeclaration->isDefinition())
 	    nodeDeclaration = DUChainUtils::declarationForDefinition(nodeDeclaration, nodeDeclaration->topContext());
 	if (!nodeDeclaration || !nodeDeclaration->context() || !nodeDeclaration->context()->owner()) return definitionDeclaration;
 	while (nodeDeclaration->context() &&
-	       nodeDeclaration->context()->type() == ((m_controlFlowMode == ControlFlowClass) ? DUContext::Class : DUContext::Namespace) &&
-	       nodeDeclaration->context()->owner())
+	       nodeDeclaration->context()->owner() &&
+	       ((m_controlFlowMode == ControlFlowClass && nodeDeclaration->context()->type() == DUContext::Class) ||
+	        (m_controlFlowMode == ControlFlowNamespace && (
+							      nodeDeclaration->context()->type() == DUContext::Class ||
+							      nodeDeclaration->context()->type() == DUContext::Namespace)
+	      )))
 	    nodeDeclaration = nodeDeclaration->context()->owner();
     }
     return nodeDeclaration;
