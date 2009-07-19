@@ -64,6 +64,15 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
 
     // If cursor isn't inside a function definition
     DUContext *context = topContext->findContext(KDevelop::SimpleCursor(cursor));
+
+    // If cursor is in a method arguments context change it to internal context
+    if (context && context->type() == DUContext::Function && context->importers().size() == 1)
+	context = context->importers()[0];
+
+    Declaration *declarationUnderCursor = DUChainUtils::itemUnderCursor(view->document()->url(), KDevelop::SimpleCursor(cursor));
+    if (declarationUnderCursor && (!context || context->type() != DUContext::Other) && declarationUnderCursor->internalContext())
+	context = declarationUnderCursor->internalContext();
+
     if (!context || context->type() != DUContext::Other)
     {
 	// If there is a previous graph
