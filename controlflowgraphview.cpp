@@ -77,10 +77,10 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 	    connect(m_dotControlFlowGraph, SIGNAL(openUrl(const KUrl &)), m_part, SLOT(openUrl(const KUrl &)));
 	}
         else
-	    KMessageBox::error(this, i18n("Could not load the KGraphViewer kpart"));
+	    KMessageBox::error(ICore::self()->uiController()->activeMainWindow(), i18n("Could not load the KGraphViewer kpart"));
     }
     else
-        KMessageBox::error(this, i18n("Could not find the KGraphViewer factory"));
+        KMessageBox::error(ICore::self()->uiController()->activeMainWindow(), i18n("Could not find the KGraphViewer factory"));
 }
 
 ControlFlowGraphView::~ControlFlowGraphView()
