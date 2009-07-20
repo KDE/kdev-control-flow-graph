@@ -46,9 +46,19 @@ public:
     virtual ~DUChainControlFlow();
     enum ControlFlowMode { ControlFlowFunction, ControlFlowClass, ControlFlowNamespace };
     void setControlFlowMode(ControlFlowMode controlFlowMode);
+    enum ClusteringMode
+    {
+	ClusteringNone      = 0x0,
+	ClusteringClass     = 0x1,
+	ClusteringNamespace = 0x2,
+	ClusteringProject   = 0x4
+    };
+    Q_DECLARE_FLAGS(ClusteringModes, ClusteringMode);
+    void setClusteringModes(ClusteringModes clusteringModes);
+    ClusteringModes clusteringModes();
 Q_SIGNALS:
-    void foundRootNode (const QString &label);
-    void foundFunctionCall (const QString &source, const QString &target);
+    void foundRootNode (const QStringList &containers, const QString &label);
+    void foundFunctionCall (const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target);
     void graphDone();
     void clearGraph();
 public Q_SLOTS:
@@ -61,6 +71,7 @@ private:
     void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
     void processFunctionCall(Declaration *source, Declaration *target);
     Declaration *declarationFromControlFlowMode(Declaration *definitionDeclaration);
+    void prepareContainers(QStringList &containers, Declaration* definition);
     void newGraph();
 
     DUContext *m_previousUppermostExecutableContext;
@@ -70,6 +81,9 @@ private:
     unsigned int m_maxLevel;
     bool m_locked;
     ControlFlowMode m_controlFlowMode;
+    ClusteringModes m_clusteringModes;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(DUChainControlFlow::ClusteringModes)
 
 #endif

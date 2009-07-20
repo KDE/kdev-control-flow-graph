@@ -22,6 +22,7 @@
 
 #include <QObject>
 #include <QMap>
+#include <QHash>
 #include <QColor>
 
 #include <graphviz/gvc.h>
@@ -32,6 +33,9 @@ namespace KDevelop {
 }
 using namespace KDevelop;
 
+class QTemporaryFile;
+class KUrl;
+
 class DotControlFlowGraph : public QObject
 {
     Q_OBJECT
@@ -39,16 +43,18 @@ public:
     DotControlFlowGraph();
     virtual ~DotControlFlowGraph();
 Q_SIGNALS:
-    bool loadLibrary(graph_t* graph);
+    bool openUrl(const KUrl &url);
 public Q_SLOTS:
-    void foundRootNode (const QString &label);
-    void foundFunctionCall (const QString &source, const QString &target);
+    void foundRootNode (const QStringList &containers, const QString &label);
+    void foundFunctionCall (const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target);
     void graphDone();
     void clearGraph();
 private:
     GVC_t *m_gvc;
-    graph_t *m_graph;
+    Agraph_t *m_rootGraph;
     QMap<QString, QColor> m_colorMap;
+    QHash<QString, Agraph_t *> m_namedGraphs;
+    QTemporaryFile *m_tempFile;
 
     const QColor& colorFromQualifiedIdentifier(const QString &label);
 };

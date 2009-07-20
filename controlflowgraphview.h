@@ -50,6 +50,7 @@ public Q_SLOTS:
     void viewCreated(KTextEditor::Document *document, KTextEditor::View *view);
     void updateLockIcon(bool checked);
     void setControlFlowMode(bool checked);
+    void setClusteringModes(bool checked);
 Q_SIGNALS:
     void setReadWrite();
 private:

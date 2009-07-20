@@ -147,7 +147,7 @@
        <item>
         <widget class="QToolButton" name="modeFunctionToolButton">
          <property name="toolTip">
-          <string>Show control flow between functions</string>
+          <string>Show control flow between functions (CTRL+ALT+1)</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -173,7 +173,7 @@
        <item>
         <widget class="QToolButton" name="modeClassToolButton">
          <property name="toolTip">
-          <string>Show control flow between classes</string>
+          <string>Show control flow between classes (CTRL+ALT+2)</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -196,7 +196,7 @@
        <item>
         <widget class="QToolButton" name="modeNamespaceToolButton">
          <property name="toolTip">
-          <string>Show control flow between namespaces</string>
+          <string>Show control flow between namespaces (CTRL+ALT+3)</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -217,7 +217,78 @@
         </widget>
        </item>
        <item>
-        <spacer name="horizontalSpacer">
+        <spacer name="horizontalSpacer1">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QToolButton" name="clusteringClassToolButton">
+         <property name="toolTip">
+          <string>Group nodes by class (CTRL+ALT+8)</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="shortcut">
+          <string>Ctrl+Alt+8</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="clusteringNamespaceToolButton">
+         <property name="toolTip">
+          <string>Group nodes by namespace (CTRL+ALT+9</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="shortcut">
+          <string>Ctrl+Alt+9</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="clusteringProjectToolButton">
+         <property name="toolTip">
+          <string>Group nodes by project (CTRL+ALT+0)</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="shortcut">
+          <string>Ctrl+Alt+0</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="useFolderNameCheckBox">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Use folder name instead of global namespace</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer2">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>

@@ -25,6 +25,8 @@
 
 #include <interfaces/icore.h>
 #include <interfaces/iuicontroller.h>
+#include <interfaces/iproject.h>
+#include <interfaces/iprojectcontroller.h>
 #include <interfaces/idocumentcontroller.h>
 
 #include <language/duchain/use.h>
@@ -36,15 +38,14 @@
 #include <language/duchain/functiondefinition.h>
 #include <language/duchain/types/functiontype.h>
 
-// Agraph_t *agsubg(Agraph_t*, char*);
-
 using namespace KDevelop;
 
 DUChainControlFlow::DUChainControlFlow()
 : m_previousUppermostExecutableContext(0),
   m_maxLevel(0),
   m_locked(false),
-  m_controlFlowMode(ControlFlowFunction)
+  m_controlFlowMode(ControlFlowFunction),
+  m_clusteringModes(ClusteringNone)
 {
 }
 
@@ -111,7 +112,10 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     // Convert to a declaration in accordance with control flow mode (function, class or namespace)
     Declaration *nodeDefinition = declarationFromControlFlowMode(definition);
 
-    emit foundRootNode((m_controlFlowMode == ControlFlowNamespace && nodeDefinition->internalContext()->type() != DUContext::Namespace) ? "Global Namespace":nodeDefinition->qualifiedIdentifier().toString());
+    QStringList containers;
+    prepareContainers(containers, definition);
+
+    emit foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace && nodeDefinition->internalContext()->type() != DUContext::Namespace) ? "Global Namespace":nodeDefinition->qualifiedIdentifier().toString());
 
     if (m_maxLevel != 1)
     {
@@ -188,7 +192,12 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     if (targetLabel != sourceLabel ||
 	m_controlFlowMode == ControlFlowFunction ||
 	(calledFunctionDefinition && m_visitedFunctions.contains(calledFunctionDefinition)))
-	emit foundFunctionCall(sourceLabel, targetLabel); 
+    {
+	QStringList sourceContainers, targetContainers;
+	prepareContainers(sourceContainers, source);
+	prepareContainers(targetContainers, target);
+	emit foundFunctionCall(sourceContainers, sourceLabel, targetContainers, targetLabel); 
+    }
 
     if (calledFunctionDefinition)
 	calledFunctionContext = calledFunctionDefinition->internalContext();
@@ -239,17 +248,8 @@ void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& po
     {
 	Declaration *declaration = m_identifierDeclarationMap[list[0]];
 	if (declaration)
-	{
-	    KUrl url(declaration->url().str());
-	    KTextEditor::Range range = declaration->range().textRange();
-	    // Prevent cursorPositionChanged to be called. Disconnecting signals didn't work.
-	    //bool unlock = true;
-	    //if (m_locked) unlock = false;
-	    //else m_locked = true;
-	    ICore::self()->documentController()->openDocument(url, range.start());
-	    // Restore calling of cursorPositionChanged
-	    //if (unlock) m_locked = false;
-	}
+	    ICore::self()->documentController()->openDocument(KUrl(declaration->url().str()),
+							      declaration->range().textRange().start());
     }
 }
 
@@ -289,4 +289,50 @@ void DUChainControlFlow::setControlFlowMode(ControlFlowMode controlFlowMode)
 void DUChainControlFlow::setLocked(bool locked)
 {
     m_locked = locked;
+}
+
+void DUChainControlFlow::setClusteringModes(ClusteringModes clusteringModes)
+{
+    m_clusteringModes = clusteringModes;
+    if(ICore::self()->documentController() &&
+       ICore::self()->documentController()->activeDocument() &&
+       ICore::self()->documentController()->activeDocument()->textDocument() &&
+       ICore::self()->documentController()->activeDocument()->textDocument()->activeView())
+    {
+	m_previousUppermostExecutableContext = 0;
+	focusIn(ICore::self()->documentController()->activeDocument()->textDocument()->activeView());
+    }
+}
+
+DUChainControlFlow::ClusteringModes DUChainControlFlow::clusteringModes()
+{
+    return m_clusteringModes;
+}
+
+void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration* definition)
+{
+    ControlFlowMode originalControlFlowMode = m_controlFlowMode;
+
+    // Handling project clustering
+    if (m_clusteringModes.testFlag(ClusteringProject) && ICore::self()->projectController()->findProjectForUrl(definition->url().str()))
+	containers << ICore::self()->projectController()->findProjectForUrl(definition->url().str())->name();
+
+    // Handling namespace clustering
+    if (m_clusteringModes.testFlag(ClusteringNamespace))
+    {
+	m_controlFlowMode = ControlFlowNamespace;
+	Declaration *namespaceDefinition = declarationFromControlFlowMode(definition);
+	containers << ((namespaceDefinition->internalContext()->type() != DUContext::Namespace) ? "Global Namespace":namespaceDefinition->qualifiedIdentifier().toString());
+    }
+
+    // Handling class clustering
+    if (m_clusteringModes.testFlag(ClusteringClass))
+    {
+	m_controlFlowMode = ControlFlowClass;
+	Declaration *classDefinition = declarationFromControlFlowMode(definition);
+	if (classDefinition->internalContext() && classDefinition->internalContext()->type() == DUContext::Class)
+	    containers << classDefinition->qualifiedIdentifier().toString();
+    }
+
+    m_controlFlowMode = originalControlFlowMode;
 }
