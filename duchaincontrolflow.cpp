@@ -239,7 +239,8 @@ void DUChainControlFlow::viewDestroyed(QObject * object)
 
 void DUChainControlFlow::focusIn(KTextEditor::View *view)
 {
-    cursorPositionChanged(view, view->cursorPosition());
+    if (view)
+        cursorPositionChanged(view, view->cursorPosition());
 }
 
 void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& point)

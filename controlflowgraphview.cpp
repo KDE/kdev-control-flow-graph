@@ -27,6 +27,7 @@
 #include <ktexteditor/document.h>
 #include <ktexteditor/view.h>
 
+#include <interfaces/iuicontroller.h>
 #include <interfaces/idocument.h>
 #include <interfaces/icore.h>
 
@@ -77,10 +78,10 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 	    connect(m_dotControlFlowGraph, SIGNAL(openUrl(const KUrl &)), m_part, SLOT(openUrl(const KUrl &)));
 	}
         else
-	    KMessageBox::error(ICore::self()->uiController()->activeMainWindow(), i18n("Could not load the KGraphViewer kpart"));
+	    KMessageBox::error((QWidget *)ICore::self()->uiController()->activeMainWindow(), i18n("Could not load the KGraphViewer kpart"));
     }
     else
-        KMessageBox::error(ICore::self()->uiController()->activeMainWindow(), i18n("Could not find the KGraphViewer factory"));
+        KMessageBox::error((QWidget *)ICore::self()->uiController()->activeMainWindow(), i18n("Could not find the KGraphViewer factory"));
 }
 
 ControlFlowGraphView::~ControlFlowGraphView()
