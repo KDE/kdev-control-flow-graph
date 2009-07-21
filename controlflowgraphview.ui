@@ -248,7 +248,7 @@
        <item>
         <widget class="QToolButton" name="clusteringNamespaceToolButton">
          <property name="toolTip">
-          <string>Group nodes by namespace (CTRL+ALT+9</string>
+          <string>Group nodes by namespace (CTRL+ALT+9)</string>
          </property>
          <property name="text">
           <string>...</string>
