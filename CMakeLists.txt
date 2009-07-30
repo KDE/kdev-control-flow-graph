@@ -1,5 +1,12 @@
+project(controlflowgraph)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+                      ${CMAKE_SOURCE_DIR}/cmake/modules
+)
+
 find_package(KDE4 REQUIRED)
 find_package(KDevPlatform REQUIRED)
+find_package(GraphViz REQUIRED)
 
 include_directories(
     ${KDEVPLATFORM_INCLUDE_DIR}
