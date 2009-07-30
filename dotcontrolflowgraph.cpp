@@ -45,6 +45,7 @@ void DotControlFlowGraph::graphDone()
 	gvRenderFilename(m_gvc, m_rootGraph, "dot", m_tempFile->fileName().toUtf8().data());
         gvFreeLayout(m_gvc, m_rootGraph);
 	agclose(m_rootGraph);
+	m_rootGraph = 0;
 	emit openUrl("file://" + m_tempFile->fileName());
     }
 }
@@ -52,7 +53,10 @@ void DotControlFlowGraph::graphDone()
 void DotControlFlowGraph::clearGraph()
 {
     if (m_rootGraph)
+    {
 	agclose(m_rootGraph);
+	m_rootGraph = 0;
+    }
 
     m_namedGraphs.clear();
     m_rootGraph = agopen((char *) "Root_Graph", AGDIGRAPHSTRICT);
