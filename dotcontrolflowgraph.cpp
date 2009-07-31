@@ -46,6 +46,7 @@ void DotControlFlowGraph::graphDone()
         gvFreeLayout(m_gvc, m_rootGraph);
 	agclose(m_rootGraph);
 	m_rootGraph = 0;
+	m_tempFile->flush();
 	emit openUrl("file://" + m_tempFile->fileName());
     }
 }

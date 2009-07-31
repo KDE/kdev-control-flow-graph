@@ -27,6 +27,7 @@
 #include <ktexteditor/document.h>
 #include <ktexteditor/view.h>
 
+#include <interfaces/iprojectcontroller.h>
 #include <interfaces/iuicontroller.h>
 #include <interfaces/idocument.h>
 #include <interfaces/icore.h>
@@ -55,6 +56,8 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 
 	    updateLockIcon(lockControlFlowGraphToolButton->isChecked());
 	    connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)), this, SLOT(updateLockIcon(bool)));
+	    connect(useFolderNameCheckBox, SIGNAL(toggled(bool)),
+		    m_duchainControlFlow, SLOT(setUseFolderName(bool)));
 
 	    connect(modeFunctionToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
 	    connect(modeClassToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
@@ -142,6 +145,8 @@ void ControlFlowGraphView::setControlFlowMode(bool checked)
 	    clusteringClassToolButton->setEnabled(false);
 	    clusteringNamespaceToolButton->setChecked(false);
 	    clusteringNamespaceToolButton->setEnabled(false);
+	    useFolderNameCheckBox->setEnabled(true & checked & (ICore::self()->projectController()->projectCount() >
+0));
 	}
     }
 }
@@ -156,7 +161,7 @@ void ControlFlowGraphView::setClusteringModes(bool checked)
     if (toolButton->objectName() == "clusteringNamespaceToolButton")
     {
 	m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringNamespace);
-	useFolderNameCheckBox->setEnabled(true & checked);
+	useFolderNameCheckBox->setEnabled(true & checked & (ICore::self()->projectController()->projectCount() > 0));
     }
     if (toolButton->objectName() == "clusteringProjectToolButton")
     {

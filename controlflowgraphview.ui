@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>372</width>
+    <width>558</width>
     <height>196</height>
    </rect>
   </property>
@@ -284,6 +284,9 @@
          </property>
          <property name="text">
           <string>Use folder name instead of global namespace</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>

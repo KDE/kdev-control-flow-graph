@@ -35,6 +35,7 @@ namespace KDevelop {
     class DUContext;
     class Declaration;
     class TopDUContext;
+    class IProject;
 };
 using namespace KDevelop;
 
@@ -55,7 +56,7 @@ public:
     };
     Q_DECLARE_FLAGS(ClusteringModes, ClusteringMode);
     void setClusteringModes(ClusteringModes clusteringModes);
-    ClusteringModes clusteringModes();
+    ClusteringModes clusteringModes() const;
 Q_SIGNALS:
     void foundRootNode (const QStringList &containers, const QString &label);
     void foundFunctionCall (const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target);
@@ -67,11 +68,14 @@ public Q_SLOTS:
     void focusIn(KTextEditor::View *view);
     void selectionIs(const QList<QString> list, const QPoint& point);
     void setLocked(bool locked);
+    void setUseFolderName(bool useFolderName);
 private:
     void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
     void processFunctionCall(Declaration *source, Declaration *target);
     Declaration *declarationFromControlFlowMode(Declaration *definitionDeclaration);
     void prepareContainers(QStringList &containers, Declaration* definition);
+    QString globalNamespaceOrFolderNames(Declaration *declaration);
+    void refreshGraph();
     void newGraph();
 
     DUContext *m_previousUppermostExecutableContext;
@@ -82,6 +86,8 @@ private:
     bool m_locked;
     ControlFlowMode m_controlFlowMode;
     ClusteringModes m_clusteringModes;
+    bool m_useFolderName;
+    IProject *m_currentProject;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(DUChainControlFlow::ClusteringModes)

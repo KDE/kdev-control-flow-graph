@@ -19,6 +19,8 @@
 
 #include "duchaincontrolflow.h"
 
+#include <limits>
+
 #include <ktexteditor/view.h>
 #include <ktexteditor/document.h>
 #include <kmessagebox.h>
@@ -38,6 +40,8 @@
 #include <language/duchain/functiondefinition.h>
 #include <language/duchain/types/functiontype.h>
 
+#include <project/interfaces/ibuildsystemmanager.h>
+
 using namespace KDevelop;
 
 DUChainControlFlow::DUChainControlFlow()
@@ -45,7 +49,9 @@ DUChainControlFlow::DUChainControlFlow()
   m_maxLevel(0),
   m_locked(false),
   m_controlFlowMode(ControlFlowFunction),
-  m_clusteringModes(ClusteringNone)
+  m_clusteringModes(ClusteringNone),
+  m_useFolderName(true),
+  m_currentProject(0)
 {
 }
 
@@ -115,7 +121,12 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     QStringList containers;
     prepareContainers(containers, definition);
 
-    emit foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace && nodeDefinition->internalContext()->type() != DUContext::Namespace) ? "Global Namespace":nodeDefinition->qualifiedIdentifier().toString());
+    m_currentProject = ICore::self()->projectController()->findProjectForUrl(view->document()->url());
+
+    emit foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace &&
+				    nodeDefinition->internalContext()->type() != DUContext::Namespace) ? 
+								      globalNamespaceOrFolderNames(nodeDefinition):
+								      nodeDefinition->qualifiedIdentifier().toString());
 
     if (m_maxLevel != 1)
     {
@@ -185,8 +196,15 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     // Try to acquire the called function definition
     calledFunctionDefinition = FunctionDefinition::definition(target);
 
-    QString sourceLabel = (m_controlFlowMode == ControlFlowNamespace && nodeSource->internalContext()->type() != DUContext::Namespace) ? "Global Namespace" : nodeSource->qualifiedIdentifier().toString();
-    QString targetLabel = (m_controlFlowMode == ControlFlowNamespace && nodeTarget->internalContext()->type() != DUContext::Namespace) ? "Global Namespace" : nodeTarget->qualifiedIdentifier().toString();
+    QString sourceLabel = (m_controlFlowMode == ControlFlowNamespace &&
+			   nodeSource->internalContext()->type() != DUContext::Namespace) ?
+					    globalNamespaceOrFolderNames(nodeSource) :
+					    nodeSource->qualifiedIdentifier().toString();
+
+    QString targetLabel = (m_controlFlowMode == ControlFlowNamespace &&
+			   nodeTarget->internalContext()->type() != DUContext::Namespace) ?
+					    globalNamespaceOrFolderNames(nodeTarget) :
+					    nodeTarget->qualifiedIdentifier().toString();
 
     // If there is a flow (in accordance with control flow mode) emit signal
     if (targetLabel != sourceLabel ||
@@ -245,6 +263,7 @@ void DUChainControlFlow::focusIn(KTextEditor::View *view)
 
 void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& point)
 {
+    Q_UNUSED(point);
     if (!list.isEmpty())
     {
 	Declaration *declaration = m_identifierDeclarationMap[list[0]];
@@ -278,6 +297,28 @@ Declaration *DUChainControlFlow::declarationFromControlFlowMode(Declaration *def
 void DUChainControlFlow::setControlFlowMode(ControlFlowMode controlFlowMode)
 {
     m_controlFlowMode = controlFlowMode;
+    refreshGraph();
+}
+
+void DUChainControlFlow::setLocked(bool locked)
+{
+    m_locked = locked;
+}
+
+void DUChainControlFlow::setUseFolderName(bool useFolderName)
+{
+    m_useFolderName = useFolderName;
+    refreshGraph();
+}
+
+void DUChainControlFlow::setClusteringModes(ClusteringModes clusteringModes)
+{
+    m_clusteringModes = clusteringModes;
+    refreshGraph();
+}
+
+void DUChainControlFlow::refreshGraph()
+{
     if(ICore::self()->documentController()->activeDocument() &&
        ICore::self()->documentController()->activeDocument()->textDocument() &&
        ICore::self()->documentController()->activeDocument()->textDocument()->activeView())
@@ -287,25 +328,7 @@ void DUChainControlFlow::setControlFlowMode(ControlFlowMode controlFlowMode)
     }
 }
 
-void DUChainControlFlow::setLocked(bool locked)
-{
-    m_locked = locked;
-}
-
-void DUChainControlFlow::setClusteringModes(ClusteringModes clusteringModes)
-{
-    m_clusteringModes = clusteringModes;
-    if(ICore::self()->documentController() &&
-       ICore::self()->documentController()->activeDocument() &&
-       ICore::self()->documentController()->activeDocument()->textDocument() &&
-       ICore::self()->documentController()->activeDocument()->textDocument()->activeView())
-    {
-	m_previousUppermostExecutableContext = 0;
-	focusIn(ICore::self()->documentController()->activeDocument()->textDocument()->activeView());
-    }
-}
-
-DUChainControlFlow::ClusteringModes DUChainControlFlow::clusteringModes()
+DUChainControlFlow::ClusteringModes DUChainControlFlow::clusteringModes() const
 {
     return m_clusteringModes;
 }
@@ -323,7 +346,9 @@ void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration*
     {
 	m_controlFlowMode = ControlFlowNamespace;
 	Declaration *namespaceDefinition = declarationFromControlFlowMode(definition);
-	containers << ((namespaceDefinition->internalContext()->type() != DUContext::Namespace) ? "Global Namespace":namespaceDefinition->qualifiedIdentifier().toString());
+	containers << ((namespaceDefinition->internalContext()->type() != DUContext::Namespace) ?
+							      globalNamespaceOrFolderNames(namespaceDefinition):
+							      namespaceDefinition->qualifiedIdentifier().toString());
     }
 
     // Handling class clustering
@@ -336,4 +361,34 @@ void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration*
     }
 
     m_controlFlowMode = originalControlFlowMode;
+}
+
+QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaration)
+{
+    if (m_useFolderName)
+    {
+	if (m_currentProject)
+	{
+	    KUrl::List list = m_currentProject->buildSystemManager()->includeDirectories(
+				(KDevelop::ProjectBaseItem*) m_currentProject->projectItem());
+	    int minLength = std::numeric_limits<int>::max();
+	    QString folderName, smallestDirectory, declarationUrl = declaration->url().str();
+	    foreach (KUrl url, list)
+	    {
+		QString urlString = url.toLocalFile();
+		if (urlString.length() <= minLength && declarationUrl.startsWith(urlString))
+		{
+		    smallestDirectory = urlString;
+		    minLength = urlString.length();
+		}
+	    }
+	    declarationUrl = declarationUrl.remove(0, smallestDirectory.length() + 1);
+	    declarationUrl = declarationUrl.remove(KUrl(declaration->url().str()).fileName());
+	    if (declarationUrl.endsWith("/")) declarationUrl.chop(1);
+	    declarationUrl = declarationUrl.replace("/", "::");
+	    if (!declarationUrl.isEmpty())
+		return declarationUrl;
+	}
+    }
+    return "Global Namespace";
 }
