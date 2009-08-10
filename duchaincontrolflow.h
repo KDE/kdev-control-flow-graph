@@ -75,6 +75,7 @@ private:
     Declaration *declarationFromControlFlowMode(Declaration *definitionDeclaration);
     void prepareContainers(QStringList &containers, Declaration* definition);
     QString globalNamespaceOrFolderNames(Declaration *declaration);
+    QString shortNameFromContainers(const QList<QString> &containers, const QString &qualifiedIdentifier);
     void refreshGraph();
     void newGraph();
 

@@ -126,7 +126,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     emit foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace &&
 				    nodeDefinition->internalContext()->type() != DUContext::Namespace) ? 
 								      globalNamespaceOrFolderNames(nodeDefinition):
-								      nodeDefinition->qualifiedIdentifier().toString());
+								      shortNameFromContainers(containers, nodeDefinition->qualifiedIdentifier().toString()));
 
     if (m_maxLevel != 1)
     {
@@ -214,7 +214,10 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 	QStringList sourceContainers, targetContainers;
 	prepareContainers(sourceContainers, source);
 	prepareContainers(targetContainers, target);
-	emit foundFunctionCall(sourceContainers, sourceLabel, targetContainers, targetLabel); 
+	emit foundFunctionCall(sourceContainers,
+			       shortNameFromContainers(sourceContainers, sourceLabel),
+			       targetContainers,
+			       shortNameFromContainers(targetContainers, targetLabel)); 
     }
 
     if (calledFunctionDefinition)
@@ -349,7 +352,7 @@ void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration*
 	Declaration *namespaceDefinition = declarationFromControlFlowMode(definition);
 	strGlobalNamespaceOrFolderNames = ((namespaceDefinition->internalContext()->type() != DUContext::Namespace) ?
 							      globalNamespaceOrFolderNames(namespaceDefinition):
-							      namespaceDefinition->qualifiedIdentifier().toString());
+							      shortNameFromContainers(containers, namespaceDefinition->qualifiedIdentifier().toString()));
 	if (strGlobalNamespaceOrFolderNames.contains("::"))
 	    foreach(QString container, strGlobalNamespaceOrFolderNames.split("::"))
 		containers << container;
@@ -363,7 +366,7 @@ void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration*
 	m_controlFlowMode = ControlFlowClass;
 	Declaration *classDefinition = declarationFromControlFlowMode(definition);
 	if (classDefinition->internalContext() && classDefinition->internalContext()->type() == DUContext::Class)
-	    containers << classDefinition->qualifiedIdentifier().toString();
+	    containers << shortNameFromContainers(containers, classDefinition->qualifiedIdentifier().toString());
     }
 
     m_controlFlowMode = originalControlFlowMode;
@@ -397,4 +400,13 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
 	}
     }
     return "Global Namespace";
+}
+
+QString DUChainControlFlow::shortNameFromContainers(const QList<QString> &containers, const QString &qualifiedIdentifier)
+{
+    QString shortName = qualifiedIdentifier;
+    foreach(QString container, containers)
+	if (shortName.contains(container))
+	    shortName.remove(shortName.indexOf(container + "::"), (container + "::").length());
+    return shortName;
 }
