@@ -336,6 +336,7 @@ DUChainControlFlow::ClusteringModes DUChainControlFlow::clusteringModes() const
 void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration* definition)
 {
     ControlFlowMode originalControlFlowMode = m_controlFlowMode;
+    QString strGlobalNamespaceOrFolderNames;
 
     // Handling project clustering
     if (m_clusteringModes.testFlag(ClusteringProject) && ICore::self()->projectController()->findProjectForUrl(definition->url().str()))
@@ -346,9 +347,14 @@ void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration*
     {
 	m_controlFlowMode = ControlFlowNamespace;
 	Declaration *namespaceDefinition = declarationFromControlFlowMode(definition);
-	containers << ((namespaceDefinition->internalContext()->type() != DUContext::Namespace) ?
+	strGlobalNamespaceOrFolderNames = ((namespaceDefinition->internalContext()->type() != DUContext::Namespace) ?
 							      globalNamespaceOrFolderNames(namespaceDefinition):
 							      namespaceDefinition->qualifiedIdentifier().toString());
+	if (strGlobalNamespaceOrFolderNames.contains("::"))
+	    foreach(QString container, strGlobalNamespaceOrFolderNames.split("::"))
+		containers << container;
+	else
+	    containers << strGlobalNamespaceOrFolderNames;
     }
 
     // Handling class clustering
