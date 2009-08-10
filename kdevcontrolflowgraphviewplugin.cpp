@@ -27,6 +27,7 @@
 
 #include <interfaces/iuicontroller.h>
 #include <interfaces/idocumentcontroller.h>
+#include <interfaces/iprojectcontroller.h>
 #include <interfaces/icore.h>
 #include <language/duchain/declaration.h>
 #include <language/duchain/topducontext.h>
@@ -58,6 +59,12 @@ public:
 
 	QObject::connect(m_plugin->core()->documentController(), SIGNAL(textDocumentCreated(KDevelop::IDocument *)),
 		         controlFlowGraphView, SLOT(textDocumentCreated(KDevelop::IDocument *)));
+	QObject::connect(m_plugin->core()->projectController(), SIGNAL(projectOpened(KDevelop::IProject*)),
+		         controlFlowGraphView, SLOT(projectOpened(KDevelop::IProject*)));
+	QObject::connect(m_plugin->core()->projectController(), SIGNAL(projectClosing(KDevelop::IProject*)),
+		         controlFlowGraphView, SLOT(projectClosing(KDevelop::IProject*)));
+	QObject::connect(m_plugin->core()->projectController(), SIGNAL(projectClosed(KDevelop::IProject*)),
+		         controlFlowGraphView, SLOT(projectClosed(KDevelop::IProject*)));
 
         return controlFlowGraphView;
     }

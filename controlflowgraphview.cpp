@@ -53,11 +53,21 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 	    clusteringClassToolButton->setIcon(KIcon("code-class"));
 	    clusteringNamespaceToolButton->setIcon(KIcon("namespace"));
 	    clusteringProjectToolButton->setIcon(KIcon("folder-development"));
+	    useFolderNameToolButton->setIcon(KIcon("folder-favorites"));
+	    if (ICore::self()->projectController()->projectCount() > 0)
+	    {
+		useFolderNameToolButton->setEnabled(true);
+		clusteringProjectToolButton->setEnabled(true);
+	    }
+	    useShortNamesToolButton->setIcon(KIcon("application-x-arc"));
 
 	    updateLockIcon(lockControlFlowGraphToolButton->isChecked());
+
 	    connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)), this, SLOT(updateLockIcon(bool)));
-	    connect(useFolderNameCheckBox, SIGNAL(toggled(bool)),
+	    connect(useFolderNameToolButton, SIGNAL(toggled(bool)),
 		    m_duchainControlFlow, SLOT(setUseFolderName(bool)));
+	    connect(useShortNamesToolButton, SIGNAL(toggled(bool)),
+		    m_duchainControlFlow, SLOT(setUseShortNames(bool)));
 
 	    connect(modeFunctionToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
 	    connect(modeClassToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
@@ -73,12 +83,12 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 		 m_duchainControlFlow, SLOT(selectionIs(const QList<QString>, const QPoint&)));
 
 	    connect(m_duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
-                    m_dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
+                    m_dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)), Qt::QueuedConnection);
 	    connect(m_duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
-                    m_dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
-	    connect(m_duchainControlFlow,  SIGNAL(clearGraph()), m_dotControlFlowGraph, SLOT(clearGraph()));
-	    connect(m_duchainControlFlow,  SIGNAL(graphDone()), m_dotControlFlowGraph, SLOT(graphDone()));
-	    connect(m_dotControlFlowGraph, SIGNAL(openUrl(const KUrl &)), m_part, SLOT(openUrl(const KUrl &)));
+                    m_dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)), Qt::QueuedConnection);
+	    connect(m_duchainControlFlow,  SIGNAL(clearGraph()), m_dotControlFlowGraph, SLOT(clearGraph()), Qt::QueuedConnection);
+	    connect(m_duchainControlFlow,  SIGNAL(graphDone()), m_dotControlFlowGraph, SLOT(graphDone()), Qt::QueuedConnection);
+	    connect(m_dotControlFlowGraph, SIGNAL(openUrl(const KUrl &)), m_part, SLOT(openUrl(const KUrl &)), Qt::QueuedConnection);
 	}
         else
 	    KMessageBox::error((QWidget *)ICore::self()->uiController()->activeMainWindow(), i18n("Could not load the KGraphViewer kpart"));
@@ -109,7 +119,7 @@ void ControlFlowGraphView::viewCreated(KTextEditor::Document *document, KTextEdi
 	    m_duchainControlFlow, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
     connect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
 	    m_duchainControlFlow, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)), Qt::QueuedConnection);
-    connect(view, SIGNAL(destroyed(QObject *)), m_duchainControlFlow, SLOT(viewDestroyed(QObject *)));
+    connect(view, SIGNAL(destroyed(QObject *)), m_duchainControlFlow, SLOT(viewDestroyed(QObject *)), Qt::QueuedConnection);
     connect(view, SIGNAL(focusIn(KTextEditor::View *)), m_duchainControlFlow, SLOT(focusIn(KTextEditor::View *)), Qt::QueuedConnection);
 }
 
@@ -145,26 +155,43 @@ void ControlFlowGraphView::setControlFlowMode(bool checked)
 	    clusteringClassToolButton->setEnabled(false);
 	    clusteringNamespaceToolButton->setChecked(false);
 	    clusteringNamespaceToolButton->setEnabled(false);
-	    useFolderNameCheckBox->setEnabled(true & checked & (ICore::self()->projectController()->projectCount() >
-0));
 	}
     }
 }
 
 void ControlFlowGraphView::setClusteringModes(bool checked)
 {
+    Q_UNUSED(checked);
     QToolButton *toolButton = qobject_cast<QToolButton *>(sender());
     if (toolButton->objectName() == "clusteringClassToolButton")
-    {
 	m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringClass);
-    }
     if (toolButton->objectName() == "clusteringNamespaceToolButton")
-    {
 	m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringNamespace);
-	useFolderNameCheckBox->setEnabled(true & checked & (ICore::self()->projectController()->projectCount() > 0));
-    }
     if (toolButton->objectName() == "clusteringProjectToolButton")
-    {
 	m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringProject);
+
+    useShortNamesToolButton->setEnabled(m_duchainControlFlow->clusteringModes() ? true:false);
+}
+
+void ControlFlowGraphView::projectOpened(KDevelop::IProject* project)
+{
+    Q_UNUSED(project);
+    useFolderNameToolButton->setEnabled(true);
+    clusteringProjectToolButton->setEnabled(true);
+    m_duchainControlFlow->refreshGraph();
+}
+
+void ControlFlowGraphView::projectClosing(KDevelop::IProject* project)
+{
+    Q_UNUSED(project);
+}
+
+void ControlFlowGraphView::projectClosed(KDevelop::IProject* project)
+{
+    Q_UNUSED(project);
+    if (ICore::self()->projectController()->projectCount() == 0)
+    {
+	useFolderNameToolButton->setEnabled(false);
+	clusteringProjectToolButton->setEnabled(false);
     }
 }

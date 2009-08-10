@@ -29,6 +29,7 @@ namespace KParts
 namespace KDevelop
 {
     class IDocument;
+    class IProject;
 };
 namespace KTextEditor
 {
@@ -51,6 +52,9 @@ public Q_SLOTS:
     void updateLockIcon(bool checked);
     void setControlFlowMode(bool checked);
     void setClusteringModes(bool checked);
+    void projectOpened(KDevelop::IProject* project);
+    void projectClosing(KDevelop::IProject* project);
+    void projectClosed(KDevelop::IProject* project);
 Q_SIGNALS:
     void setReadWrite();
 private:

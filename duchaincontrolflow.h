@@ -57,6 +57,7 @@ public:
     Q_DECLARE_FLAGS(ClusteringModes, ClusteringMode);
     void setClusteringModes(ClusteringModes clusteringModes);
     ClusteringModes clusteringModes() const;
+    void refreshGraph();
 Q_SIGNALS:
     void foundRootNode (const QStringList &containers, const QString &label);
     void foundFunctionCall (const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target);
@@ -69,14 +70,15 @@ public Q_SLOTS:
     void selectionIs(const QList<QString> list, const QPoint& point);
     void setLocked(bool locked);
     void setUseFolderName(bool useFolderName);
+    void setUseShortNames(bool useFolderName);
 private:
     void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
     void processFunctionCall(Declaration *source, Declaration *target);
     Declaration *declarationFromControlFlowMode(Declaration *definitionDeclaration);
     void prepareContainers(QStringList &containers, Declaration* definition);
     QString globalNamespaceOrFolderNames(Declaration *declaration);
+    QString prependFolderNames(Declaration *declaration);
     QString shortNameFromContainers(const QList<QString> &containers, const QString &qualifiedIdentifier);
-    void refreshGraph();
     void newGraph();
 
     DUContext *m_previousUppermostExecutableContext;
@@ -88,6 +90,7 @@ private:
     ControlFlowMode m_controlFlowMode;
     ClusteringModes m_clusteringModes;
     bool m_useFolderName;
+    bool m_useShortNames;
     IProject *m_currentProject;
 };
 
