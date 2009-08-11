@@ -27,6 +27,7 @@
 #include <ktexteditor/document.h>
 #include <ktexteditor/view.h>
 
+#include <interfaces/idocumentcontroller.h>
 #include <interfaces/iprojectcontroller.h>
 #include <interfaces/iuicontroller.h>
 #include <interfaces/idocument.h>
@@ -83,12 +84,12 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 		 m_duchainControlFlow, SLOT(selectionIs(const QList<QString>, const QPoint&)));
 
 	    connect(m_duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
-                    m_dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)), Qt::QueuedConnection);
+                    m_dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
 	    connect(m_duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
-                    m_dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)), Qt::QueuedConnection);
-	    connect(m_duchainControlFlow,  SIGNAL(clearGraph()), m_dotControlFlowGraph, SLOT(clearGraph()), Qt::QueuedConnection);
-	    connect(m_duchainControlFlow,  SIGNAL(graphDone()), m_dotControlFlowGraph, SLOT(graphDone()), Qt::QueuedConnection);
-	    connect(m_dotControlFlowGraph, SIGNAL(openUrl(const KUrl &)), m_part, SLOT(openUrl(const KUrl &)), Qt::QueuedConnection);
+                    m_dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
+	    connect(m_duchainControlFlow,  SIGNAL(clearGraph()), m_dotControlFlowGraph, SLOT(clearGraph()));
+	    connect(m_duchainControlFlow,  SIGNAL(graphDone()), m_dotControlFlowGraph, SLOT(graphDone()));
+	    connect(m_dotControlFlowGraph, SIGNAL(openUrl(const KUrl &)), m_part, SLOT(openUrl(const KUrl &)));
 	}
         else
 	    KMessageBox::error((QWidget *)ICore::self()->uiController()->activeMainWindow(), i18n("Could not load the KGraphViewer kpart"));
@@ -128,6 +129,7 @@ void ControlFlowGraphView::updateLockIcon(bool checked)
     lockControlFlowGraphToolButton->setIcon(KIcon(checked ? "document-encrypt":"document-decrypt"));
     lockControlFlowGraphToolButton->setToolTip(checked ? i18n("Unlock control flow graph"):i18n("Lock control flow graph"));
     m_duchainControlFlow->setLocked(checked);
+    if (!checked) m_duchainControlFlow->refreshGraph();
 }
 
 void ControlFlowGraphView::setControlFlowMode(bool checked)
@@ -184,6 +186,9 @@ void ControlFlowGraphView::projectOpened(KDevelop::IProject* project)
 void ControlFlowGraphView::projectClosing(KDevelop::IProject* project)
 {
     Q_UNUSED(project);
+    foreach (KDevelop::IDocument *document, ICore::self()->documentController()->openDocuments())
+	foreach (KTextEditor::View *view, document->textDocument()->views())
+	    view->blockSignals(true);
 }
 
 void ControlFlowGraphView::projectClosed(KDevelop::IProject* project)
@@ -194,4 +199,7 @@ void ControlFlowGraphView::projectClosed(KDevelop::IProject* project)
 	useFolderNameToolButton->setEnabled(false);
 	clusteringProjectToolButton->setEnabled(false);
     }
+    foreach (KDevelop::IDocument *document, ICore::self()->documentController()->openDocuments())
+	foreach (KTextEditor::View *view, document->textDocument()->views())
+	    view->blockSignals(false);
 }

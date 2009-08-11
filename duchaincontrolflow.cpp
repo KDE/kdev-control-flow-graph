@@ -383,10 +383,10 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
 {
     if (m_useFolderName)
     {
-	if (m_currentProject)
+	if (m_currentProject && m_currentProject->buildSystemManager())
 	{
 	    KUrl::List list = m_currentProject->buildSystemManager()->includeDirectories(
-				(KDevelop::ProjectBaseItem*) m_currentProject->projectItem());
+				(KDevelop::ProjectBaseItem *) m_currentProject->projectItem());
 	    int minLength = std::numeric_limits<int>::max();
 	    QString folderName, smallestDirectory, declarationUrl = declaration->url().str();
 	    foreach (KUrl url, list)
