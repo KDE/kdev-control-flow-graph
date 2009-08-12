@@ -58,9 +58,9 @@ public Q_SLOTS:
 Q_SIGNALS:
     void setReadWrite();
 private:
-    KParts::ReadOnlyPart* m_part;
-    DUChainControlFlow *m_duchainControlFlow;
-    DotControlFlowGraph *m_dotControlFlowGraph;
+    KParts::ReadOnlyPart *m_part;
+    DUChainControlFlow 	 *m_duchainControlFlow;
+    DotControlFlowGraph  *m_dotControlFlowGraph;
 };
 
 #endif

@@ -85,6 +85,7 @@ void DotControlFlowGraph::foundRootNode (const QStringList &containers, const QS
     QColor c = colorFromQualifiedIdentifier(label);
     char color[8];
     sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
+    agsafeset(node, (char *) "style", (char *) "filled", (char *) "");
     agsafeset(node, (char *) "fillcolor", color, (char *) "");
 }
 
@@ -123,15 +124,19 @@ void DotControlFlowGraph::foundFunctionCall (const QStringList &sourceContainers
     agsafeset(src, (char *) "shape", (char *) "box", (char *) "");
     QColor c = colorFromQualifiedIdentifier(source);
     sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
+    agsafeset(src, (char *) "style", (char *) "filled", (char *) "");
     agsafeset(src, (char *) "fillcolor", color, (char *) "");
     agsafeset(tgt, (char *) "shape", (char *) "box", (char *) "");
     c = colorFromQualifiedIdentifier(target);
     sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
+    agsafeset(tgt, (char *) "style", (char *) "filled", (char *) "");
     agsafeset(tgt, (char *) "fillcolor", color, (char *) "");
+    Agedge_t* edge;
     if (sourceGraph == targetGraph)
-	agedge(sourceGraph, src, tgt);
+	edge = agedge(sourceGraph, src, tgt);
     else
-	agedge(m_rootGraph, src, tgt);
+	edge = agedge(m_rootGraph, src, tgt);
+    agsafeset(edge, (char *) "id", (source + "->" + target).toUtf8().data(), (char *) "");
 }
 
 const QColor& DotControlFlowGraph::colorFromQualifiedIdentifier(const QString &label)

@@ -32,10 +32,12 @@ namespace KTextEditor {
     class Cursor;
 };
 namespace KDevelop {
+    class Use;
+    class IndexedString;
     class DUContext;
     class Declaration;
     class TopDUContext;
-    class IProject;
+    class ActiveToolTip;
 };
 using namespace KDevelop;
 
@@ -63,7 +65,9 @@ Q_SIGNALS:
     void foundFunctionCall (const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target);
     void graphDone();
     void clearGraph();
+    void updateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget);
 public Q_SLOTS:
+    void slotUpdateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget);
     void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
     void viewDestroyed(QObject *object);
     void focusIn(KTextEditor::View *view);
@@ -73,7 +77,7 @@ public Q_SLOTS:
     void setUseShortNames(bool useFolderName);
 private:
     void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
-    void processFunctionCall(Declaration *source, Declaration *target);
+    void processFunctionCall(Declaration *source, Declaration *target, const Use &use);
     Declaration *declarationFromControlFlowMode(Declaration *definitionDeclaration);
     void prepareContainers(QStringList &containers, Declaration* definition);
     QString globalNamespaceOrFolderNames(Declaration *declaration);
@@ -84,6 +88,7 @@ private:
     DUContext *m_previousUppermostExecutableContext;
     QSet<Declaration *> m_visitedFunctions;
     QHash<QString, Declaration *> m_identifierDeclarationMap;
+    QMultiHash<QString, QPair<Use, IndexedString> > m_arcUsesMap;
     unsigned int m_currentLevel;
     unsigned int m_maxLevel;
     bool m_locked;
@@ -91,7 +96,6 @@ private:
     ClusteringModes m_clusteringModes;
     bool m_useFolderName;
     bool m_useShortNames;
-    IProject *m_currentProject;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(DUChainControlFlow::ClusteringModes)

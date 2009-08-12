@@ -31,7 +31,7 @@ set(kdevcontrolflowgraphview_PART_UI
 
 kde4_add_ui_files(kdevcontrolflowgraphview_PART_SRCS ${kdevcontrolflowgraphview_PART_UI})
 kde4_add_plugin(kdevcontrolflowgraphview ${kdevcontrolflowgraphview_PART_SRCS})
-target_link_libraries(kdevcontrolflowgraphview ${KDE4_KDEUI_LIBS} ${KDE4_KPARTS_LIBS} kdevplatforminterfaces kdevplatformlanguage gvc graph cdt)
+target_link_libraries(kdevcontrolflowgraphview ${KDE4_KDEUI_LIBS} ${KDE4_KPARTS_LIBS} kdevplatforminterfaces kdevplatformlanguage kdevplatformutil gvc graph cdt)
 
 install(TARGETS kdevcontrolflowgraphview DESTINATION ${PLUGIN_INSTALL_DIR})
 

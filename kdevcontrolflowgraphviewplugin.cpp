@@ -26,8 +26,9 @@
 #include <ktexteditor/view.h>
 
 #include <interfaces/iuicontroller.h>
-#include <interfaces/idocumentcontroller.h>
 #include <interfaces/iprojectcontroller.h>
+#include <interfaces/idocumentcontroller.h>
+#include <interfaces/contextmenuextension.h>
 #include <interfaces/icore.h>
 #include <language/duchain/declaration.h>
 #include <language/duchain/topducontext.h>
@@ -94,6 +95,13 @@ KDevControlFlowGraphViewPlugin::~KDevControlFlowGraphViewPlugin()
 void KDevControlFlowGraphViewPlugin::unload()
 {
     core()->uiController()->removeToolView(m_viewFactory);
+}
+
+KDevelop::ContextMenuExtension
+KDevControlFlowGraphViewPlugin::contextMenuExtension(KDevelop::Context* context)
+{
+    KDevelop::ContextMenuExtension extension;
+    return extension;
 }
 
 #include "kdevcontrolflowgraphviewplugin.moc"

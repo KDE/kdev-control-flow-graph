@@ -24,6 +24,11 @@
 
 #include <interfaces/iplugin.h>
 
+namespace KDevelop
+{
+    class ContextMenuExtension;
+};
+
 class KDevControlFlowGraphViewPlugin : public KDevelop::IPlugin
 {
     Q_OBJECT
@@ -32,6 +37,7 @@ public:
     virtual ~KDevControlFlowGraphViewPlugin();
 
     virtual void unload();
+    KDevelop::ContextMenuExtension contextMenuExtension(KDevelop::Context* context);
 private:
     class KDevControlFlowGraphViewFactory *m_viewFactory;
 };
