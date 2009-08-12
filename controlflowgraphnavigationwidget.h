@@ -27,14 +27,15 @@
 #include <language/duchain/navigation/abstractnavigationwidget.h>
 #include <language/duchain/use.h>
 
+#include "controlflowgraphnavigationcontext.h"
+
 using namespace KDevelop;
 
 class ControlFlowGraphNavigationWidget : public AbstractNavigationWidget
 {
     Q_OBJECT
 public:
-    typedef QList< QPair<Use, IndexedString> > ArcUses;
-    ControlFlowGraphNavigationWidget(const ArcUses &arcUses);
+    ControlFlowGraphNavigationWidget(const QString &label, const ControlFlowGraphNavigationContext::ArcUses &arcUses);
 };
 
 #endif

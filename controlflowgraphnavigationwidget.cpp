@@ -19,13 +19,14 @@
 
 #include "controlflowgraphnavigationwidget.h"
 
-#include "controlflowgraphnavigationcontext.h"
 #include <language/duchain/topducontext.h>
 
 using namespace KDevelop;
 
-ControlFlowGraphNavigationWidget::ControlFlowGraphNavigationWidget(const ArcUses &arcUses)
+ControlFlowGraphNavigationWidget::ControlFlowGraphNavigationWidget(const QString &label, const ControlFlowGraphNavigationContext::ArcUses &arcUses)
 {
     initBrowser(400);
-    setContext(NavigationContextPointer(new ControlFlowGraphNavigationContext(arcUses, TopDUContextPointer(0))));
+    ControlFlowGraphNavigationContext *context = new ControlFlowGraphNavigationContext(label, arcUses, TopDUContextPointer(0));
+    setContext(NavigationContextPointer(context));
+    connect(m_browser, SIGNAL(anchorClicked(const QUrl &)), context, SLOT(slotAnchorClicked(const QUrl &)));
 }

@@ -300,7 +300,8 @@ void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& po
 
 void DUChainControlFlow::slotUpdateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget)
 {
-    ControlFlowGraphNavigationWidget *navigationWidget = new ControlFlowGraphNavigationWidget(m_arcUsesMap.values(edge));
+    ControlFlowGraphNavigationWidget *navigationWidget =
+		new ControlFlowGraphNavigationWidget(edge, m_arcUsesMap.values(edge));
     
     KDevelop::NavigationToolTip *usesToolTip = new KDevelop::NavigationToolTip(
 				  partWidget,
