@@ -41,11 +41,13 @@
 #include <language/duchain/indexedstring.h>
 #include <language/duchain/functiondefinition.h>
 #include <language/duchain/types/functiontype.h>
-#include <language/codegen/coderepresentation.h>
+#include <language/duchain/navigation/abstractnavigationwidget.h>
 
 #include <language/util/navigationtooltip.h>
 
 #include <project/interfaces/ibuildsystemmanager.h>
+
+#include "controlflowgraphnavigationwidget.h"
 
 using namespace KDevelop;
 
@@ -298,22 +300,14 @@ void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& po
 
 void DUChainControlFlow::slotUpdateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget)
 {
-    KTextBrowser *browser = new KTextBrowser(partWidget);
-    browser->insertHtml("<html><body><p><small><small>");
-    QPair<Use, IndexedString> pair;
-    foreach (pair, m_arcUsesMap.values(edge))
-    {
-	CodeRepresentation::Ptr code = createCodeRepresentation(pair.second);
-	browser->insertHtml(pair.second.toUrl().toLocalFile() + " (" + QString::number(pair.first.m_range.start.line) + "): " + code->line(pair.first.m_range.start.line).trimmed() + "<br>");
-    }
-
-    browser->insertHtml("</small></small></p></body></html>");
+    ControlFlowGraphNavigationWidget *navigationWidget = new ControlFlowGraphNavigationWidget(m_arcUsesMap.values(edge));
+    
     KDevelop::NavigationToolTip *usesToolTip = new KDevelop::NavigationToolTip(
 				  partWidget,
 				  partWidget->mapToGlobal(QPoint(20, 20)) + point,
-				  browser);
+				  navigationWidget);
 
-//    usesToolTip->resize(QSize(browser->document()->idealWidth(), browser->document()->size().height()));
+    usesToolTip->resize(navigationWidget->sizeHint() + QSize(10, 10));
     ActiveToolTip::showToolTip(usesToolTip);
 }
 
