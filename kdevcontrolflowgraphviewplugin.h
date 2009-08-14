@@ -33,7 +33,7 @@ class KDevControlFlowGraphViewPlugin : public KDevelop::IPlugin
 {
     Q_OBJECT
 public:
-    KDevControlFlowGraphViewPlugin(QObject *, const QVariantList & = QVariantList());
+    explicit KDevControlFlowGraphViewPlugin(QObject *, const QVariantList & = QVariantList());
     virtual ~KDevControlFlowGraphViewPlugin();
 
     virtual void unload();

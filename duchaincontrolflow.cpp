@@ -401,7 +401,7 @@ void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration*
 	strGlobalNamespaceOrFolderNames = ((namespaceDefinition->internalContext()->type() != DUContext::Namespace) ?
 							      globalNamespaceOrFolderNames(namespaceDefinition):
 							      shortNameFromContainers(containers, prependFolderNames(namespaceDefinition)));
-	foreach(QString container, strGlobalNamespaceOrFolderNames.split("::"))
+	foreach(const QString &container, strGlobalNamespaceOrFolderNames.split("::"))
 	    containers << container;
     }
 
@@ -430,7 +430,7 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
 			      (KDevelop::ProjectBaseItem *) currentProject->projectItem());
 	    int minLength = std::numeric_limits<int>::max();
 	    QString folderName, smallestDirectory, declarationUrl = declaration->url().str();
-	    foreach (KUrl url, list)
+	    foreach (const KUrl &url, list)
 	    {
 		QString urlString = url.toLocalFile();
 		if (urlString.length() <= minLength && declarationUrl.startsWith(urlString))
@@ -441,8 +441,8 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
 	    }
 	    declarationUrl = declarationUrl.remove(0, smallestDirectory.length() + 1);
 	    declarationUrl = declarationUrl.remove(KUrl(declaration->url().str()).fileName());
-	    if (declarationUrl.endsWith("/")) declarationUrl.chop(1);
-	    declarationUrl = declarationUrl.replace("/", "::");
+	    if (declarationUrl.endsWith('/')) declarationUrl.chop(1);
+	    declarationUrl = declarationUrl.replace('/', "::");
 	    if (!declarationUrl.isEmpty())
 		return declarationUrl;
 	}
@@ -477,7 +477,7 @@ QString DUChainControlFlow::shortNameFromContainers(const QList<QString> &contai
 
     if (m_useShortNames)
     {
-	foreach(QString container, containers)
+	foreach(const QString &container, containers)
 	    if (shortName.contains(container))
 		shortName.remove(shortName.indexOf(container + "::"), (container + "::").length());
     }

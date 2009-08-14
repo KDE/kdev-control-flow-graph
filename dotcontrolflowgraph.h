@@ -17,8 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
  ***************************************************************************/
 
-#ifndef _DOTCONTROLFLOWGRAPH_H_
-#define _DOTCONTROLFLOWGRAPH_H_
+#ifndef DOTCONTROLFLOWGRAPH_H
+#define DOTCONTROLFLOWGRAPH_H
 
 #include <QObject>
 #include <QMap>

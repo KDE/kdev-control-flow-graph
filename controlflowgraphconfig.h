@@ -17,8 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
  ***************************************************************************/
 
-#ifndef _CONTROLFLOWGRAPHCONFIG_H_
-#define _CONTROLFLOWGRAPHCONFIG_H_
+#ifndef CONTROLFLOWGRAPHCONFIG_H
+#define CONTROLFLOWGRAPHCONFIG_H
 
 #include <kconfigdialog.h>
 

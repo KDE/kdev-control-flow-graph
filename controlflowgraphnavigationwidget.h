@@ -17,8 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
  ***************************************************************************/
 
-#ifndef _CONTROLFLOWGRAPHNAVIGATIONWIDGET_H_
-#define _CONTROLFLOWGRAPHNAVIGATIONWIDGET_H_
+#ifndef CONTROLFLOWGRAPHNAVIGATIONWIDGET_H
+#define CONTROLFLOWGRAPHNAVIGATIONWIDGET_H
 
 #include <QList>
 #include <QPair>

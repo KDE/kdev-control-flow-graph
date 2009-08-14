@@ -17,8 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
  ***************************************************************************/
 
-#ifndef _CONTROLFLOWGRAPHVIEW_H_
-#define _CONTROLFLOWGRAPHVIEW_H_
+#ifndef CONTROLFLOWGRAPHVIEW_H
+#define CONTROLFLOWGRAPHVIEW_H
 
 #include "ui_controlflowgraphview.h"
 

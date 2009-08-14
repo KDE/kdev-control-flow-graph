@@ -17,8 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
  ***************************************************************************/
 
-#ifndef _DUCHAINCONTROLFLOW_H_
-#define _DUCHAINCONTROLFLOW_H_
+#ifndef DUCHAINCONTROLFLOW_H
+#define DUCHAINCONTROLFLOW_H
 
 #include <QObject>
 #include <QSet>
