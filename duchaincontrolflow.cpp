@@ -55,10 +55,10 @@ DUChainControlFlow::DUChainControlFlow()
 : m_previousUppermostExecutableContext(0),
   m_maxLevel(0),
   m_locked(false),
-  m_controlFlowMode(ControlFlowFunction),
-  m_clusteringModes(ClusteringNone),
   m_useFolderName(true),
-  m_useShortNames(true)
+  m_useShortNames(true),
+  m_controlFlowMode(ControlFlowFunction),
+  m_clusteringModes(ClusteringNone)
 {
     connect(this, SIGNAL(updateToolTip(const QString &, const QPoint&, QWidget *)),
 	    this, SLOT(slotUpdateToolTip(const QString &, const QPoint&, QWidget *)), Qt::QueuedConnection);
@@ -204,33 +204,36 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     // Try to acquire the called function definition
     calledFunctionDefinition = FunctionDefinition::definition(target);
 
-    QString sourceLabel = (m_controlFlowMode == ControlFlowNamespace &&
+    QStringList sourceContainers, targetContainers;
+    prepareContainers(sourceContainers, source);
+    prepareContainers(targetContainers, target);
+
+    QString sourceLabel = shortNameFromContainers(sourceContainers,
+			  (m_controlFlowMode == ControlFlowNamespace &&
 			   nodeSource->internalContext()->type() != DUContext::Namespace) ?
 					    globalNamespaceOrFolderNames(nodeSource) :
-					    prependFolderNames(nodeSource);
+					    prependFolderNames(nodeSource));
 
-    QString targetLabel = (m_controlFlowMode == ControlFlowNamespace &&
+    QString targetLabel = shortNameFromContainers(targetContainers,
+			  (m_controlFlowMode == ControlFlowNamespace &&
 			   nodeTarget->internalContext()->type() != DUContext::Namespace) ?
 					    globalNamespaceOrFolderNames(nodeTarget) :
-					    prependFolderNames(nodeTarget);
-
-    QStringList sourceContainers, targetContainers;
+					    prependFolderNames(nodeTarget));
 
     // If there is a flow (in accordance with control flow mode) emit signal
     if (targetLabel != sourceLabel ||
 	m_controlFlowMode == ControlFlowFunction ||
 	(calledFunctionDefinition && m_visitedFunctions.contains(calledFunctionDefinition)))
     {
-	prepareContainers(sourceContainers, source);
-	prepareContainers(targetContainers, target);
 	emit foundFunctionCall(sourceContainers,
-			       shortNameFromContainers(sourceContainers, sourceLabel),
+			       sourceLabel,
 			       targetContainers,
-			       shortNameFromContainers(targetContainers, targetLabel)); 
+			       targetLabel); 
     }
 
     QString targetShortName = shortNameFromContainers(targetContainers, prependFolderNames(nodeTarget));
     QString sourceShortName = shortNameFromContainers(sourceContainers, prependFolderNames(nodeSource));
+
     if (calledFunctionDefinition)
 	calledFunctionContext = calledFunctionDefinition->internalContext();
     else
@@ -238,14 +241,14 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 	// Store method declaration for navigation
 	m_identifierDeclarationMap[targetShortName] = nodeTarget;
 	// Store use for edge inspection
-	m_arcUsesMap.insert(sourceShortName + "->" + targetShortName, QPair<Use, IndexedString>(use, source->url()));
+	m_arcUsesMap.insert(sourceLabel + "->" + targetLabel, QPair<Use, IndexedString>(use, source->url()));
 	return;
     }
 
     if (calledFunctionContext && (m_currentLevel < m_maxLevel || m_maxLevel == 0))
     {
 	// Store use for edge inspection
-	m_arcUsesMap.insert(sourceShortName + "->" + targetShortName, QPair<Use, IndexedString>(use, source->url()));
+	m_arcUsesMap.insert(sourceLabel + "->" + targetLabel, QPair<Use, IndexedString>(use, source->url()));
 
 	// For prevent endless loop in recursive methods
 	if (!m_visitedFunctions.contains(calledFunctionDefinition))

@@ -86,16 +86,19 @@ private:
     void newGraph();
 
     DUContext *m_previousUppermostExecutableContext;
+    
     QSet<Declaration *> m_visitedFunctions;
     QHash<QString, Declaration *> m_identifierDeclarationMap;
     QMultiHash<QString, QPair<Use, IndexedString> > m_arcUsesMap;
+    
     unsigned int m_currentLevel;
     unsigned int m_maxLevel;
     bool m_locked;
-    ControlFlowMode m_controlFlowMode;
-    ClusteringModes m_clusteringModes;
     bool m_useFolderName;
     bool m_useShortNames;
+
+    ControlFlowMode m_controlFlowMode;
+    ClusteringModes m_clusteringModes;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(DUChainControlFlow::ClusteringModes)
