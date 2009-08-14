@@ -77,6 +77,7 @@ public Q_SLOTS:
     void setUseFolderName(bool useFolderName);
     void setUseShortNames(bool useFolderName);
     void setDrawIncomingArcs(bool drawIncomingArcs);
+    void setMaxLevel(int maxLevel);
 private:
     void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
     Declaration *declarationFromControlFlowMode(Declaration *definitionDeclaration);
@@ -92,8 +93,8 @@ private:
     QHash<QString, Declaration *> m_identifierDeclarationMap;
     QMultiHash<QString, QPair<Use, IndexedString> > m_arcUsesMap;
     
-    unsigned int m_currentLevel;
-    unsigned int m_maxLevel;
+    int m_currentLevel;
+    int m_maxLevel;
     bool m_locked;
     bool m_drawIncomingArcs;
     bool m_useFolderName;

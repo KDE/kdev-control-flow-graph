@@ -56,6 +56,8 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 	    clusteringProjectToolButton->setIcon(KIcon("folder-development"));
 	    useFolderNameToolButton->setIcon(KIcon("folder-favorites"));
 	    drawIncomingArcsToolButton->setIcon(KIcon("draw-arrow-down.png"));
+	    maxLevelToolButton->setIcon(KIcon("zoom-fit-height.png"));
+	    m_duchainControlFlow->setMaxLevel(2);
 	    
 	    if (ICore::self()->projectController()->projectCount() > 0)
 	    {
@@ -73,6 +75,10 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 		    m_duchainControlFlow, SLOT(setUseShortNames(bool)));
 	    connect(drawIncomingArcsToolButton, SIGNAL(toggled(bool)),
 		    m_duchainControlFlow, SLOT(setDrawIncomingArcs(bool)));
+	    connect(maxLevelToolButton, SIGNAL(toggled(bool)),
+		    this, SLOT(setUseMaxLevel(bool)));
+	    connect(maxLevelSpinBox, SIGNAL(valueChanged(int)),
+		    m_duchainControlFlow, SLOT(setMaxLevel(int)));
 
 	    connect(modeFunctionToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
 	    connect(modeClassToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
@@ -207,4 +213,10 @@ void ControlFlowGraphView::projectClosed(KDevelop::IProject* project)
     foreach (KDevelop::IDocument *document, ICore::self()->documentController()->openDocuments())
 	foreach (KTextEditor::View *view, document->textDocument()->views())
 	    view->blockSignals(false);
+}
+
+void ControlFlowGraphView::setUseMaxLevel(bool checked)
+{
+    maxLevelSpinBox->setVisible(checked);
+    m_duchainControlFlow->setMaxLevel(checked ? maxLevelSpinBox->value():0);
 }

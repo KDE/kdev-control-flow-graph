@@ -55,6 +55,7 @@ public Q_SLOTS:
     void projectOpened(KDevelop::IProject* project);
     void projectClosing(KDevelop::IProject* project);
     void projectClosed(KDevelop::IProject* project);
+    void setUseMaxLevel(bool checked);
 Q_SIGNALS:
     void setReadWrite();
 private:

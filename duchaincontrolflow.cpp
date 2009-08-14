@@ -139,6 +139,14 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
 								      globalNamespaceOrFolderNames(nodeDefinition):
 								      shortName);
 
+    if (m_maxLevel != 1)
+    {
+	++m_currentLevel;
+	m_visitedFunctions.insert(definition);
+        m_identifierDeclarationMap[shortName] = nodeDefinition;
+	useDeclarationsFromDefinition(definition, topContext, uppermostExecutableContext);
+    }
+    
     if (m_drawIncomingArcs)
     {
 	Declaration *declaration = nodeDefinition;
@@ -148,14 +156,6 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
 	collector.setProcessDeclarations(false);
 	connect(&collector, SIGNAL(processFunctionCall(Declaration *, Declaration *, const Use &)), this, SLOT(processFunctionCall(Declaration *, Declaration *, const Use &)));
 	collector.startCollecting();
-    }
-								      
-    if (m_maxLevel != 1)
-    {
-        ++m_currentLevel;
-	m_visitedFunctions.insert(definition);
-        m_identifierDeclarationMap[shortName] = nodeDefinition;
-        useDeclarationsFromDefinition(definition, topContext, uppermostExecutableContext);
     }
 
     emit graphDone();
@@ -219,6 +219,7 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     calledFunctionDefinition = FunctionDefinition::definition(target);
 
     QStringList sourceContainers, targetContainers;
+
     prepareContainers(sourceContainers, source);
     prepareContainers(targetContainers, target);
 
@@ -234,6 +235,9 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 					    globalNamespaceOrFolderNames(nodeTarget) :
 					    prependFolderNames(nodeTarget));
 
+    if (sender() && dynamic_cast<ControlFlowGraphUsesCollector *>(sender()))
+	sourceContainers.prepend("Uses of " + targetLabel);
+    
     // If there is a flow (in accordance with control flow mode) emit signal
     if (targetLabel != sourceLabel ||
 	m_controlFlowMode == ControlFlowFunction ||
@@ -256,18 +260,18 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 	return;
     }
 
+    // Store use for edge inspection
+    m_arcUsesMap.insert(sourceLabel + "->" + targetLabel, QPair<Use, IndexedString>(use, source->url()));
+    // Store method definition for navigation
+    m_identifierDeclarationMap[targetShortName] = declarationFromControlFlowMode(calledFunctionDefinition);
+
     if (calledFunctionContext && (m_currentLevel < m_maxLevel || m_maxLevel == 0))
     {
-	// Store use for edge inspection
-	m_arcUsesMap.insert(sourceLabel + "->" + targetLabel, QPair<Use, IndexedString>(use, source->url()));
-
 	// For prevent endless loop in recursive methods
 	if (!m_visitedFunctions.contains(calledFunctionDefinition))
 	{
 	    ++m_currentLevel;
 	    m_visitedFunctions.insert(calledFunctionDefinition);
-	    // Store method definition for navigation
-	    m_identifierDeclarationMap[targetShortName] = declarationFromControlFlowMode(calledFunctionDefinition);
 	    // Recursive call for method invocation
 	    useDeclarationsFromDefinition(calledFunctionDefinition, calledFunctionDefinition->topContext(), calledFunctionContext);
 	}
@@ -375,6 +379,12 @@ void DUChainControlFlow::setUseShortNames(bool useShortNames)
 void DUChainControlFlow::setDrawIncomingArcs(bool drawIncomingArcs)
 {
     m_drawIncomingArcs = drawIncomingArcs;
+    refreshGraph();
+}
+
+void DUChainControlFlow::setMaxLevel(int maxLevel)
+{
+    m_maxLevel = maxLevel;
     refreshGraph();
 }
 
