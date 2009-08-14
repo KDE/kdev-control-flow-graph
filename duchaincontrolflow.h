@@ -67,6 +67,7 @@ Q_SIGNALS:
     void clearGraph();
     void updateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget);
 public Q_SLOTS:
+    void processFunctionCall(Declaration *source, Declaration *target, const Use &use);
     void slotUpdateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget);
     void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
     void viewDestroyed(QObject *object);
@@ -75,9 +76,9 @@ public Q_SLOTS:
     void setLocked(bool locked);
     void setUseFolderName(bool useFolderName);
     void setUseShortNames(bool useFolderName);
+    void setDrawIncomingArcs(bool drawIncomingArcs);
 private:
     void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
-    void processFunctionCall(Declaration *source, Declaration *target, const Use &use);
     Declaration *declarationFromControlFlowMode(Declaration *definitionDeclaration);
     void prepareContainers(QStringList &containers, Declaration* definition);
     QString globalNamespaceOrFolderNames(Declaration *declaration);
@@ -94,6 +95,7 @@ private:
     unsigned int m_currentLevel;
     unsigned int m_maxLevel;
     bool m_locked;
+    bool m_drawIncomingArcs;
     bool m_useFolderName;
     bool m_useShortNames;
 

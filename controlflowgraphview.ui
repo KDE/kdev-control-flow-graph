@@ -294,6 +294,22 @@
         </spacer>
        </item>
        <item>
+        <widget class="QToolButton" name="drawIncomingArcsToolButton">
+         <property name="toolTip">
+          <string>Draw incoming arcs to the current function</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QToolButton" name="useFolderNameToolButton">
          <property name="enabled">
           <bool>false</bool>

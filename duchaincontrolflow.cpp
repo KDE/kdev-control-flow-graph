@@ -48,6 +48,7 @@
 #include <project/interfaces/ibuildsystemmanager.h>
 
 #include "controlflowgraphnavigationwidget.h"
+#include "controlflowgraphusescollector.h"
 
 using namespace KDevelop;
 
@@ -55,6 +56,7 @@ DUChainControlFlow::DUChainControlFlow()
 : m_previousUppermostExecutableContext(0),
   m_maxLevel(0),
   m_locked(false),
+  m_drawIncomingArcs(true),
   m_useFolderName(true),
   m_useShortNames(true),
   m_controlFlowMode(ControlFlowFunction),
@@ -131,11 +133,23 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     prepareContainers(containers, definition);
 
     QString shortName = shortNameFromContainers(containers, prependFolderNames(nodeDefinition));
+
     emit foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace &&
 				    nodeDefinition->internalContext()->type() != DUContext::Namespace) ? 
 								      globalNamespaceOrFolderNames(nodeDefinition):
 								      shortName);
 
+    if (m_drawIncomingArcs)
+    {
+	Declaration *declaration = nodeDefinition;
+	if (declaration->isDefinition())
+	    declaration = DUChainUtils::declarationForDefinition(declaration, topContext);
+	ControlFlowGraphUsesCollector collector(declaration);
+	collector.setProcessDeclarations(false);
+	connect(&collector, SIGNAL(processFunctionCall(Declaration *, Declaration *, const Use &)), this, SLOT(processFunctionCall(Declaration *, Declaration *, const Use &)));
+	collector.startCollecting();
+    }
+								      
     if (m_maxLevel != 1)
     {
         ++m_currentLevel;
@@ -225,10 +239,7 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 	m_controlFlowMode == ControlFlowFunction ||
 	(calledFunctionDefinition && m_visitedFunctions.contains(calledFunctionDefinition)))
     {
-	emit foundFunctionCall(sourceContainers,
-			       sourceLabel,
-			       targetContainers,
-			       targetLabel); 
+	emit foundFunctionCall(sourceContainers, sourceLabel, targetContainers, targetLabel); 
     }
 
     QString targetShortName = shortNameFromContainers(targetContainers, prependFolderNames(nodeTarget));
@@ -358,6 +369,12 @@ void DUChainControlFlow::setUseFolderName(bool useFolderName)
 void DUChainControlFlow::setUseShortNames(bool useShortNames)
 {
     m_useShortNames = useShortNames;
+    refreshGraph();
+}
+
+void DUChainControlFlow::setDrawIncomingArcs(bool drawIncomingArcs)
+{
+    m_drawIncomingArcs = drawIncomingArcs;
     refreshGraph();
 }
 

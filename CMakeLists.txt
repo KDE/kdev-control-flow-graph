@@ -25,6 +25,7 @@ set(kdevcontrolflowgraphview_PART_SRCS
     dotcontrolflowgraph.cpp
     controlflowgraphnavigationcontext.cpp
     controlflowgraphnavigationwidget.cpp
+    controlflowgraphusescollector.cpp
 )
 
 set(kdevcontrolflowgraphview_PART_UI

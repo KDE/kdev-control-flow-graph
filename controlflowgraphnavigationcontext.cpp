@@ -53,7 +53,7 @@ QString ControlFlowGraphNavigationContext::html(bool shorten)
     {
 	pair = iterator.previous();
       	CodeRepresentation::Ptr code = createCodeRepresentation(pair.second);
-	modifyHtml() += "<a href='" + QString::number(i--) + "'>" + pair.second.toUrl().fileName() + " (" + QString::number(pair.first.m_range.start.line) + ")</a>: " + Qt::escape(code->line(pair.first.m_range.start.line).trimmed()) + "<br>";
+	modifyHtml() += "<a href='" + QString::number(i--) + "'>" + pair.second.toUrl().fileName() + " (" + QString::number(pair.first.m_range.start.line+1) + ")</a>: " + Qt::escape(code->line(pair.first.m_range.start.line).trimmed()) + "<br>";
     }
     
     modifyHtml() += "</small></small></p></body></html>";

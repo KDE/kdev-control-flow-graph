@@ -55,6 +55,8 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 	    clusteringNamespaceToolButton->setIcon(KIcon("namespace"));
 	    clusteringProjectToolButton->setIcon(KIcon("folder-development"));
 	    useFolderNameToolButton->setIcon(KIcon("folder-favorites"));
+	    drawIncomingArcsToolButton->setIcon(KIcon("draw-arrow-down.png"));
+	    
 	    if (ICore::self()->projectController()->projectCount() > 0)
 	    {
 		useFolderNameToolButton->setEnabled(true);
@@ -69,6 +71,8 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 		    m_duchainControlFlow, SLOT(setUseFolderName(bool)));
 	    connect(useShortNamesToolButton, SIGNAL(toggled(bool)),
 		    m_duchainControlFlow, SLOT(setUseShortNames(bool)));
+	    connect(drawIncomingArcsToolButton, SIGNAL(toggled(bool)),
+		    m_duchainControlFlow, SLOT(setDrawIncomingArcs(bool)));
 
 	    connect(modeFunctionToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
 	    connect(modeClassToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
