@@ -68,7 +68,8 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 
 	    updateLockIcon(lockControlFlowGraphToolButton->isChecked());
 
-	    connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)), this, SLOT(updateLockIcon(bool)));
+	    connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)),
+		    this, SLOT(updateLockIcon(bool)));
 	    connect(useFolderNameToolButton, SIGNAL(toggled(bool)),
 		    m_duchainControlFlow, SLOT(setUseFolderName(bool)));
 	    connect(useShortNamesToolButton, SIGNAL(toggled(bool)),
@@ -90,9 +91,13 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 
 	    connect(zoomoutToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_out"), SIGNAL(triggered()));
 	    connect(zoominToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_in"), SIGNAL(triggered()));
+	    m_part->actionCollection()->action("view_bev_enabled")->setIcon(KIcon("edit-find.png"));
+	    m_part->actionCollection()->action("view_bev_enabled")->setChecked(false);
+	    birdseyeToolButton->setDefaultAction(m_part->actionCollection()->action("view_bev_enabled"));
 	    connect(m_part, SIGNAL(selectionIs(const QList<QString>, const QPoint&)),
-		 m_duchainControlFlow, SLOT(selectionIs(const QList<QString>, const QPoint&)));
+		    m_duchainControlFlow, SLOT(selectionIs(const QList<QString>, const QPoint&)));
 
+	    // Graph generation signals
 	    connect(m_duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
                     m_dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
 	    connect(m_duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),

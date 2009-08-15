@@ -53,20 +53,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="visualmappingsToolButton">
-       <property name="toolTip">
-        <string>Visual Mappings</string>
-       </property>
-       <property name="text">
-        <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>../../../usr/share/icons/oxygen/16x16/actions/view-statistics.png</normaloff>../../../usr/share/icons/oxygen/16x16/actions/view-statistics.png</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QToolButton" name="zoominToolButton">
        <property name="toolTip">
         <string>Zoom In</string>

@@ -153,7 +153,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
 	if (declaration->isDefinition())
 	    declaration = DUChainUtils::declarationForDefinition(declaration, topContext);
 	ControlFlowGraphUsesCollector collector(declaration);
-	collector.setProcessDeclarations(false);
+	collector.setProcessDeclarations(true);
 	connect(&collector, SIGNAL(processFunctionCall(Declaration *, Declaration *, const Use &)), this, SLOT(processFunctionCall(Declaration *, Declaration *, const Use &)));
 	collector.startCollecting();
     }

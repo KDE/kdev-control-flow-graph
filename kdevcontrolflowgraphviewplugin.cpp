@@ -25,6 +25,7 @@
 #include <ktexteditor/document.h>
 #include <ktexteditor/view.h>
 
+#include <interfaces/context.h>
 #include <interfaces/iuicontroller.h>
 #include <interfaces/iprojectcontroller.h>
 #include <interfaces/idocumentcontroller.h>
@@ -101,6 +102,52 @@ KDevelop::ContextMenuExtension
 KDevControlFlowGraphViewPlugin::contextMenuExtension(KDevelop::Context* context)
 {
     KDevelop::ContextMenuExtension extension;
+
+    if (context->hasType(KDevelop::Context::EditorContext))
+	qDebug() << "Editor Context";
+    else if (context->hasType(KDevelop::Context::FileContext)) {
+	qDebug() << "File Context";
+    } else if (context->hasType(KDevelop::Context::CodeContext)) {
+	qDebug() << "Code Context";
+//   KDevelop::DeclarationContext *codeContext = dynamic_cast<KDevelop::DeclarationContext*>(context);
+// 
+//   if (!codeContext)
+//       return menuExt;
+// 
+//   DUChainReadLocker readLock(DUChain::lock());
+//   Declaration* decl(codeContext->declaration().data());
+// 
+//   if (decl)
+//   {
+//     if(decl->inSymbolTable()) {
+//       if(!ClassTree::populatingClassBrowserContextMenu() && ICore::self()->projectController()->findProjectForUrl(decl->url()
+// .toUrl()) &&
+//         decl->kind() == Declaration::Type && decl->internalContext() && decl->internalContext()->type() == DUContext::Class)
+// {
+//         //Currently "Find in Class Browser" seems to only work for classes, so only show it in that case
+// 
+//         m_findInBrowser->setData(QVariant::fromValue(DUChainBasePointer(decl)));
+//         menuExt.addAction( KDevelop::ContextMenuExtension::ExtensionGroup, m_findInBrowser);
+//       }
+// 
+//       m_openDec->setData(QVariant::fromValue(DUChainBasePointer(decl)));
+//       menuExt.addAction( KDevelop::ContextMenuExtension::ExtensionGroup, m_openDec);
+// 
+//       if(FunctionDefinition::definition(decl)) {
+//         m_openDef->setData(QVariant::fromValue(DUChainBasePointer(decl)));
+//         menuExt.addAction( KDevelop::ContextMenuExtension::ExtensionGroup, m_openDef);
+//       }
+//     }
+//   }
+
+	} else if (context->hasType(KDevelop::Context::ProjectItemContext)) {
+	    qDebug() << "Project Item Context";
+/*                KDevelop::ProjectItemContext* prjctx = dynamic_cast<KDevelop::ProjectItemContext*>(context);
+                m_prjItems = prjctx->items();
+                ext.addAction(KDevelop::ContextMenuExtension::ExtensionGroup, m_formatFilesAction);*/
+        }
+
+    
     return extension;
 }
 
