@@ -21,6 +21,8 @@
 
 #include <QTextDocument>
 
+#include <klocale.h>
+
 #include <interfaces/icore.h>
 #include <interfaces/idocumentcontroller.h>
 
@@ -35,7 +37,7 @@ ControlFlowGraphNavigationContext::ControlFlowGraphNavigationContext(const QStri
 
 QString ControlFlowGraphNavigationContext::name() const
 {
-    return "Control flow graph navigation widget";
+    return i18n("Control flow graph navigation widget");
 }
 
 QString ControlFlowGraphNavigationContext::html(bool shorten)
@@ -43,8 +45,12 @@ QString ControlFlowGraphNavigationContext::html(bool shorten)
     clear();
     m_shorten = shorten;
     modifyHtml() += "<html><body><p><small><small>";
+
     QStringList nodes = m_label.split("->");
-    modifyHtml() += importantHighlight("Uses of ") + nodes[1] + importantHighlight(" from ") + nodes[0] + "<hr>";
+    if (nodes.size() < 2)
+	return "";
+
+    modifyHtml() += importantHighlight(i18n("Uses of") + " ") + nodes[1] + importantHighlight(" " + i18n("from") + " ") + nodes[0] + "<hr>";
     unsigned int i = m_arcUses.size()-1;
     QPair<Use, IndexedString> pair;
     QListIterator< QPair<Use, IndexedString> > iterator(m_arcUses);

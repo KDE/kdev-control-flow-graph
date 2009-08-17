@@ -53,7 +53,6 @@ public Q_SLOTS:
     void setControlFlowMode(bool checked);
     void setClusteringModes(bool checked);
     void projectOpened(KDevelop::IProject* project);
-    void projectClosing(KDevelop::IProject* project);
     void projectClosed(KDevelop::IProject* project);
     void setUseMaxLevel(bool checked);
 Q_SIGNALS:

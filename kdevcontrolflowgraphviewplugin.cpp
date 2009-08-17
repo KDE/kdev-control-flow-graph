@@ -19,6 +19,8 @@
 
 #include "kdevcontrolflowgraphviewplugin.h"
 
+#include <QAction>
+
 #include <kgenericfactory.h>
 #include <kaboutdata.h>
 #include <kservice.h>
@@ -31,11 +33,12 @@
 #include <interfaces/idocumentcontroller.h>
 #include <interfaces/contextmenuextension.h>
 #include <interfaces/icore.h>
+#include <language/duchain/use.h>
+#include <language/interfaces/codecontext.h>
 #include <language/duchain/declaration.h>
 #include <language/duchain/topducontext.h>
 #include <language/duchain/duchainutils.h>
 #include <language/duchain/functiondefinition.h>
-#include <language/duchain/use.h>
 
 #include "controlflowgraphview.h"
 
@@ -63,8 +66,6 @@ public:
 		         controlFlowGraphView, SLOT(textDocumentCreated(KDevelop::IDocument *)));
 	QObject::connect(m_plugin->core()->projectController(), SIGNAL(projectOpened(KDevelop::IProject*)),
 		         controlFlowGraphView, SLOT(projectOpened(KDevelop::IProject*)));
-	QObject::connect(m_plugin->core()->projectController(), SIGNAL(projectClosing(KDevelop::IProject*)),
-		         controlFlowGraphView, SLOT(projectClosing(KDevelop::IProject*)));
 	QObject::connect(m_plugin->core()->projectController(), SIGNAL(projectClosed(KDevelop::IProject*)),
 		         controlFlowGraphView, SLOT(projectClosed(KDevelop::IProject*)));
 
@@ -86,7 +87,10 @@ KDevControlFlowGraphViewPlugin::KDevControlFlowGraphViewPlugin (QObject *parent,
 : KDevelop::IPlugin (ControlFlowGraphViewFactory::componentData(), parent)
 {
     m_viewFactory = new KDevControlFlowGraphViewFactory(this);
-    core()->uiController()->addToolView("Control Flow Graph", m_viewFactory);
+    core()->uiController()->addToolView(i18n("Control Flow Graph"), m_viewFactory);
+    
+    m_exportControlFlowGraph = new QAction(i18n("Export control flow graph"), this);
+    connect(m_exportControlFlowGraph, SIGNAL(triggered(bool)), this, SLOT(slotExportControlFlowGraph(bool)));
 }
 
 KDevControlFlowGraphViewPlugin::~KDevControlFlowGraphViewPlugin()
@@ -102,53 +106,49 @@ KDevelop::ContextMenuExtension
 KDevControlFlowGraphViewPlugin::contextMenuExtension(KDevelop::Context* context)
 {
     KDevelop::ContextMenuExtension extension;
-
+/*
     if (context->hasType(KDevelop::Context::EditorContext))
 	qDebug() << "Editor Context";
-    else if (context->hasType(KDevelop::Context::FileContext)) {
+    else if (context->hasType(KDevelop::Context::FileContext))
+    {
 	qDebug() << "File Context";
-    } else if (context->hasType(KDevelop::Context::CodeContext)) {
+    }
+    else if (context->hasType(KDevelop::Context::CodeContext))
+    {
 	qDebug() << "Code Context";
-//   KDevelop::DeclarationContext *codeContext = dynamic_cast<KDevelop::DeclarationContext*>(context);
-// 
-//   if (!codeContext)
-//       return menuExt;
-// 
-//   DUChainReadLocker readLock(DUChain::lock());
-//   Declaration* decl(codeContext->declaration().data());
-// 
-//   if (decl)
-//   {
-//     if(decl->inSymbolTable()) {
-//       if(!ClassTree::populatingClassBrowserContextMenu() && ICore::self()->projectController()->findProjectForUrl(decl->url()
-// .toUrl()) &&
-//         decl->kind() == Declaration::Type && decl->internalContext() && decl->internalContext()->type() == DUContext::Class)
-// {
-//         //Currently "Find in Class Browser" seems to only work for classes, so only show it in that case
-// 
-//         m_findInBrowser->setData(QVariant::fromValue(DUChainBasePointer(decl)));
-//         menuExt.addAction( KDevelop::ContextMenuExtension::ExtensionGroup, m_findInBrowser);
-//       }
-// 
-//       m_openDec->setData(QVariant::fromValue(DUChainBasePointer(decl)));
-//       menuExt.addAction( KDevelop::ContextMenuExtension::ExtensionGroup, m_openDec);
-// 
-//       if(FunctionDefinition::definition(decl)) {
-//         m_openDef->setData(QVariant::fromValue(DUChainBasePointer(decl)));
-//         menuExt.addAction( KDevelop::ContextMenuExtension::ExtensionGroup, m_openDef);
-//       }
-//     }
-//   }
+	*/
+	KDevelop::DeclarationContext *codeContext = dynamic_cast<KDevelop::DeclarationContext*>(context);
 
-	} else if (context->hasType(KDevelop::Context::ProjectItemContext)) {
-	    qDebug() << "Project Item Context";
-/*                KDevelop::ProjectItemContext* prjctx = dynamic_cast<KDevelop::ProjectItemContext*>(context);
-                m_prjItems = prjctx->items();
-                ext.addAction(KDevelop::ContextMenuExtension::ExtensionGroup, m_formatFilesAction);*/
-        }
+	if (!codeContext)
+	    return extension;
 
-    
+	DUChainReadLocker readLock(DUChain::lock());
+	Declaration *declaration(codeContext->declaration().data());
+
+	if (declaration && declaration->inSymbolTable())
+	{
+	    if (FunctionDefinition::definition(declaration))
+	    {
+		m_exportControlFlowGraph->setData(QVariant::fromValue(DUChainBasePointer(declaration)));
+		extension.addAction(KDevelop::ContextMenuExtension::ExtensionGroup, m_exportControlFlowGraph);
+	    }
+	}
+	/*
+    }
+    else if (context->hasType(KDevelop::Context::ProjectItemContext))
+    {
+	qDebug() << "Project Item Context";
+                KDevelop::ProjectItemContext* prjctx = dynamic_cast<KDevelop::ProjectItemContext*>(context);
+	    m_prjItems = prjctx->items();
+	    ext.addAction(KDevelop::ContextMenuExtension::ExtensionGroup, m_formatFilesAction);
+    }
+*/
+
     return extension;
+}
+
+void KDevControlFlowGraphViewPlugin::slotExportControlFlowGraph(bool)
+{
 }
 
 #include "kdevcontrolflowgraphviewplugin.moc"

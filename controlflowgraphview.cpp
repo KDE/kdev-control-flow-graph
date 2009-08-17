@@ -134,10 +134,10 @@ void ControlFlowGraphView::viewCreated(KTextEditor::Document *document, KTextEdi
     disconnect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
 	    m_duchainControlFlow, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
     connect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
-	    m_duchainControlFlow, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)), Qt::QueuedConnection);
-    connect(view, SIGNAL(destroyed(QObject *)), m_duchainControlFlow, SLOT(viewDestroyed(QObject *)), Qt::QueuedConnection);
+	    m_duchainControlFlow, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
+    connect(view, SIGNAL(destroyed(QObject *)), m_duchainControlFlow, SLOT(viewDestroyed(QObject *)));
     disconnect(view, SIGNAL(focusIn(KTextEditor::View *)), m_duchainControlFlow, SLOT(focusIn(KTextEditor::View *)));
-    connect(view, SIGNAL(focusIn(KTextEditor::View *)), m_duchainControlFlow, SLOT(focusIn(KTextEditor::View *)), Qt::QueuedConnection);
+    connect(view, SIGNAL(focusIn(KTextEditor::View *)), m_duchainControlFlow, SLOT(focusIn(KTextEditor::View *)));
 }
 
 void ControlFlowGraphView::updateLockIcon(bool checked)
@@ -199,14 +199,6 @@ void ControlFlowGraphView::projectOpened(KDevelop::IProject* project)
     m_duchainControlFlow->refreshGraph();
 }
 
-void ControlFlowGraphView::projectClosing(KDevelop::IProject* project)
-{
-    Q_UNUSED(project);
-    foreach (KDevelop::IDocument *document, ICore::self()->documentController()->openDocuments())
-	foreach (KTextEditor::View *view, document->textDocument()->views())
-	    view->blockSignals(true);
-}
-
 void ControlFlowGraphView::projectClosed(KDevelop::IProject* project)
 {
     Q_UNUSED(project);
@@ -215,9 +207,6 @@ void ControlFlowGraphView::projectClosed(KDevelop::IProject* project)
 	useFolderNameToolButton->setEnabled(false);
 	clusteringProjectToolButton->setEnabled(false);
     }
-    foreach (KDevelop::IDocument *document, ICore::self()->documentController()->openDocuments())
-	foreach (KTextEditor::View *view, document->textDocument()->views())
-	    view->blockSignals(false);
 }
 
 void ControlFlowGraphView::setUseMaxLevel(bool checked)

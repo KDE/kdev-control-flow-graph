@@ -24,6 +24,8 @@
 
 #include <interfaces/iplugin.h>
 
+class QAction;
+
 namespace KDevelop
 {
     class ContextMenuExtension;
@@ -38,8 +40,12 @@ public:
 
     virtual void unload();
     KDevelop::ContextMenuExtension contextMenuExtension(KDevelop::Context* context);
+public Q_SLOTS:
+    void slotExportControlFlowGraph(bool);
 private:
     class KDevControlFlowGraphViewFactory *m_viewFactory;
+    
+    QAction *m_exportControlFlowGraph;
 };
 
 #endif

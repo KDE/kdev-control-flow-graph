@@ -25,6 +25,7 @@
 #include <ktexteditor/document.h>
 #include <kmessagebox.h>
 #include <ktextbrowser.h>
+#include <klocale.h>
 
 #include <interfaces/icore.h>
 #include <interfaces/iuicontroller.h>
@@ -59,7 +60,7 @@ DUChainControlFlow::DUChainControlFlow()
   m_drawIncomingArcs(true),
   m_useFolderName(true),
   m_useShortNames(true),
-  m_controlFlowMode(ControlFlowFunction),
+  m_controlFlowMode(ControlFlowClass),
   m_clusteringModes(ClusteringNone)
 {
     connect(this, SIGNAL(updateToolTip(const QString &, const QPoint&, QWidget *)),
@@ -235,9 +236,15 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 					    globalNamespaceOrFolderNames(nodeTarget) :
 					    prependFolderNames(nodeTarget));
 
+    QString targetShortName = shortNameFromContainers(targetContainers, prependFolderNames(nodeTarget));
+    QString sourceShortName = shortNameFromContainers(sourceContainers, prependFolderNames(nodeSource));
+
     if (sender() && dynamic_cast<ControlFlowGraphUsesCollector *>(sender()))
-	sourceContainers.prepend("Uses of " + targetLabel);
-    
+    {
+	m_identifierDeclarationMap[sourceShortName] = nodeSource;
+	sourceContainers.prepend(i18n("Uses of") + " " + targetLabel);
+    }
+
     // If there is a flow (in accordance with control flow mode) emit signal
     if (targetLabel != sourceLabel ||
 	m_controlFlowMode == ControlFlowFunction ||
@@ -245,9 +252,6 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     {
 	emit foundFunctionCall(sourceContainers, sourceLabel, targetContainers, targetLabel); 
     }
-
-    QString targetShortName = shortNameFromContainers(targetContainers, prependFolderNames(nodeTarget));
-    QString sourceShortName = shortNameFromContainers(sourceContainers, prependFolderNames(nodeSource));
 
     if (calledFunctionDefinition)
 	calledFunctionContext = calledFunctionDefinition->internalContext();
@@ -296,22 +300,23 @@ void DUChainControlFlow::viewDestroyed(QObject *object)
 void DUChainControlFlow::focusIn(KTextEditor::View *view)
 {
     if (view)
-        cursorPositionChanged(view, view->cursorPosition());
+	cursorPositionChanged(view, view->cursorPosition());
 }
 
 void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& point)
 {
     if (!list.isEmpty())
     {
-	Declaration *declaration = m_identifierDeclarationMap[list[0]];
+	QString label = list[0];
+	Declaration *declaration = m_identifierDeclarationMap[label];
 	if (declaration) // Node click, jump to definition/declaration
 	    ICore::self()->documentController()->openDocument(KUrl(declaration->url().str()),
 							      declaration->range().textRange().start());
-	else // Edge click, show uses contained in the edge
+	else if (label.contains("->")) // Edge click, show uses contained in the edge
 	{
 	    KParts::ReadOnlyPart *part = dynamic_cast<KParts::ReadOnlyPart *>(sender());
 	    if (!part) return;
-	    emit updateToolTip(list[0], point, part->widget());
+	    emit updateToolTip(label, point, part->widget());
 	}
     }
 }
@@ -474,7 +479,7 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
 		return declarationUrl;
 	}
     }
-    return "Global Namespace";
+    return i18n("Global Namespace");
 }
 
 QString DUChainControlFlow::prependFolderNames(Declaration *declaration)
@@ -491,7 +496,7 @@ QString DUChainControlFlow::prependFolderNames(Declaration *declaration)
 	QString prefix = globalNamespaceOrFolderNames(namespaceDefinition);
 	DUChainReadLocker lock(DUChain::lock());
 	if (namespaceDefinition->internalContext()->type() != DUContext::Namespace &&
-	    prefix != "Global Namespace")
+	    prefix != i18n("Global Namespace"))
 	    prependedQualifiedName.prepend(prefix + "::");
     }
 
