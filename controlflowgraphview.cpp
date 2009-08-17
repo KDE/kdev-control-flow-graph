@@ -28,13 +28,19 @@
 #include <ktexteditor/view.h>
 
 #include <interfaces/idocumentcontroller.h>
+#include <interfaces/ilanguagecontroller.h>
 #include <interfaces/iprojectcontroller.h>
 #include <interfaces/iuicontroller.h>
 #include <interfaces/idocument.h>
 #include <interfaces/icore.h>
 
+#include <language/backgroundparser/backgroundparser.h>
+#include <language/backgroundparser/parsejob.h>
+
 #include "duchaincontrolflow.h"
 #include "dotcontrolflowgraph.h"
+
+using namespace KDevelop;
 
 ControlFlowGraphView::ControlFlowGraphView(QWidget *parent)
 : QWidget(parent), m_part(0),
@@ -65,9 +71,11 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 		clusteringProjectToolButton->setEnabled(true);
 	    }
 	    useShortNamesToolButton->setIcon(KIcon("application-x-arc"));
-
 	    updateLockIcon(lockControlFlowGraphToolButton->isChecked());
 
+	    connect(ICore::self()->languageController()->backgroundParser(), SIGNAL(parseJobFinished(KDevelop::ParseJob*)),
+		    m_duchainControlFlow, SLOT(refreshGraph()));
+	    
 	    connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)),
 		    this, SLOT(updateLockIcon(bool)));
 	    connect(useFolderNameToolButton, SIGNAL(toggled(bool)),

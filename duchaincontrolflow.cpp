@@ -243,7 +243,7 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     if (sender() && dynamic_cast<ControlFlowGraphUsesCollector *>(sender()))
     {
 	m_identifierDeclarationMap[sourceShortName] = nodeSource;
-	sourceContainers.prepend(i18n("Uses of") + " " + targetLabel);
+	sourceContainers.prepend(i18n("Uses of") + ' ' + targetLabel);
     }
 
     // If there is a flow (in accordance with control flow mode) emit signal
@@ -407,7 +407,8 @@ void DUChainControlFlow::refreshGraph()
        ICore::self()->documentController()->activeDocument()->textDocument()->activeView())
     {
 	m_previousUppermostExecutableContext = 0;
-	focusIn(ICore::self()->documentController()->activeDocument()->textDocument()->activeView());
+	KTextEditor::View *view = ICore::self()->documentController()->activeDocument()->textDocument()->activeView();
+	cursorPositionChanged(view, view->cursorPosition());
     }
 }
 

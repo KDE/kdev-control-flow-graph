@@ -60,7 +60,6 @@ public:
     Q_DECLARE_FLAGS(ClusteringModes, ClusteringMode);
     void setClusteringModes(ClusteringModes clusteringModes);
     ClusteringModes clusteringModes() const;
-    void refreshGraph();
 Q_SIGNALS:
     void foundRootNode (const QStringList &containers, const QString &label);
     void foundFunctionCall (const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target);
@@ -79,6 +78,7 @@ public Q_SLOTS:
     void setUseShortNames(bool useFolderName);
     void setDrawIncomingArcs(bool drawIncomingArcs);
     void setMaxLevel(int maxLevel);
+    void refreshGraph();
 private:
     void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
     Declaration *declarationFromControlFlowMode(Declaration *definitionDeclaration);
