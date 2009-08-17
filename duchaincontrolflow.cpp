@@ -133,6 +133,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     QStringList containers;
     prepareContainers(containers, definition);
 
+    m_currentProject = ICore::self()->projectController()->findProjectForUrl(view->document()->url());
     QString shortName = shortNameFromContainers(containers, prependFolderNames(nodeDefinition));
 
     emit foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace &&
@@ -339,7 +340,7 @@ Declaration *DUChainControlFlow::declarationFromControlFlowMode(Declaration *def
 {
     Declaration *nodeDeclaration = definitionDeclaration;
 
-    if (m_controlFlowMode != ControlFlowFunction && nodeDeclaration->identifier().toString() != "main")
+    if (m_controlFlowMode != ControlFlowFunction)
     {
         DUChainReadLocker lock(DUChain::lock());
 
@@ -452,32 +453,28 @@ void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration*
 
 QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaration)
 {
-    if (m_useFolderName)
+    IBuildSystemManager *buildSystemManager;
+    if (m_useFolderName && m_currentProject && (buildSystemManager = m_currentProject->buildSystemManager()))
     {
-	IProject *currentProject = ICore::self()->projectController()->findProjectForUrl(declaration->url().str());
-	IBuildSystemManager *buildSystemManager;
-	if (currentProject && (buildSystemManager = currentProject->buildSystemManager()))
+	KUrl::List list = buildSystemManager->includeDirectories(
+			  (KDevelop::ProjectBaseItem *) m_currentProject->projectItem());
+	int minLength = std::numeric_limits<int>::max();
+	QString folderName, smallestDirectory, declarationUrl = declaration->url().str();
+	foreach (const KUrl &url, list)
 	{
-	    KUrl::List list = buildSystemManager->includeDirectories(
-			      (KDevelop::ProjectBaseItem *) currentProject->projectItem());
-	    int minLength = std::numeric_limits<int>::max();
-	    QString folderName, smallestDirectory, declarationUrl = declaration->url().str();
-	    foreach (const KUrl &url, list)
+	    QString urlString = url.toLocalFile();
+	    if (urlString.length() <= minLength && declarationUrl.startsWith(urlString))
 	    {
-		QString urlString = url.toLocalFile();
-		if (urlString.length() <= minLength && declarationUrl.startsWith(urlString))
-		{
-		    smallestDirectory = urlString;
-		    minLength = urlString.length();
-		}
+		smallestDirectory = urlString;
+		minLength = urlString.length();
 	    }
-	    declarationUrl = declarationUrl.remove(0, smallestDirectory.length() + 1);
-	    declarationUrl = declarationUrl.remove(KUrl(declaration->url().str()).fileName());
-	    if (declarationUrl.endsWith('/')) declarationUrl.chop(1);
-	    declarationUrl = declarationUrl.replace('/', "::");
-	    if (!declarationUrl.isEmpty())
-		return declarationUrl;
 	}
+	declarationUrl = declarationUrl.remove(0, smallestDirectory.length() + 1);
+	declarationUrl = declarationUrl.remove(KUrl(declaration->url().str()).fileName());
+	if (declarationUrl.endsWith('/')) declarationUrl.chop(1);
+	declarationUrl = declarationUrl.replace('/', "::");
+	if (!declarationUrl.isEmpty())
+	    return declarationUrl;
     }
     return i18n("Global Namespace");
 }
@@ -485,7 +482,6 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
 QString DUChainControlFlow::prependFolderNames(Declaration *declaration)
 {
     QString prependedQualifiedName = declaration->qualifiedIdentifier().toString();
-
     if (m_useFolderName)
     {
 	ControlFlowMode originalControlFlowMode = m_controlFlowMode;

@@ -38,6 +38,7 @@ namespace KDevelop {
     class Declaration;
     class TopDUContext;
     class ActiveToolTip;
+    class IProject;
 };
 using namespace KDevelop;
 
@@ -92,6 +93,7 @@ private:
     QSet<Declaration *> m_visitedFunctions;
     QHash<QString, Declaration *> m_identifierDeclarationMap;
     QMultiHash<QString, QPair<Use, IndexedString> > m_arcUsesMap;
+    KDevelop::IProject *m_currentProject;
     
     int m_currentLevel;
     int m_maxLevel;
