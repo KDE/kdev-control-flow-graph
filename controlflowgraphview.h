@@ -22,21 +22,18 @@
 
 #include "ui_controlflowgraphview.h"
 
+#include <QPointer>
+
 namespace KParts
 {
     class ReadOnlyPart;
 };
-namespace KDevelop
-{
-    class IDocument;
-    class IProject;
-};
 namespace KTextEditor
 {
-    class Document;
     class View;
     class Cursor;
 };
+class KDevControlFlowGraphViewPlugin;
 class DUChainControlFlow;
 class DotControlFlowGraph;
 
@@ -44,23 +41,30 @@ class ControlFlowGraphView : public QWidget, public Ui::ControlFlowGraphView
 {
     Q_OBJECT
 public:
-    ControlFlowGraphView (QWidget *parent = 0);
+    ControlFlowGraphView (KDevControlFlowGraphViewPlugin *plugin, QWidget *parent = 0);
     virtual ~ControlFlowGraphView ();
 public Q_SLOTS:
-    void textDocumentCreated(KDevelop::IDocument *document);
-    void viewCreated(KTextEditor::Document *document, KTextEditor::View *view);
+    void setProjectButtonsEnabled(bool enabled);
+    void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
+
+    void refreshGraph();
+    void newGraph();
+
     void updateLockIcon(bool checked);
     void setControlFlowMode(bool checked);
     void setClusteringModes(bool checked);
-    void projectOpened(KDevelop::IProject* project);
-    void projectClosed(KDevelop::IProject* project);
     void setUseMaxLevel(bool checked);
 Q_SIGNALS:
     void setReadWrite();
+protected:
+    void showEvent(QShowEvent *event);
+    void hideEvent(QHideEvent *event);
 private:
-    KParts::ReadOnlyPart *m_part;
-    DUChainControlFlow 	 *m_duchainControlFlow;
-    DotControlFlowGraph  *m_dotControlFlowGraph;
+    KDevControlFlowGraphViewPlugin *m_plugin;
+    QPointer<KParts::ReadOnlyPart>  m_part;
+    QPointer<DUChainControlFlow>    m_duchainControlFlow;
+    QPointer<DotControlFlowGraph>   m_dotControlFlowGraph;
+    bool		  	    m_graphLocked;
 };
 
 #endif

@@ -24,21 +24,24 @@
 #include <kgenericfactory.h>
 #include <kaboutdata.h>
 #include <kservice.h>
-#include <ktexteditor/document.h>
 #include <ktexteditor/view.h>
+#include <ktexteditor/document.h>
+#include <ktexteditor/cursor.h>
 
-#include <interfaces/context.h>
+#include <interfaces/icore.h>
 #include <interfaces/iuicontroller.h>
 #include <interfaces/iprojectcontroller.h>
+#include <interfaces/iproject.h>
+#include <interfaces/ilanguagecontroller.h>
 #include <interfaces/idocumentcontroller.h>
+#include <interfaces/idocument.h>
+#include <interfaces/context.h>
 #include <interfaces/contextmenuextension.h>
-#include <interfaces/icore.h>
-#include <language/duchain/use.h>
-#include <language/interfaces/codecontext.h>
 #include <language/duchain/declaration.h>
-#include <language/duchain/topducontext.h>
-#include <language/duchain/duchainutils.h>
 #include <language/duchain/functiondefinition.h>
+#include <language/interfaces/codecontext.h>
+#include <language/backgroundparser/backgroundparser.h>
+#include <language/backgroundparser/parsejob.h>
 
 #include "controlflowgraphview.h"
 
@@ -52,24 +55,7 @@ public:
     KDevControlFlowGraphViewFactory(KDevControlFlowGraphViewPlugin *plugin) : m_plugin(plugin) {}
     virtual QWidget* create(QWidget *parent = 0)
     {
-	ControlFlowGraphView *controlFlowGraphView = new ControlFlowGraphView(parent);
-
-	foreach (KDevelop::IDocument *document, m_plugin->core()->documentController()->openDocuments())
-	{
-	    controlFlowGraphView->textDocumentCreated(document);
-	    if (document->textDocument())
-		foreach (KTextEditor::View *view, document->textDocument()->views())
-		    controlFlowGraphView->viewCreated(document->textDocument(), view);
-	}
-
-	QObject::connect(m_plugin->core()->documentController(), SIGNAL(textDocumentCreated(KDevelop::IDocument *)),
-		         controlFlowGraphView, SLOT(textDocumentCreated(KDevelop::IDocument *)));
-	QObject::connect(m_plugin->core()->projectController(), SIGNAL(projectOpened(KDevelop::IProject*)),
-		         controlFlowGraphView, SLOT(projectOpened(KDevelop::IProject*)));
-	QObject::connect(m_plugin->core()->projectController(), SIGNAL(projectClosed(KDevelop::IProject*)),
-		         controlFlowGraphView, SLOT(projectClosed(KDevelop::IProject*)));
-
-        return controlFlowGraphView;
+        return new ControlFlowGraphView(m_plugin, parent);
     }
     virtual Qt::DockWidgetArea defaultPosition()
     {
@@ -84,11 +70,22 @@ private:
 };
 
 KDevControlFlowGraphViewPlugin::KDevControlFlowGraphViewPlugin (QObject *parent, const QVariantList &)
-: KDevelop::IPlugin (ControlFlowGraphViewFactory::componentData(), parent)
+:
+KDevelop::IPlugin (ControlFlowGraphViewFactory::componentData(), parent),
+m_toolViewFactory(new KDevControlFlowGraphViewFactory(this)),
+m_activeToolView(0)
 {
-    m_viewFactory = new KDevControlFlowGraphViewFactory(this);
-    core()->uiController()->addToolView(i18n("Control Flow Graph"), m_viewFactory);
-    
+    core()->uiController()->addToolView(i18n("Control Flow Graph"), m_toolViewFactory);
+
+    QObject::connect(core()->documentController(), SIGNAL(textDocumentCreated(KDevelop::IDocument *)),
+		     this, SLOT(textDocumentCreated(KDevelop::IDocument *)));
+    QObject::connect(core()->projectController(), SIGNAL(projectOpened(KDevelop::IProject*)),
+		     this, SLOT(projectOpened(KDevelop::IProject*)));
+    QObject::connect(core()->projectController(), SIGNAL(projectClosed(KDevelop::IProject*)),
+		     this, SLOT(projectClosed(KDevelop::IProject*)));
+    QObject::connect(core()->languageController()->backgroundParser(), SIGNAL(parseJobFinished(KDevelop::ParseJob*)),
+		     this, SLOT(refreshActiveToolView()));
+		     
     m_exportControlFlowGraph = new QAction(i18n("Export control flow graph"), this);
     connect(m_exportControlFlowGraph, SIGNAL(triggered(bool)), this, SLOT(slotExportControlFlowGraph(bool)));
 }
@@ -99,56 +96,115 @@ KDevControlFlowGraphViewPlugin::~KDevControlFlowGraphViewPlugin()
 
 void KDevControlFlowGraphViewPlugin::unload()
 {
-    core()->uiController()->removeToolView(m_viewFactory);
+    core()->uiController()->removeToolView(m_toolViewFactory);
+}
+
+void KDevControlFlowGraphViewPlugin::registerToolView(ControlFlowGraphView *view)
+{
+    m_toolViews << view;
+}
+
+void KDevControlFlowGraphViewPlugin::unRegisterToolView(ControlFlowGraphView *view)
+{
+    m_toolViews.removeAll(view);
 }
 
 KDevelop::ContextMenuExtension
 KDevControlFlowGraphViewPlugin::contextMenuExtension(KDevelop::Context* context)
 {
     KDevelop::ContextMenuExtension extension;
-/*
-    if (context->hasType(KDevelop::Context::EditorContext))
-	qDebug() << "Editor Context";
-    else if (context->hasType(KDevelop::Context::FileContext))
+
+    KDevelop::DeclarationContext *codeContext = dynamic_cast<KDevelop::DeclarationContext*>(context);
+
+    if (!codeContext)
+	return extension;
+
+    DUChainReadLocker readLock(DUChain::lock());
+    Declaration *declaration(codeContext->declaration().data());
+
+    if (declaration && declaration->inSymbolTable())
     {
-	qDebug() << "File Context";
-    }
-    else if (context->hasType(KDevelop::Context::CodeContext))
-    {
-	qDebug() << "Code Context";
-	*/
-	KDevelop::DeclarationContext *codeContext = dynamic_cast<KDevelop::DeclarationContext*>(context);
-
-	if (!codeContext)
-	    return extension;
-
-	DUChainReadLocker readLock(DUChain::lock());
-	Declaration *declaration(codeContext->declaration().data());
-
-	if (declaration && declaration->inSymbolTable())
+	if (FunctionDefinition::definition(declaration))
 	{
-	    if (FunctionDefinition::definition(declaration))
-	    {
-		m_exportControlFlowGraph->setData(QVariant::fromValue(DUChainBasePointer(declaration)));
-		extension.addAction(KDevelop::ContextMenuExtension::ExtensionGroup, m_exportControlFlowGraph);
-	    }
+	    m_exportControlFlowGraph->setData(QVariant::fromValue(DUChainBasePointer(declaration)));
+	    extension.addAction(KDevelop::ContextMenuExtension::ExtensionGroup, m_exportControlFlowGraph);
 	}
-	/*
     }
-    else if (context->hasType(KDevelop::Context::ProjectItemContext))
-    {
-	qDebug() << "Project Item Context";
-                KDevelop::ProjectItemContext* prjctx = dynamic_cast<KDevelop::ProjectItemContext*>(context);
-	    m_prjItems = prjctx->items();
-	    ext.addAction(KDevelop::ContextMenuExtension::ExtensionGroup, m_formatFilesAction);
-    }
-*/
-
     return extension;
+}
+
+void KDevControlFlowGraphViewPlugin::projectOpened(KDevelop::IProject* project)
+{
+    Q_UNUSED(project);
+    foreach (ControlFlowGraphView *controlFlowGraphView, m_toolViews)
+	controlFlowGraphView->setProjectButtonsEnabled(true);
+    refreshActiveToolView();
+}
+
+void KDevControlFlowGraphViewPlugin::projectClosed(KDevelop::IProject* project)
+{
+    Q_UNUSED(project);
+    if (core()->projectController()->projectCount() == 0)
+    {
+	foreach (ControlFlowGraphView *controlFlowGraphView, m_toolViews)
+	{
+	    controlFlowGraphView->setProjectButtonsEnabled(true);
+	    controlFlowGraphView->refreshGraph();
+	}
+    }
+}
+
+void KDevControlFlowGraphViewPlugin::textDocumentCreated(KDevelop::IDocument *document)
+{
+    connect(document->textDocument(), SIGNAL(viewCreated(KTextEditor::Document *, KTextEditor::View *)),
+	    this, SLOT(viewCreated(KTextEditor::Document *, KTextEditor::View *)));
+}
+
+void KDevControlFlowGraphViewPlugin::viewCreated(KTextEditor::Document *document, KTextEditor::View *view)
+{
+    Q_UNUSED(document);
+    connect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
+	    this, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
+    connect(view, SIGNAL(destroyed(QObject *)), this, SLOT(viewDestroyed(QObject *)));
+    connect(view, SIGNAL(focusIn(KTextEditor::View *)), this, SLOT(focusIn(KTextEditor::View *)));
+}
+
+void KDevControlFlowGraphViewPlugin::viewDestroyed(QObject *object)
+{
+    Q_UNUSED(object);
+    if (!core()->documentController()->activeDocument())
+    {
+	if (m_activeToolView)
+	    m_activeToolView->newGraph();
+    }
+}
+
+void KDevControlFlowGraphViewPlugin::focusIn(KTextEditor::View *view)
+{
+    if (view)
+	cursorPositionChanged(view, view->cursorPosition());
+}
+
+void KDevControlFlowGraphViewPlugin::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
+{
+    if (m_activeToolView)
+	m_activeToolView->cursorPositionChanged(view, cursor);
+}
+
+void KDevControlFlowGraphViewPlugin::refreshActiveToolView()
+{
+    if (m_activeToolView)
+	m_activeToolView->refreshGraph();
 }
 
 void KDevControlFlowGraphViewPlugin::slotExportControlFlowGraph(bool)
 {
+}
+
+void KDevControlFlowGraphViewPlugin::setActiveToolView(ControlFlowGraphView *activeToolView)
+{
+    m_activeToolView = activeToolView;
+    refreshActiveToolView();
 }
 
 #include "kdevcontrolflowgraphviewplugin.moc"

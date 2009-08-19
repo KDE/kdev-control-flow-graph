@@ -37,7 +37,6 @@ namespace KDevelop {
     class DUContext;
     class Declaration;
     class TopDUContext;
-    class ActiveToolTip;
     class IProject;
 };
 using namespace KDevelop;
@@ -48,8 +47,10 @@ class DUChainControlFlow : public QObject
 public:
     DUChainControlFlow();
     virtual ~DUChainControlFlow();
+
     enum ControlFlowMode { ControlFlowFunction, ControlFlowClass, ControlFlowNamespace };
     void setControlFlowMode(ControlFlowMode controlFlowMode);
+
     enum ClusteringMode
     {
 	ClusteringNone      = 0x0,
@@ -60,6 +61,8 @@ public:
     Q_DECLARE_FLAGS(ClusteringModes, ClusteringMode);
     void setClusteringModes(ClusteringModes clusteringModes);
     ClusteringModes clusteringModes() const;
+    
+    bool isLocked();
 Q_SIGNALS:
     void foundRootNode (const QStringList &containers, const QString &label);
     void foundFunctionCall (const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target);
@@ -67,18 +70,20 @@ Q_SIGNALS:
     void clearGraph();
     void updateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget);
 public Q_SLOTS:
-    void processFunctionCall(Declaration *source, Declaration *target, const Use &use);
-    void slotUpdateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget);
     void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
-    void viewDestroyed(QObject *object);
-    void focusIn(KTextEditor::View *view);
+    void processFunctionCall(Declaration *source, Declaration *target, const Use &use);
+
+    void slotUpdateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget);
     void selectionIs(const QList<QString> list, const QPoint& point);
+
     void setLocked(bool locked);
     void setUseFolderName(bool useFolderName);
     void setUseShortNames(bool useFolderName);
     void setDrawIncomingArcs(bool drawIncomingArcs);
     void setMaxLevel(int maxLevel);
+
     void refreshGraph();
+    void newGraph();
 private:
     void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
     Declaration *declarationFromControlFlowMode(Declaration *definitionDeclaration);
@@ -86,7 +91,6 @@ private:
     QString globalNamespaceOrFolderNames(Declaration *declaration);
     QString prependFolderNames(Declaration *declaration);
     QString shortNameFromContainers(const QList<QString> &containers, const QString &qualifiedIdentifier);
-    void newGraph();
 
     DUContext *m_previousUppermostExecutableContext;
     
@@ -95,8 +99,8 @@ private:
     QMultiHash<QString, QPair<Use, IndexedString> > m_arcUsesMap;
     KDevelop::IProject *m_currentProject;
     
-    int m_currentLevel;
-    int m_maxLevel;
+    int  m_currentLevel;
+    int  m_maxLevel;
     bool m_locked;
     bool m_drawIncomingArcs;
     bool m_useFolderName;

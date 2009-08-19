@@ -21,6 +21,7 @@
 #define KDEVCONTROLFLOWGRAPHVIEWPLUGIN_H
 
 #include <QtCore/QVariant>
+#include <QList>
 
 #include <interfaces/iplugin.h>
 
@@ -28,8 +29,19 @@ class QAction;
 
 namespace KDevelop
 {
+    class IProject;
+    class IDocument;
     class ContextMenuExtension;
 };
+
+namespace KTextEditor
+{
+    class View;
+    class Document;
+    class Cursor;
+};
+
+class ControlFlowGraphView;
 
 class KDevControlFlowGraphViewPlugin : public KDevelop::IPlugin
 {
@@ -39,12 +51,28 @@ public:
     virtual ~KDevControlFlowGraphViewPlugin();
 
     virtual void unload();
+
+    void registerToolView(ControlFlowGraphView *view);
+    void unRegisterToolView(ControlFlowGraphView *view);
+
     KDevelop::ContextMenuExtension contextMenuExtension(KDevelop::Context* context);
 public Q_SLOTS:
+    void projectOpened(KDevelop::IProject* project);
+    void projectClosed(KDevelop::IProject* project);
+    void textDocumentCreated(KDevelop::IDocument *document);
+    void viewCreated(KTextEditor::Document *document, KTextEditor::View *view);
+    void viewDestroyed(QObject *object);
+    void focusIn(KTextEditor::View *view);
+    void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
+
+    void refreshActiveToolView();
     void slotExportControlFlowGraph(bool);
+    void setActiveToolView(ControlFlowGraphView *activeToolView);
 private:
-    class KDevControlFlowGraphViewFactory *m_viewFactory;
-    
+    ControlFlowGraphView *activeToolView();
+    class KDevControlFlowGraphViewFactory *m_toolViewFactory;
+    QList<ControlFlowGraphView *> m_toolViews;
+    ControlFlowGraphView *m_activeToolView;
     QAction *m_exportControlFlowGraph;
 };
 

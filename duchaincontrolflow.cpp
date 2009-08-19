@@ -23,14 +23,12 @@
 
 #include <ktexteditor/view.h>
 #include <ktexteditor/document.h>
-#include <kmessagebox.h>
-#include <ktextbrowser.h>
+#include <ktexteditor/cursor.h>
 #include <klocale.h>
 
 #include <interfaces/icore.h>
-#include <interfaces/iuicontroller.h>
-#include <interfaces/iproject.h>
 #include <interfaces/iprojectcontroller.h>
+#include <interfaces/iproject.h>
 #include <interfaces/idocumentcontroller.h>
 
 #include <language/duchain/use.h>
@@ -42,7 +40,6 @@
 #include <language/duchain/indexedstring.h>
 #include <language/duchain/functiondefinition.h>
 #include <language/duchain/types/functiontype.h>
-#include <language/duchain/navigation/abstractnavigationwidget.h>
 
 #include <language/util/navigationtooltip.h>
 
@@ -71,6 +68,28 @@ DUChainControlFlow::~DUChainControlFlow()
 {
 }
 
+void DUChainControlFlow::setControlFlowMode(ControlFlowMode controlFlowMode)
+{
+    m_controlFlowMode = controlFlowMode;
+    refreshGraph();
+}
+
+void DUChainControlFlow::setClusteringModes(ClusteringModes clusteringModes)
+{
+    m_clusteringModes = clusteringModes;
+    refreshGraph();
+}
+
+DUChainControlFlow::ClusteringModes DUChainControlFlow::clusteringModes() const
+{
+    return m_clusteringModes;
+}
+
+bool DUChainControlFlow::isLocked()
+{
+    return m_locked;
+}
+
 void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
 {
     if (m_locked) return;
@@ -82,7 +101,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     
     TopDUContext *topContext = DUChainUtils::standardContextForUrl(view->document()->url());
     if (!topContext) return;
-
+    
     // If cursor isn't inside a function definition
     DUContext *context = topContext->findContext(KDevelop::SimpleCursor(cursor));
 
@@ -104,7 +123,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
 	}
 	return;
     }
-
+    
     // Navigate to uppermost executable context
     DUContext *uppermostExecutableContext = context;
     while (uppermostExecutableContext->parentContext()->type() == DUContext::Other)
@@ -113,7 +132,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     // If cursor is in the same function definition
     if (uppermostExecutableContext == m_previousUppermostExecutableContext)
 	return;
-
+    
     m_previousUppermostExecutableContext = uppermostExecutableContext;
 
     // Get the definition
@@ -124,7 +143,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         definition = uppermostExecutableContext->owner();
 
     if (!definition) return;
-
+    
     newGraph();
 
     // Convert to a declaration in accordance with control flow mode (function, class or namespace)
@@ -161,49 +180,6 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     }
 
     emit graphDone();
-}
-
-void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition, TopDUContext *topContext, DUContext *context)
-{
-    if (!topContext) return;
-
-    DUChainReadLocker lock(DUChain::lock());
-
-    const Use *uses = context->uses();
-    unsigned int usesCount = context->usesCount();
-    QVector<DUContext *> subContexts = context->childContexts();
-    QVector<DUContext *>::iterator subContextsIterator = subContexts.begin();
-    QVector<DUContext *>::iterator subContextsEnd      = subContexts.end();
-
-    Declaration *declaration;
-    for (unsigned int i = 0; i < usesCount; ++i)
-    {
-	declaration = topContext->usedDeclarationForIndex(uses[i].m_declarationIndex);
-        if (declaration && declaration->type<KDevelop::FunctionType>())
-        {
-	    if (subContextsIterator != subContextsEnd)
-	    {
-	        if (uses[i].m_range.start < (*subContextsIterator)->range().start)
-		    processFunctionCall(definition, declaration, uses[i]);
-	        else if ((*subContextsIterator)->type() == DUContext::Other)
-		{
-		    // Recursive call for sub-contexts
-	            useDeclarationsFromDefinition(definition, topContext, *subContextsIterator);
-		    subContextsIterator++;
-		    --i;
-		}
-	    }
-	    else
-		processFunctionCall(definition, declaration, uses[i]);
-        }
-    }
-    while (subContextsIterator != subContextsEnd)
-	if ((*subContextsIterator)->type() == DUContext::Other)
-	{
-	    // Recursive call for remaining sub-contexts
-            useDeclarationsFromDefinition(definition, topContext, *subContextsIterator);
-	    subContextsIterator++;
-	}
 }
 
 void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *target, const Use &use)
@@ -283,25 +259,18 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     }
 }
 
-void DUChainControlFlow::newGraph()
+void DUChainControlFlow::slotUpdateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget)
 {
-    m_visitedFunctions.clear();
-    m_identifierDeclarationMap.clear();
-    m_arcUsesMap.clear();
-    emit clearGraph();
-}
+    ControlFlowGraphNavigationWidget *navigationWidget =
+		new ControlFlowGraphNavigationWidget(edge, m_arcUsesMap.values(edge));
+    
+    KDevelop::NavigationToolTip *usesToolTip = new KDevelop::NavigationToolTip(
+				  partWidget,
+				  partWidget->mapToGlobal(QPoint(20, 20)) + point,
+				  navigationWidget);
 
-void DUChainControlFlow::viewDestroyed(QObject *object)
-{
-    Q_UNUSED(object);
-    if (!ICore::self()->documentController()->activeDocument())
-        newGraph();
-}
-
-void DUChainControlFlow::focusIn(KTextEditor::View *view)
-{
-    if (view)
-	cursorPositionChanged(view, view->cursorPosition());
+    usesToolTip->resize(navigationWidget->sizeHint() + QSize(10, 10));
+    ActiveToolTip::showToolTip(usesToolTip);
 }
 
 void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& point)
@@ -320,49 +289,6 @@ void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& po
 	    emit updateToolTip(label, point, part->widget());
 	}
     }
-}
-
-void DUChainControlFlow::slotUpdateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget)
-{
-    ControlFlowGraphNavigationWidget *navigationWidget =
-		new ControlFlowGraphNavigationWidget(edge, m_arcUsesMap.values(edge));
-    
-    KDevelop::NavigationToolTip *usesToolTip = new KDevelop::NavigationToolTip(
-				  partWidget,
-				  partWidget->mapToGlobal(QPoint(20, 20)) + point,
-				  navigationWidget);
-
-    usesToolTip->resize(navigationWidget->sizeHint() + QSize(10, 10));
-    ActiveToolTip::showToolTip(usesToolTip);
-}
-
-Declaration *DUChainControlFlow::declarationFromControlFlowMode(Declaration *definitionDeclaration)
-{
-    Declaration *nodeDeclaration = definitionDeclaration;
-
-    if (m_controlFlowMode != ControlFlowFunction)
-    {
-        DUChainReadLocker lock(DUChain::lock());
-
-	if (nodeDeclaration->isDefinition())
-	    nodeDeclaration = DUChainUtils::declarationForDefinition(nodeDeclaration, nodeDeclaration->topContext());
-	if (!nodeDeclaration || !nodeDeclaration->context() || !nodeDeclaration->context()->owner()) return definitionDeclaration;
-	while (nodeDeclaration->context() &&
-	       nodeDeclaration->context()->owner() &&
-	       ((m_controlFlowMode == ControlFlowClass && nodeDeclaration->context()->type() == DUContext::Class) ||
-	        (m_controlFlowMode == ControlFlowNamespace && (
-							      nodeDeclaration->context()->type() == DUContext::Class ||
-							      nodeDeclaration->context()->type() == DUContext::Namespace)
-	      )))
-	    nodeDeclaration = nodeDeclaration->context()->owner();
-    }
-    return nodeDeclaration;
-}
-
-void DUChainControlFlow::setControlFlowMode(ControlFlowMode controlFlowMode)
-{
-    m_controlFlowMode = controlFlowMode;
-    refreshGraph();
 }
 
 void DUChainControlFlow::setLocked(bool locked)
@@ -394,27 +320,93 @@ void DUChainControlFlow::setMaxLevel(int maxLevel)
     refreshGraph();
 }
 
-void DUChainControlFlow::setClusteringModes(ClusteringModes clusteringModes)
-{
-    m_clusteringModes = clusteringModes;
-    refreshGraph();
-}
-
 void DUChainControlFlow::refreshGraph()
 {
-    if(ICore::self()->documentController()->activeDocument() &&
-       ICore::self()->documentController()->activeDocument()->textDocument() &&
-       ICore::self()->documentController()->activeDocument()->textDocument()->activeView())
+    if (!m_locked)
     {
-	m_previousUppermostExecutableContext = 0;
-	KTextEditor::View *view = ICore::self()->documentController()->activeDocument()->textDocument()->activeView();
-	cursorPositionChanged(view, view->cursorPosition());
+	if(ICore::self()->documentController()->activeDocument() &&
+	  ICore::self()->documentController()->activeDocument()->textDocument() &&
+	  ICore::self()->documentController()->activeDocument()->textDocument()->activeView())
+	{
+	    m_previousUppermostExecutableContext = 0;
+	    KTextEditor::View *view = ICore::self()->documentController()->activeDocument()->textDocument()->activeView();
+	    cursorPositionChanged(view, view->cursorPosition());
+	}
     }
 }
 
-DUChainControlFlow::ClusteringModes DUChainControlFlow::clusteringModes() const
+void DUChainControlFlow::newGraph()
 {
-    return m_clusteringModes;
+    m_visitedFunctions.clear();
+    m_identifierDeclarationMap.clear();
+    m_arcUsesMap.clear();
+    emit clearGraph();
+}
+
+void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition, TopDUContext *topContext, DUContext *context)
+{
+    if (!topContext) return;
+
+    DUChainReadLocker lock(DUChain::lock());
+
+    const Use *uses = context->uses();
+    unsigned int usesCount = context->usesCount();
+    QVector<DUContext *> subContexts = context->childContexts();
+    QVector<DUContext *>::iterator subContextsIterator = subContexts.begin();
+    QVector<DUContext *>::iterator subContextsEnd      = subContexts.end();
+
+    Declaration *declaration;
+    for (unsigned int i = 0; i < usesCount; ++i)
+    {
+	declaration = topContext->usedDeclarationForIndex(uses[i].m_declarationIndex);
+        if (declaration && declaration->type<KDevelop::FunctionType>())
+        {
+	    if (subContextsIterator != subContextsEnd)
+	    {
+	        if (uses[i].m_range.start < (*subContextsIterator)->range().start)
+		    processFunctionCall(definition, declaration, uses[i]);
+	        else if ((*subContextsIterator)->type() == DUContext::Other)
+		{
+		    // Recursive call for sub-contexts
+	            useDeclarationsFromDefinition(definition, topContext, *subContextsIterator);
+		    subContextsIterator++;
+		    --i;
+		}
+	    }
+	    else
+		processFunctionCall(definition, declaration, uses[i]);
+        }
+    }
+    while (subContextsIterator != subContextsEnd)
+	if ((*subContextsIterator)->type() == DUContext::Other)
+	{
+	    // Recursive call for remaining sub-contexts
+            useDeclarationsFromDefinition(definition, topContext, *subContextsIterator);
+	    subContextsIterator++;
+	}
+}
+
+Declaration *DUChainControlFlow::declarationFromControlFlowMode(Declaration *definitionDeclaration)
+{
+    Declaration *nodeDeclaration = definitionDeclaration;
+
+    if (m_controlFlowMode != ControlFlowFunction)
+    {
+        DUChainReadLocker lock(DUChain::lock());
+
+	if (nodeDeclaration->isDefinition())
+	    nodeDeclaration = DUChainUtils::declarationForDefinition(nodeDeclaration, nodeDeclaration->topContext());
+	if (!nodeDeclaration || !nodeDeclaration->context() || !nodeDeclaration->context()->owner()) return definitionDeclaration;
+	while (nodeDeclaration->context() &&
+	       nodeDeclaration->context()->owner() &&
+	       ((m_controlFlowMode == ControlFlowClass && nodeDeclaration->context()->type() == DUContext::Class) ||
+	        (m_controlFlowMode == ControlFlowNamespace && (
+							      nodeDeclaration->context()->type() == DUContext::Class ||
+							      nodeDeclaration->context()->type() == DUContext::Namespace)
+	      )))
+	    nodeDeclaration = nodeDeclaration->context()->owner();
+    }
+    return nodeDeclaration;
 }
 
 void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration* definition)

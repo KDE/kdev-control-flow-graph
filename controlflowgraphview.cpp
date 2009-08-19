@@ -24,27 +24,27 @@
 #include <kparts/part.h>
 #include <kmessagebox.h>
 #include <kactioncollection.h>
-#include <ktexteditor/document.h>
 #include <ktexteditor/view.h>
+#include <ktexteditor/cursor.h>
 
-#include <interfaces/idocumentcontroller.h>
-#include <interfaces/ilanguagecontroller.h>
 #include <interfaces/iprojectcontroller.h>
 #include <interfaces/iuicontroller.h>
-#include <interfaces/idocument.h>
 #include <interfaces/icore.h>
 
-#include <language/backgroundparser/backgroundparser.h>
-#include <language/backgroundparser/parsejob.h>
-
+#include "kdevcontrolflowgraphviewplugin.h"
 #include "duchaincontrolflow.h"
 #include "dotcontrolflowgraph.h"
 
 using namespace KDevelop;
 
-ControlFlowGraphView::ControlFlowGraphView(QWidget *parent)
-: QWidget(parent), m_part(0),
-m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotControlFlowGraph)
+ControlFlowGraphView::ControlFlowGraphView(KDevControlFlowGraphViewPlugin *plugin, QWidget *parent)
+:
+QWidget(parent),
+m_plugin(plugin),
+m_part(0),
+m_duchainControlFlow(new DUChainControlFlow),
+m_dotControlFlowGraph(new DotControlFlowGraph),
+m_graphLocked(false)
 {
     setupUi(this);
     KLibFactory *factory = KLibLoader::self()->factory("kgraphviewerpart");
@@ -66,37 +66,36 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 	    m_duchainControlFlow->setMaxLevel(2);
 	    
 	    if (ICore::self()->projectController()->projectCount() > 0)
-	    {
-		useFolderNameToolButton->setEnabled(true);
-		clusteringProjectToolButton->setEnabled(true);
-	    }
+		setProjectButtonsEnabled(true);
+	    
 	    useShortNamesToolButton->setIcon(KIcon("application-x-arc"));
 	    updateLockIcon(lockControlFlowGraphToolButton->isChecked());
 
-	    connect(ICore::self()->languageController()->backgroundParser(), SIGNAL(parseJobFinished(KDevelop::ParseJob*)),
-		    m_duchainControlFlow, SLOT(refreshGraph()));
-	    
-	    connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)),
-		    this, SLOT(updateLockIcon(bool)));
-	    connect(useFolderNameToolButton, SIGNAL(toggled(bool)),
-		    m_duchainControlFlow, SLOT(setUseFolderName(bool)));
-	    connect(useShortNamesToolButton, SIGNAL(toggled(bool)),
-		    m_duchainControlFlow, SLOT(setUseShortNames(bool)));
-	    connect(drawIncomingArcsToolButton, SIGNAL(toggled(bool)),
-		    m_duchainControlFlow, SLOT(setDrawIncomingArcs(bool)));
-	    connect(maxLevelToolButton, SIGNAL(toggled(bool)),
-		    this, SLOT(setUseMaxLevel(bool)));
-	    connect(maxLevelSpinBox, SIGNAL(valueChanged(int)),
-		    m_duchainControlFlow, SLOT(setMaxLevel(int)));
-
+	    // Control flow mode buttons signals
 	    connect(modeFunctionToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
 	    connect(modeClassToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
 	    connect(modeNamespaceToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
 
+	    // Clustering buttons signals
 	    connect(clusteringClassToolButton, SIGNAL(toggled(bool)), this, SLOT(setClusteringModes(bool)));
 	    connect(clusteringNamespaceToolButton, SIGNAL(toggled(bool)), this, SLOT(setClusteringModes(bool)));
 	    connect(clusteringProjectToolButton, SIGNAL(toggled(bool)), this, SLOT(setClusteringModes(bool)));
 
+	    // Configuration buttons signals
+	    connect(maxLevelSpinBox, SIGNAL(valueChanged(int)),
+		    m_duchainControlFlow, SLOT(setMaxLevel(int)));
+	    connect(maxLevelToolButton, SIGNAL(toggled(bool)),
+		    this, SLOT(setUseMaxLevel(bool)));
+	    connect(drawIncomingArcsToolButton, SIGNAL(toggled(bool)),
+		    m_duchainControlFlow, SLOT(setDrawIncomingArcs(bool)));
+	    connect(useFolderNameToolButton, SIGNAL(toggled(bool)),
+		    m_duchainControlFlow, SLOT(setUseFolderName(bool)));
+	    connect(useShortNamesToolButton, SIGNAL(toggled(bool)),
+		    m_duchainControlFlow, SLOT(setUseShortNames(bool)));
+	    connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)),
+		    this, SLOT(updateLockIcon(bool)));
+
+	    // Left buttons signals
 	    connect(zoomoutToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_out"), SIGNAL(triggered()));
 	    connect(zoominToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_in"), SIGNAL(triggered()));
 	    m_part->actionCollection()->action("view_bev_enabled")->setIcon(KIcon("edit-find.png"));
@@ -113,39 +112,43 @@ m_duchainControlFlow(new DUChainControlFlow), m_dotControlFlowGraph(new DotContr
 	    connect(m_duchainControlFlow,  SIGNAL(clearGraph()), m_dotControlFlowGraph, SLOT(clearGraph()));
 	    connect(m_duchainControlFlow,  SIGNAL(graphDone()), m_dotControlFlowGraph, SLOT(graphDone()));
 	    connect(m_dotControlFlowGraph, SIGNAL(openUrl(const KUrl &)), m_part, SLOT(openUrl(const KUrl &)));
+
+	    m_plugin->registerToolView(this);
 	}
         else
-	    KMessageBox::error((QWidget *)ICore::self()->uiController()->activeMainWindow(), i18n("Could not load the KGraphViewer kpart"));
+	    KMessageBox::error((QWidget *) m_plugin->core()->uiController()->activeMainWindow(), i18n("Could not load the KGraphViewer kpart"));
     }
     else
-        KMessageBox::error((QWidget *)ICore::self()->uiController()->activeMainWindow(), i18n("Could not find the KGraphViewer factory"));
+        KMessageBox::error((QWidget *) m_plugin->core()->uiController()->activeMainWindow(), i18n("Could not find the KGraphViewer factory"));
 }
 
 ControlFlowGraphView::~ControlFlowGraphView()
 {
-    if (m_duchainControlFlow != 0) delete m_duchainControlFlow;
-    if (m_dotControlFlowGraph != 0) delete m_dotControlFlowGraph;
-    if (m_part != 0) delete m_part;
+    m_plugin->unRegisterToolView(this);
+    delete m_duchainControlFlow;
+    delete m_dotControlFlowGraph;
+    delete m_part;
 }
 
-void ControlFlowGraphView::textDocumentCreated(KDevelop::IDocument *document)
+void ControlFlowGraphView::setProjectButtonsEnabled(bool enabled)
 {
-    disconnect(document->textDocument(), SIGNAL(viewCreated(KTextEditor::Document *, KTextEditor::View *)),
-	    this, SLOT(viewCreated(KTextEditor::Document *, KTextEditor::View *)));
-    connect(document->textDocument(), SIGNAL(viewCreated(KTextEditor::Document *, KTextEditor::View *)),
-	    this, SLOT(viewCreated(KTextEditor::Document *, KTextEditor::View *)));
+    useFolderNameToolButton->setEnabled(enabled);
+    clusteringProjectToolButton->setEnabled(enabled);
 }
 
-void ControlFlowGraphView::viewCreated(KTextEditor::Document *document, KTextEditor::View *view)
+void ControlFlowGraphView::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
 {
-    Q_UNUSED(document);
-    disconnect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
-	    m_duchainControlFlow, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
-    connect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
-	    m_duchainControlFlow, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
-    connect(view, SIGNAL(destroyed(QObject *)), m_duchainControlFlow, SLOT(viewDestroyed(QObject *)));
-    disconnect(view, SIGNAL(focusIn(KTextEditor::View *)), m_duchainControlFlow, SLOT(focusIn(KTextEditor::View *)));
-    connect(view, SIGNAL(focusIn(KTextEditor::View *)), m_duchainControlFlow, SLOT(focusIn(KTextEditor::View *)));
+    m_duchainControlFlow->cursorPositionChanged(view, cursor);
+}
+
+void ControlFlowGraphView::refreshGraph()
+{
+    m_duchainControlFlow->refreshGraph();
+}
+
+void ControlFlowGraphView::newGraph()
+{
+    m_duchainControlFlow->newGraph();
 }
 
 void ControlFlowGraphView::updateLockIcon(bool checked)
@@ -153,7 +156,9 @@ void ControlFlowGraphView::updateLockIcon(bool checked)
     lockControlFlowGraphToolButton->setIcon(KIcon(checked ? "document-encrypt":"document-decrypt"));
     lockControlFlowGraphToolButton->setToolTip(checked ? i18n("Unlock control flow graph"):i18n("Lock control flow graph"));
     m_duchainControlFlow->setLocked(checked);
-    if (!checked) m_duchainControlFlow->refreshGraph();
+    m_graphLocked = checked;
+    if (!checked)
+	m_duchainControlFlow->refreshGraph();
 }
 
 void ControlFlowGraphView::setControlFlowMode(bool checked)
@@ -199,26 +204,18 @@ void ControlFlowGraphView::setClusteringModes(bool checked)
     useShortNamesToolButton->setEnabled(m_duchainControlFlow->clusteringModes() ? true:false);
 }
 
-void ControlFlowGraphView::projectOpened(KDevelop::IProject* project)
-{
-    Q_UNUSED(project);
-    useFolderNameToolButton->setEnabled(true);
-    clusteringProjectToolButton->setEnabled(true);
-    m_duchainControlFlow->refreshGraph();
-}
-
-void ControlFlowGraphView::projectClosed(KDevelop::IProject* project)
-{
-    Q_UNUSED(project);
-    if (ICore::self()->projectController()->projectCount() == 0)
-    {
-	useFolderNameToolButton->setEnabled(false);
-	clusteringProjectToolButton->setEnabled(false);
-    }
-}
-
 void ControlFlowGraphView::setUseMaxLevel(bool checked)
 {
     maxLevelSpinBox->setVisible(checked);
     m_duchainControlFlow->setMaxLevel(checked ? maxLevelSpinBox->value():0);
+}
+
+void ControlFlowGraphView::showEvent(QShowEvent *event)
+{
+    m_plugin->setActiveToolView(this);
+}
+
+void ControlFlowGraphView::hideEvent(QHideEvent *event)
+{
+    m_plugin->setActiveToolView(0);
 }
