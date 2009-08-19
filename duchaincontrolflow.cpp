@@ -52,6 +52,7 @@ using namespace KDevelop;
 
 DUChainControlFlow::DUChainControlFlow()
 : m_previousUppermostExecutableContext(0),
+  m_currentProject(0),
   m_maxLevel(0),
   m_locked(false),
   m_drawIncomingArcs(true),
@@ -340,6 +341,7 @@ void DUChainControlFlow::newGraph()
     m_visitedFunctions.clear();
     m_identifierDeclarationMap.clear();
     m_arcUsesMap.clear();
+    m_currentProject = 0;
     emit clearGraph();
 }
 

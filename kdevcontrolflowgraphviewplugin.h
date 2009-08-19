@@ -31,6 +31,7 @@ namespace KDevelop
 {
     class IProject;
     class IDocument;
+    class ParseJob;
     class ContextMenuExtension;
 };
 
@@ -59,6 +60,7 @@ public:
 public Q_SLOTS:
     void projectOpened(KDevelop::IProject* project);
     void projectClosed(KDevelop::IProject* project);
+    void parseJobFinished(KDevelop::ParseJob* parseJob);
     void textDocumentCreated(KDevelop::IDocument *document);
     void viewCreated(KTextEditor::Document *document, KTextEditor::View *view);
     void viewDestroyed(QObject *object);

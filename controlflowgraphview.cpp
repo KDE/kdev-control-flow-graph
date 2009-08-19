@@ -64,10 +64,10 @@ m_graphLocked(false)
 	    drawIncomingArcsToolButton->setIcon(KIcon("draw-arrow-down.png"));
 	    maxLevelToolButton->setIcon(KIcon("zoom-fit-height.png"));
 	    m_duchainControlFlow->setMaxLevel(2);
-	    
+
 	    if (ICore::self()->projectController()->projectCount() > 0)
 		setProjectButtonsEnabled(true);
-	    
+
 	    useShortNamesToolButton->setIcon(KIcon("application-x-arc"));
 	    updateLockIcon(lockControlFlowGraphToolButton->isChecked());
 

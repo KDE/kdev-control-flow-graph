@@ -84,7 +84,7 @@ m_activeToolView(0)
     QObject::connect(core()->projectController(), SIGNAL(projectClosed(KDevelop::IProject*)),
 		     this, SLOT(projectClosed(KDevelop::IProject*)));
     QObject::connect(core()->languageController()->backgroundParser(), SIGNAL(parseJobFinished(KDevelop::ParseJob*)),
-		     this, SLOT(refreshActiveToolView()));
+		     this, SLOT(parseJobFinished(KDevelop::ParseJob*)));
 		     
     m_exportControlFlowGraph = new QAction(i18n("Export control flow graph"), this);
     connect(m_exportControlFlowGraph, SIGNAL(triggered(bool)), this, SLOT(slotExportControlFlowGraph(bool)));
@@ -122,13 +122,10 @@ KDevControlFlowGraphViewPlugin::contextMenuExtension(KDevelop::Context* context)
     DUChainReadLocker readLock(DUChain::lock());
     Declaration *declaration(codeContext->declaration().data());
 
-    if (declaration && declaration->inSymbolTable())
+    if (declaration && declaration->inSymbolTable() && FunctionDefinition::definition(declaration))
     {
-	if (FunctionDefinition::definition(declaration))
-	{
-	    m_exportControlFlowGraph->setData(QVariant::fromValue(DUChainBasePointer(declaration)));
-	    extension.addAction(KDevelop::ContextMenuExtension::ExtensionGroup, m_exportControlFlowGraph);
-	}
+	m_exportControlFlowGraph->setData(QVariant::fromValue(DUChainBasePointer(declaration)));
+	extension.addAction(KDevelop::ContextMenuExtension::ExtensionGroup, m_exportControlFlowGraph);
     }
     return extension;
 }
@@ -148,10 +145,18 @@ void KDevControlFlowGraphViewPlugin::projectClosed(KDevelop::IProject* project)
     {
 	foreach (ControlFlowGraphView *controlFlowGraphView, m_toolViews)
 	{
-	    controlFlowGraphView->setProjectButtonsEnabled(true);
-	    controlFlowGraphView->refreshGraph();
+	    controlFlowGraphView->setProjectButtonsEnabled(false);
+	    controlFlowGraphView->newGraph();
 	}
     }
+    refreshActiveToolView();
+}
+
+void KDevControlFlowGraphViewPlugin::parseJobFinished(KDevelop::ParseJob* parseJob)
+{
+    if (core()->documentController()->activeDocument() &&
+	parseJob->document().toUrl() == core()->documentController()->activeDocument()->url())
+	refreshActiveToolView();
 }
 
 void KDevControlFlowGraphViewPlugin::textDocumentCreated(KDevelop::IDocument *document)
@@ -172,11 +177,8 @@ void KDevControlFlowGraphViewPlugin::viewCreated(KTextEditor::Document *document
 void KDevControlFlowGraphViewPlugin::viewDestroyed(QObject *object)
 {
     Q_UNUSED(object);
-    if (!core()->documentController()->activeDocument())
-    {
-	if (m_activeToolView)
-	    m_activeToolView->newGraph();
-    }
+    if (!core()->documentController()->activeDocument() && m_activeToolView)
+	m_activeToolView->newGraph();
 }
 
 void KDevControlFlowGraphViewPlugin::focusIn(KTextEditor::View *view)
