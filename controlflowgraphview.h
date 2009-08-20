@@ -41,7 +41,7 @@ class ControlFlowGraphView : public QWidget, public Ui::ControlFlowGraphView
 {
     Q_OBJECT
 public:
-    ControlFlowGraphView (KDevControlFlowGraphViewPlugin *plugin, QWidget *parent = 0);
+    explicit ControlFlowGraphView (KDevControlFlowGraphViewPlugin *plugin, QWidget *parent = 0);
     virtual ~ControlFlowGraphView ();
 public Q_SLOTS:
     void setProjectButtonsEnabled(bool enabled);
@@ -49,6 +49,7 @@ public Q_SLOTS:
 
     void refreshGraph();
     void newGraph();
+    void exportControlFlowGraph();
 
     void updateLockIcon(bool checked);
     void setControlFlowMode(bool checked);

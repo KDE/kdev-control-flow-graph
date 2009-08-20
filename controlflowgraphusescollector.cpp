@@ -20,6 +20,8 @@
 #include "controlflowgraphusescollector.h"
 
 #include <language/duchain/use.h>
+#include <language/duchain/duchain.h>
+#include <language/duchain/duchainlock.h>
 
 using namespace KDevelop;
 
@@ -36,6 +38,8 @@ void ControlFlowGraphUsesCollector::processUses(ReferencedTopDUContext topContex
 
 void ControlFlowGraphUsesCollector::processContext(DUContext *context, CodeRepresentation::Ptr code)
 {
+    DUChainReadLocker lock(DUChain::lock());
+    
     foreach (const IndexedDeclaration &declaration, declarations())
     {
 	int declarationIndex = context->topContext()->indexForUsedDeclaration(declaration.data(), false);

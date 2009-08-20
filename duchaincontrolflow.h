@@ -62,6 +62,7 @@ public:
     void setClusteringModes(ClusteringModes clusteringModes);
     ClusteringModes clusteringModes() const;
     
+    void generateControlFlowForDeclaration(Declaration* definition, TopDUContext *topContext, DUContext *uppermostExecutableContext);
     bool isLocked();
 Q_SIGNALS:
     void foundRootNode (const QStringList &containers, const QString &label);

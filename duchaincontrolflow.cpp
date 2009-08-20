@@ -86,6 +86,45 @@ DUChainControlFlow::ClusteringModes DUChainControlFlow::clusteringModes() const
     return m_clusteringModes;
 }
 
+void DUChainControlFlow::generateControlFlowForDeclaration(Declaration* definition, TopDUContext *topContext, DUContext *uppermostExecutableContext)
+{
+    DUChainReadLocker lock(DUChain::lock());
+
+    // Convert to a declaration in accordance with control flow mode (function, class or namespace)
+    Declaration *nodeDefinition = declarationFromControlFlowMode(definition);
+
+    QStringList containers;
+    prepareContainers(containers, definition);
+
+    QString shortName = shortNameFromContainers(containers, prependFolderNames(nodeDefinition));
+
+    emit foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace &&
+				    nodeDefinition->internalContext()->type() != DUContext::Namespace) ? 
+								      globalNamespaceOrFolderNames(nodeDefinition):
+								      shortName);
+
+    if (m_maxLevel != 1)
+    {
+	++m_currentLevel;
+	m_visitedFunctions.insert(definition);
+        m_identifierDeclarationMap[shortName] = nodeDefinition;
+	useDeclarationsFromDefinition(definition, topContext, uppermostExecutableContext);
+    }
+    
+    if (m_drawIncomingArcs)
+    {
+	Declaration *declaration = nodeDefinition;
+	if (declaration->isDefinition())
+	    declaration = DUChainUtils::declarationForDefinition(declaration, topContext);
+	ControlFlowGraphUsesCollector collector(declaration);
+	collector.setProcessDeclarations(true);
+	connect(&collector, SIGNAL(processFunctionCall(Declaration *, Declaration *, const Use &)), this, SLOT(processFunctionCall(Declaration *, Declaration *, const Use &)));
+	collector.startCollecting();
+    }
+
+    emit graphDone();
+}
+
 bool DUChainControlFlow::isLocked()
 {
     return m_locked;
@@ -103,7 +142,6 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     TopDUContext *topContext = DUChainUtils::standardContextForUrl(view->document()->url());
     if (!topContext) return;
     
-    // If cursor isn't inside a function definition
     DUContext *context = topContext->findContext(KDevelop::SimpleCursor(cursor));
 
     // If cursor is in a method arguments context change it to internal context
@@ -146,41 +184,8 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     if (!definition) return;
     
     newGraph();
-
-    // Convert to a declaration in accordance with control flow mode (function, class or namespace)
-    Declaration *nodeDefinition = declarationFromControlFlowMode(definition);
-
-    QStringList containers;
-    prepareContainers(containers, definition);
-
     m_currentProject = ICore::self()->projectController()->findProjectForUrl(view->document()->url());
-    QString shortName = shortNameFromContainers(containers, prependFolderNames(nodeDefinition));
-
-    emit foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace &&
-				    nodeDefinition->internalContext()->type() != DUContext::Namespace) ? 
-								      globalNamespaceOrFolderNames(nodeDefinition):
-								      shortName);
-
-    if (m_maxLevel != 1)
-    {
-	++m_currentLevel;
-	m_visitedFunctions.insert(definition);
-        m_identifierDeclarationMap[shortName] = nodeDefinition;
-	useDeclarationsFromDefinition(definition, topContext, uppermostExecutableContext);
-    }
-    
-    if (m_drawIncomingArcs)
-    {
-	Declaration *declaration = nodeDefinition;
-	if (declaration->isDefinition())
-	    declaration = DUChainUtils::declarationForDefinition(declaration, topContext);
-	ControlFlowGraphUsesCollector collector(declaration);
-	collector.setProcessDeclarations(true);
-	connect(&collector, SIGNAL(processFunctionCall(Declaration *, Declaration *, const Use &)), this, SLOT(processFunctionCall(Declaration *, Declaration *, const Use &)));
-	collector.startCollecting();
-    }
-
-    emit graphDone();
+    generateControlFlowForDeclaration(definition, topContext, uppermostExecutableContext);
 }
 
 void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *target, const Use &use)
@@ -280,6 +285,9 @@ void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& po
     {
 	QString label = list[0];
 	Declaration *declaration = m_identifierDeclarationMap[label];
+	
+	DUChainReadLocker lock(DUChain::lock());
+	
 	if (declaration) // Node click, jump to definition/declaration
 	    ICore::self()->documentController()->openDocument(KUrl(declaration->url().str()),
 							      declaration->range().textRange().start());
@@ -454,7 +462,10 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
 	KUrl::List list = buildSystemManager->includeDirectories(
 			  (KDevelop::ProjectBaseItem *) m_currentProject->projectItem());
 	int minLength = std::numeric_limits<int>::max();
+
+	DUChainReadLocker lock(DUChain::lock());
 	QString folderName, smallestDirectory, declarationUrl = declaration->url().str();
+	
 	foreach (const KUrl &url, list)
 	{
 	    QString urlString = url.toLocalFile();

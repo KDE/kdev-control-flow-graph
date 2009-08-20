@@ -27,9 +27,9 @@
 #include <ktexteditor/view.h>
 #include <ktexteditor/cursor.h>
 
+#include <interfaces/icore.h>
 #include <interfaces/iprojectcontroller.h>
 #include <interfaces/iuicontroller.h>
-#include <interfaces/icore.h>
 
 #include "kdevcontrolflowgraphviewplugin.h"
 #include "duchaincontrolflow.h"
@@ -57,14 +57,24 @@ m_graphLocked(false)
 	    emit setReadWrite();
 
 	    verticalLayout->addWidget(m_part->widget());
+	    
+	    modeFunctionToolButton->setIcon(KIcon("flag-blue"));
+	    modeClassToolButton->setIcon(KIcon("flag-green"));
+	    modeNamespaceToolButton->setIcon(KIcon("flag-red"));
 	    clusteringClassToolButton->setIcon(KIcon("code-class"));
 	    clusteringNamespaceToolButton->setIcon(KIcon("namespace"));
 	    clusteringProjectToolButton->setIcon(KIcon("folder-development"));
 	    useFolderNameToolButton->setIcon(KIcon("folder-favorites"));
-	    drawIncomingArcsToolButton->setIcon(KIcon("draw-arrow-down.png"));
-	    maxLevelToolButton->setIcon(KIcon("zoom-fit-height.png"));
+	    drawIncomingArcsToolButton->setIcon(KIcon("draw-arrow-down"));
+	    maxLevelToolButton->setIcon(KIcon("zoom-fit-height"));
+	    exportToolButton->setIcon(KIcon("document-export"));
 	    m_duchainControlFlow->setMaxLevel(2);
 
+	    birdseyeToolButton->setIcon(KIcon("edit-find"));
+	    zoominToolButton->setIcon(KIcon("zoom-in"));
+	    zoomoutToolButton->setIcon(KIcon("zoom-out"));
+	    zoomfitToolButton->setIcon(KIcon("zoom-fit-best"));
+	    
 	    if (ICore::self()->projectController()->projectCount() > 0)
 		setProjectButtonsEnabled(true);
 
@@ -103,7 +113,8 @@ m_graphLocked(false)
 	    birdseyeToolButton->setDefaultAction(m_part->actionCollection()->action("view_bev_enabled"));
 	    connect(m_part, SIGNAL(selectionIs(const QList<QString>, const QPoint&)),
 		    m_duchainControlFlow, SLOT(selectionIs(const QList<QString>, const QPoint&)));
-
+	    connect(exportToolButton, SIGNAL(clicked()), this, SLOT(exportControlFlowGraph()));
+		    
 	    // Graph generation signals
 	    connect(m_duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
                     m_dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
@@ -149,6 +160,11 @@ void ControlFlowGraphView::refreshGraph()
 void ControlFlowGraphView::newGraph()
 {
     m_duchainControlFlow->newGraph();
+}
+
+void ControlFlowGraphView::exportControlFlowGraph()
+{
+    m_plugin->exportControlFlowGraph(m_dotControlFlowGraph);
 }
 
 void ControlFlowGraphView::updateLockIcon(bool checked)
@@ -206,16 +222,18 @@ void ControlFlowGraphView::setClusteringModes(bool checked)
 
 void ControlFlowGraphView::setUseMaxLevel(bool checked)
 {
-    maxLevelSpinBox->setVisible(checked);
+    maxLevelSpinBox->setEnabled(checked);
     m_duchainControlFlow->setMaxLevel(checked ? maxLevelSpinBox->value():0);
 }
 
 void ControlFlowGraphView::showEvent(QShowEvent *event)
 {
+    Q_UNUSED(event);
     m_plugin->setActiveToolView(this);
 }
 
 void ControlFlowGraphView::hideEvent(QHideEvent *event)
 {
+    Q_UNUSED(event);
     m_plugin->setActiveToolView(0);
 }

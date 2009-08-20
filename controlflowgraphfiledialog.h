@@ -17,13 +17,38 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
  ***************************************************************************/
 
-#include "controlflowgraphconfig.h"
+#ifndef CONTROLFLOWGRAPHFILEDIALOG_H
+#define CONTROLFLOWGRAPHFILEDIALOG_H
 
-ControlGlowGraphConfig::ControlGlowGraphConfig(QWidget *parent, const QString& name, KConfigSkeleton *config)
-: KConfigDialog (parent, name, config)
-{
-}
+#include <kfiledialog.h>
 
-ControlGlowGraphConfig::~ControlGlowGraphConfig() 
+#include "duchaincontrolflow.h"
+
+namespace Ui
 {
-}
+    class ControlFlowGraphExportConfiguration;
+};
+
+class ControlFlowGraphFileDialog : public KFileDialog
+{
+    Q_OBJECT
+public:
+    ControlFlowGraphFileDialog(const KUrl& startDir, const QString& filter,
+			       QWidget *parent, const QString & caption, bool showConfiguration = true);
+    ~ControlFlowGraphFileDialog();
+    
+    DUChainControlFlow::ControlFlowMode controlFlowMode() const;
+    DUChainControlFlow::ClusteringModes clusteringModes() const;
+    int maxLevel() const;
+    bool useFolderName() const;
+    bool useShortNames() const;
+    bool drawIncomingArcs() const;    
+public Q_SLOTS:
+    void setControlFlowMode(bool);
+    void setClusteringModes(int);
+    void slotLimitMaxLevelChanged(int state);
+private:
+    Ui::ControlFlowGraphExportConfiguration *m_configurationWidget;
+};
+
+#endif

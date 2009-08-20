@@ -25,6 +25,8 @@
 
 #include <interfaces/icore.h>
 #include <interfaces/idocumentcontroller.h>
+#include <language/duchain/duchain.h>
+#include <language/duchain/duchainlock.h>
 
 #include <language/codegen/coderepresentation.h>
 
@@ -55,6 +57,8 @@ QString ControlFlowGraphNavigationContext::html(bool shorten)
     QPair<Use, IndexedString> pair;
     QListIterator< QPair<Use, IndexedString> > iterator(m_arcUses);
     iterator.toBack();
+
+    DUChainReadLocker lock(DUChain::lock());
     while (iterator.hasPrevious())
     {
 	pair = iterator.previous();
@@ -71,5 +75,6 @@ void ControlFlowGraphNavigationContext::slotAnchorClicked(const QUrl &link)
 {
     int position = link.toString().toInt();
     QPair<Use, IndexedString> pair = m_arcUses[position];
+    DUChainReadLocker lock(DUChain::lock());
     ICore::self()->documentController()->openDocument(KUrl(pair.second.toUrl()), pair.first.m_range.start.textCursor());
 }

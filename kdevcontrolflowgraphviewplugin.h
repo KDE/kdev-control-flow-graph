@@ -33,6 +33,7 @@ namespace KDevelop
     class IDocument;
     class ParseJob;
     class ContextMenuExtension;
+    class Declaration;
 };
 
 namespace KTextEditor
@@ -43,6 +44,9 @@ namespace KTextEditor
 };
 
 class ControlFlowGraphView;
+class DotControlFlowGraph;
+
+using namespace KDevelop;
 
 class KDevControlFlowGraphViewPlugin : public KDevelop::IPlugin
 {
@@ -55,6 +59,7 @@ public:
 
     void registerToolView(ControlFlowGraphView *view);
     void unRegisterToolView(ControlFlowGraphView *view);
+    void exportControlFlowGraph(DotControlFlowGraph *dotControlFlowGraph = 0);
 
     KDevelop::ContextMenuExtension contextMenuExtension(KDevelop::Context* context);
 public Q_SLOTS:
@@ -69,6 +74,8 @@ public Q_SLOTS:
 
     void refreshActiveToolView();
     void slotExportControlFlowGraph(bool);
+    void slotExportClassControlFlowGraph(bool);
+    void slotExportProjectControlFlowGraph(bool);
     void setActiveToolView(ControlFlowGraphView *activeToolView);
 private:
     ControlFlowGraphView *activeToolView();
@@ -76,6 +83,9 @@ private:
     QList<ControlFlowGraphView *> m_toolViews;
     ControlFlowGraphView *m_activeToolView;
     QAction *m_exportControlFlowGraph;
+    QAction *m_exportClassControlFlowGraph;
+    QAction *m_exportProjectControlFlowGraph;
+    Declaration *m_declaration;
 };
 
 #endif
