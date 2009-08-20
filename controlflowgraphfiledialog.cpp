@@ -29,7 +29,7 @@
 using namespace KDevelop;
 
 ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(const KUrl& startDir, const QString& filter,
-						       QWidget *parent, const QString & caption, bool showConfiguration)
+						       QWidget *parent, const QString & caption, OpeningMode mode)
 : KFileDialog(startDir, filter, parent),
   m_configurationWidget(0)
 {
@@ -37,7 +37,7 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(const KUrl& startDir, con
     setOperationMode(KFileDialog::Saving);
     setMode(KFile::File);
 
-    if (showConfiguration)
+    if (mode != NoConfigurationButtons)
     {
 	m_configurationWidget = new Ui::ControlFlowGraphExportConfiguration;
 	QWidget *widget = new QWidget;
@@ -54,6 +54,12 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(const KUrl& startDir, con
 	m_configurationWidget->useFolderNameCheckBox->setIcon(KIcon("folder-favorites"));
 	m_configurationWidget->useShortNamesCheckBox->setIcon(KIcon("application-x-arc"));
 
+	if (mode == ForClassConfigurationButtons)
+	{
+	    m_configurationWidget->drawIncomingArcsCheckBox->setChecked(false);
+	    m_configurationWidget->drawIncomingArcsCheckBox->setEnabled(false);
+	}
+	    
 	connect(m_configurationWidget->controlFlowFunctionRadioButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
 	connect(m_configurationWidget->controlFlowClassRadioButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
 	connect(m_configurationWidget->controlFlowNamespaceRadioButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));

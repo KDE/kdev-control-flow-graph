@@ -65,8 +65,9 @@ public:
     void generateControlFlowForDeclaration(Declaration* definition, TopDUContext *topContext, DUContext *uppermostExecutableContext);
     bool isLocked();
 Q_SIGNALS:
-    void foundRootNode (const QStringList &containers, const QString &label);
-    void foundFunctionCall (const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target);
+    void prepareNewGraph();
+    void foundRootNode(const QStringList &containers, const QString &label);
+    void foundFunctionCall(const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target);
     void graphDone();
     void clearGraph();
     void updateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget);

@@ -73,14 +73,15 @@ void DotControlFlowGraph::exportGraph(const QString &fileName)
     }
 }
 
-void DotControlFlowGraph::foundRootNode (const QStringList &containers, const QString &label)
+void DotControlFlowGraph::prepareNewGraph()
 {
     clearGraph();
-
     m_rootGraph = agopen((char *) "Root_Graph", AGDIGRAPHSTRICT);
+}
 
+void DotControlFlowGraph::foundRootNode (const QStringList &containers, const QString &label)
+{
     Agraph_t *graph = m_rootGraph;
-
     QString absoluteContainer;
     foreach (const QString& container, containers)
     {

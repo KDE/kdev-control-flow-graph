@@ -34,6 +34,7 @@
 #include "kdevcontrolflowgraphviewplugin.h"
 #include "duchaincontrolflow.h"
 #include "dotcontrolflowgraph.h"
+#include "controlflowgraphfiledialog.h"
 
 using namespace KDevelop;
 
@@ -116,6 +117,8 @@ m_graphLocked(false)
 	    connect(exportToolButton, SIGNAL(clicked()), this, SLOT(exportControlFlowGraph()));
 		    
 	    // Graph generation signals
+	    connect(m_duchainControlFlow,  SIGNAL(prepareNewGraph()),
+                    m_dotControlFlowGraph, SLOT  (prepareNewGraph()));
 	    connect(m_duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
                     m_dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
 	    connect(m_duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
@@ -164,7 +167,9 @@ void ControlFlowGraphView::newGraph()
 
 void ControlFlowGraphView::exportControlFlowGraph()
 {
-    m_plugin->exportControlFlowGraph(m_dotControlFlowGraph);
+    ControlFlowGraphFileDialog *fileDialog;
+    if ((fileDialog = m_plugin->exportControlFlowGraph(ControlFlowGraphFileDialog::NoConfigurationButtons)))
+	m_dotControlFlowGraph->exportGraph(fileDialog->selectedFile());
 }
 
 void ControlFlowGraphView::updateLockIcon(bool checked)

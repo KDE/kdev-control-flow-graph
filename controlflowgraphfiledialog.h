@@ -33,8 +33,9 @@ class ControlFlowGraphFileDialog : public KFileDialog
 {
     Q_OBJECT
 public:
+    enum OpeningMode { ConfigurationButtons, NoConfigurationButtons, ForClassConfigurationButtons };
     ControlFlowGraphFileDialog(const KUrl& startDir, const QString& filter,
-			       QWidget *parent, const QString & caption, bool showConfiguration = true);
+			       QWidget *parent, const QString & caption, OpeningMode mode = ConfigurationButtons);
     ~ControlFlowGraphFileDialog();
     
     DUChainControlFlow::ControlFlowMode controlFlowMode() const;

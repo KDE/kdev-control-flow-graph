@@ -53,8 +53,8 @@ using namespace KDevelop;
 DUChainControlFlow::DUChainControlFlow()
 : m_previousUppermostExecutableContext(0),
   m_currentProject(0),
-  m_maxLevel(2),
   m_currentLevel(1),
+  m_maxLevel(2),
   m_locked(false),
   m_drawIncomingArcs(true),
   m_useFolderName(true),
@@ -97,19 +97,18 @@ void DUChainControlFlow::generateControlFlowForDeclaration(Declaration* definiti
 
     QString shortName = shortNameFromContainers(containers, prependFolderNames(nodeDefinition));
 
-    emit foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace &&
-				    nodeDefinition->internalContext()->type() != DUContext::Namespace) ? 
-								      globalNamespaceOrFolderNames(nodeDefinition):
-								      shortName);
-
-    if (m_maxLevel != 1)
+    if (m_maxLevel != 1 && !m_visitedFunctions.contains(definition))
     {
+	emit foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace &&
+					nodeDefinition->internalContext()->type() != DUContext::Namespace) ? 
+									  globalNamespaceOrFolderNames(nodeDefinition):
+									  shortName);
 	++m_currentLevel;
 	m_visitedFunctions.insert(definition);
         m_identifierDeclarationMap[shortName] = nodeDefinition;
 	useDeclarationsFromDefinition(definition, topContext, uppermostExecutableContext);
     }
-    
+
     if (m_drawIncomingArcs)
     {
 	Declaration *declaration = nodeDefinition;
@@ -184,6 +183,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     
     newGraph();
     m_currentProject = ICore::self()->projectController()->findProjectForUrl(view->document()->url());
+    emit prepareNewGraph();
     generateControlFlowForDeclaration(definition, topContext, uppermostExecutableContext);
 }
 
@@ -231,9 +231,7 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     if (targetLabel != sourceLabel ||
 	m_controlFlowMode == ControlFlowFunction ||
 	(calledFunctionDefinition && m_visitedFunctions.contains(calledFunctionDefinition)))
-    {
 	emit foundFunctionCall(sourceContainers, sourceLabel, targetContainers, targetLabel); 
-    }
 
     if (calledFunctionDefinition)
 	calledFunctionContext = calledFunctionDefinition->internalContext();

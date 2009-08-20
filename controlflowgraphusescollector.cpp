@@ -32,8 +32,11 @@ ControlFlowGraphUsesCollector::ControlFlowGraphUsesCollector(IndexedDeclaration 
 
 void ControlFlowGraphUsesCollector::processUses(ReferencedTopDUContext topContext)
 {
-    CodeRepresentation::Ptr code = createCodeRepresentation(topContext->url());
-    processContext(topContext, code);
+    if (topContext.data())
+    {
+	CodeRepresentation::Ptr code = createCodeRepresentation(topContext.data()->url());
+	processContext(topContext.data(), code);
+    }
 }
 
 void ControlFlowGraphUsesCollector::processContext(DUContext *context, CodeRepresentation::Ptr code)

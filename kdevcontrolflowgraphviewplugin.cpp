@@ -40,17 +40,19 @@
 #include <interfaces/context.h>
 #include <interfaces/contextmenuextension.h>
 #include <language/duchain/declaration.h>
+#include <language/duchain/classdeclaration.h>
+#include <language/duchain/classfunctiondeclaration.h>
 #include <language/duchain/functiondefinition.h>
 #include <language/duchain/types/functiontype.h>
 #include <language/interfaces/codecontext.h>
 #include <language/backgroundparser/backgroundparser.h>
 #include <language/backgroundparser/parsejob.h>
+#include <language/duchain/codemodel.h>
 #include <project/projectmodel.h>
 
 #include "controlflowgraphview.h"
 #include "duchaincontrolflow.h"
 #include "dotcontrolflowgraph.h"
-#include "controlflowgraphfiledialog.h"
 
 using namespace KDevelop;
 
@@ -120,11 +122,11 @@ void KDevControlFlowGraphViewPlugin::unRegisterToolView(ControlFlowGraphView *vi
     m_toolViews.removeAll(view);
 }
 
-void KDevControlFlowGraphViewPlugin::exportControlFlowGraph(DotControlFlowGraph *dotControlFlowGraph)
+ControlFlowGraphFileDialog *KDevControlFlowGraphViewPlugin::exportControlFlowGraph(ControlFlowGraphFileDialog::OpeningMode mode)
 {
-    ControlFlowGraphFileDialog fileDialog(KUrl(), "*.png|PNG (Portable Network Graphics)\n*.jpg *.jpeg|JPG \\/ JPEG (Joint Photographic Expert Group)\n*.gif|GIF (Graphics Interchange Format)\n*.svg *.svgz|SVG (Scalable Vector Graphics)\n*.dia|DIA (Dia Structured Diagrams)\n*.fig|FIG\n*.pdf|PDF (Portable Document Format)\n*.dot|DOT (Graph Description Language)", (QWidget *) core()->uiController()->activeMainWindow(), i18n("Export Control Flow Graph"), (dotControlFlowGraph) ? false:true);
-    fileDialog.exec();
-    QString fileName = fileDialog.selectedFile();
+    ControlFlowGraphFileDialog *fileDialog = new ControlFlowGraphFileDialog(KUrl(), "*.png|PNG (Portable Network Graphics)\n*.jpg *.jpeg|JPG \\/ JPEG (Joint Photographic Expert Group)\n*.gif|GIF (Graphics Interchange Format)\n*.svg *.svgz|SVG (Scalable Vector Graphics)\n*.dia|DIA (Dia Structured Diagrams)\n*.fig|FIG\n*.pdf|PDF (Portable Document Format)\n*.dot|DOT (Graph Description Language)", (QWidget *) core()->uiController()->activeMainWindow(), i18n("Export Control Flow Graph"), mode);
+    fileDialog->exec();
+    QString fileName = fileDialog->selectedFile();
     if (!fileName.isEmpty())
     {
 	// Note: this is going to be removed with KDE 4.4 since getSaveFileName will support a KFileDialog::ConfirmOverwrite option
@@ -135,37 +137,9 @@ void KDevControlFlowGraphViewPlugin::exportControlFlowGraph(DotControlFlowGraph 
 						   i18n("Export Control Flow Graph"));
 
 	if (code == KMessageBox::Yes)
-	{
-	    DUChainControlFlow *duchainControlFlow = 0;
-	    if (!dotControlFlowGraph)
-	    {
-		duchainControlFlow = new DUChainControlFlow;
-		dotControlFlowGraph = new DotControlFlowGraph;
-
-		// Configure duchainControlFlow
-		duchainControlFlow->setControlFlowMode(fileDialog.controlFlowMode());
-		duchainControlFlow->setClusteringModes(fileDialog.clusteringModes());
-		duchainControlFlow->setMaxLevel(fileDialog.maxLevel());
-		duchainControlFlow->setUseFolderName(fileDialog.useFolderName());
-		duchainControlFlow->setUseShortNames(fileDialog.useShortNames());
-		duchainControlFlow->setDrawIncomingArcs(fileDialog.drawIncomingArcs());
-		
-		connect(duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
-			dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
-		connect(duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
-			dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
-		connect(duchainControlFlow,  SIGNAL(clearGraph()), dotControlFlowGraph, SLOT(clearGraph()));
-
-		duchainControlFlow->generateControlFlowForDeclaration(m_declaration, m_declaration->topContext(), m_declaration->internalContext());
-	    }
-	    dotControlFlowGraph->exportGraph(fileName);
-	    if (duchainControlFlow)
-	    {
-		delete dotControlFlowGraph;
-		delete duchainControlFlow;
-	    }
-	}
+	    return fileDialog;
     }
+    return 0;
 }
 
 KDevelop::ContextMenuExtension
@@ -296,19 +270,44 @@ void KDevControlFlowGraphViewPlugin::slotExportControlFlowGraph(bool)
     QAction *action = static_cast<QAction *>(sender());
     Q_ASSERT(action->data().canConvert<DUChainBasePointer>());
     DeclarationPointer declarationPointer = qvariant_cast<DUChainBasePointer>(action->data()).dynamicCast<Declaration>();
-    m_declaration = declarationPointer.data();
+    Declaration *declaration = declarationPointer.data();
 
-    if (!m_declaration->isDefinition())
+    if (!declaration->isDefinition())
     {
-	m_declaration = FunctionDefinition::definition(m_declaration);
-	if (!m_declaration || !m_declaration->internalContext())
+	declaration = FunctionDefinition::definition(declaration);
+	if (!declaration || !declaration->internalContext())
 	{
 	    KMessageBox::error((QWidget *) core()->uiController()->activeMainWindow(), i18n("Couldn't generate control flow graph"));
 	    return;
 	}
     }
-    
-    exportControlFlowGraph();
+    ControlFlowGraphFileDialog *fileDialog;
+    if ((fileDialog = exportControlFlowGraph()))
+    {
+	DUChainControlFlow *duchainControlFlow = new DUChainControlFlow;
+	DotControlFlowGraph *dotControlFlowGraph = new DotControlFlowGraph;
+
+	// Configure duchainControlFlow
+	duchainControlFlow->setControlFlowMode(fileDialog->controlFlowMode());
+	duchainControlFlow->setClusteringModes(fileDialog->clusteringModes());
+	duchainControlFlow->setMaxLevel(fileDialog->maxLevel());
+	duchainControlFlow->setUseFolderName(fileDialog->useFolderName());
+	duchainControlFlow->setUseShortNames(fileDialog->useShortNames());
+	duchainControlFlow->setDrawIncomingArcs(fileDialog->drawIncomingArcs());
+	
+	connect(duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
+		dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
+	connect(duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
+		dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
+	connect(duchainControlFlow,  SIGNAL(clearGraph()), dotControlFlowGraph, SLOT(clearGraph()));
+
+	dotControlFlowGraph->prepareNewGraph();
+	duchainControlFlow->generateControlFlowForDeclaration(declaration, declaration->topContext(), declaration->internalContext());
+	dotControlFlowGraph->exportGraph(fileDialog->selectedFile());
+
+	delete dotControlFlowGraph;
+	delete duchainControlFlow;
+    }
 }
 
 void KDevControlFlowGraphViewPlugin::slotExportClassControlFlowGraph(bool)
@@ -317,6 +316,46 @@ void KDevControlFlowGraphViewPlugin::slotExportClassControlFlowGraph(bool)
     QAction *action = static_cast<QAction *>(sender());
     Q_ASSERT(action->data().canConvert<DUChainBasePointer>());
     DeclarationPointer declarationPointer = qvariant_cast<DUChainBasePointer>(action->data()).dynamicCast<Declaration>();
+    Declaration *declaration = declarationPointer.data();
+
+    ControlFlowGraphFileDialog *fileDialog;
+    if ((fileDialog = exportControlFlowGraph(ControlFlowGraphFileDialog::ForClassConfigurationButtons)))
+    {
+	DUChainControlFlow *duchainControlFlow = new DUChainControlFlow;
+	DotControlFlowGraph *dotControlFlowGraph = new DotControlFlowGraph;
+
+	// Configure duchainControlFlow
+	duchainControlFlow->setControlFlowMode(fileDialog->controlFlowMode());
+	duchainControlFlow->setClusteringModes(fileDialog->clusteringModes());
+	duchainControlFlow->setMaxLevel(fileDialog->maxLevel());
+	duchainControlFlow->setUseFolderName(fileDialog->useFolderName());
+	duchainControlFlow->setUseShortNames(fileDialog->useShortNames());
+	duchainControlFlow->setDrawIncomingArcs(fileDialog->drawIncomingArcs());
+	
+	connect(duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
+		dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
+	connect(duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
+		dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
+	connect(duchainControlFlow,  SIGNAL(clearGraph()), dotControlFlowGraph, SLOT(clearGraph()));
+
+	dotControlFlowGraph->prepareNewGraph();
+
+	DUChainReadLocker readLock(DUChain::lock());
+	ClassFunctionDeclaration *functionDeclaration;
+	if (declaration->internalContext())
+	    foreach (Declaration *decl, declaration->internalContext()->localDeclarations())
+		if ((functionDeclaration = dynamic_cast<ClassFunctionDeclaration *>(decl)))
+		{
+		    Declaration *functionDefinition = FunctionDefinition::definition(functionDeclaration);
+		    if (functionDefinition)
+			duchainControlFlow->generateControlFlowForDeclaration(functionDefinition, functionDefinition->topContext(), functionDefinition->internalContext());
+		}
+
+	dotControlFlowGraph->exportGraph(fileDialog->selectedFile());
+
+	delete dotControlFlowGraph;
+	delete duchainControlFlow;
+    }
 }
 
 void KDevControlFlowGraphViewPlugin::slotExportProjectControlFlowGraph(bool)

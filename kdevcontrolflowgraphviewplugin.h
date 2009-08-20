@@ -25,6 +25,8 @@
 
 #include <interfaces/iplugin.h>
 
+#include "controlflowgraphfiledialog.h"
+
 class QAction;
 
 namespace KDevelop
@@ -33,7 +35,6 @@ namespace KDevelop
     class IDocument;
     class ParseJob;
     class ContextMenuExtension;
-    class Declaration;
 };
 
 namespace KTextEditor
@@ -59,7 +60,7 @@ public:
 
     void registerToolView(ControlFlowGraphView *view);
     void unRegisterToolView(ControlFlowGraphView *view);
-    void exportControlFlowGraph(DotControlFlowGraph *dotControlFlowGraph = 0);
+    ControlFlowGraphFileDialog *exportControlFlowGraph(ControlFlowGraphFileDialog::OpeningMode mode = ControlFlowGraphFileDialog::ConfigurationButtons);
 
     KDevelop::ContextMenuExtension contextMenuExtension(KDevelop::Context* context);
 public Q_SLOTS:
@@ -85,7 +86,6 @@ private:
     QAction *m_exportControlFlowGraph;
     QAction *m_exportClassControlFlowGraph;
     QAction *m_exportProjectControlFlowGraph;
-    Declaration *m_declaration;
 };
 
 #endif

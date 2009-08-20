@@ -45,6 +45,7 @@ public:
 Q_SIGNALS:
     bool openUrl(const KUrl &url);
 public Q_SLOTS:
+    void prepareNewGraph();
     void foundRootNode (const QStringList &containers, const QString &label);
     void foundFunctionCall (const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target);
     void graphDone();
