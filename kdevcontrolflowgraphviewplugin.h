@@ -46,6 +46,7 @@ namespace KTextEditor
 
 class ControlFlowGraphView;
 class DotControlFlowGraph;
+class ControlFlowGraphFileDialog;
 
 using namespace KDevelop;
 
@@ -79,6 +80,8 @@ public Q_SLOTS:
     void slotExportProjectControlFlowGraph(bool);
     void setActiveToolView(ControlFlowGraphView *activeToolView);
 private:
+    void configureDuchainControlFlow(DUChainControlFlow *duchainControlFlow, DotControlFlowGraph *dotControlFlowGraph, ControlFlowGraphFileDialog *fileDialog);
+
     ControlFlowGraphView *activeToolView();
     class KDevControlFlowGraphViewFactory *m_toolViewFactory;
     QList<ControlFlowGraphView *> m_toolViews;

@@ -44,6 +44,7 @@
 #include <language/duchain/classfunctiondeclaration.h>
 #include <language/duchain/functiondefinition.h>
 #include <language/duchain/types/functiontype.h>
+#include <language/duchain/persistentsymboltable.h>
 #include <language/interfaces/codecontext.h>
 #include <language/backgroundparser/backgroundparser.h>
 #include <language/backgroundparser/parsejob.h>
@@ -178,16 +179,13 @@ KDevControlFlowGraphViewPlugin::contextMenuExtension(KDevelop::Context* context)
 	if (projectItemContext)
 	{
 	    QList<ProjectBaseItem *> items = projectItemContext->items();
-	    if (!items.isEmpty())
+	    foreach(ProjectBaseItem *item, items)
 	    {
-		foreach(ProjectBaseItem *item, items)
+		ProjectFolderItem *folder = item->folder();
+		if (folder && folder->isProjectRoot())
 		{
-		    ProjectFolderItem *folder = item->folder();
-		    if (folder && folder->isProjectRoot())
-		    {
-			m_exportProjectControlFlowGraph->setData(QVariant::fromValue(folder->folderName()));
-			extension.addAction(KDevelop::ContextMenuExtension::ExtensionGroup, m_exportProjectControlFlowGraph);
-		    }
+		    m_exportProjectControlFlowGraph->setData(QVariant::fromValue(folder->folderName()));
+		    extension.addAction(KDevelop::ContextMenuExtension::ExtensionGroup, m_exportProjectControlFlowGraph);
 		}
 	    }
 	}
@@ -287,21 +285,8 @@ void KDevControlFlowGraphViewPlugin::slotExportControlFlowGraph(bool)
 	DUChainControlFlow *duchainControlFlow = new DUChainControlFlow;
 	DotControlFlowGraph *dotControlFlowGraph = new DotControlFlowGraph;
 
-	// Configure duchainControlFlow
-	duchainControlFlow->setControlFlowMode(fileDialog->controlFlowMode());
-	duchainControlFlow->setClusteringModes(fileDialog->clusteringModes());
-	duchainControlFlow->setMaxLevel(fileDialog->maxLevel());
-	duchainControlFlow->setUseFolderName(fileDialog->useFolderName());
-	duchainControlFlow->setUseShortNames(fileDialog->useShortNames());
-	duchainControlFlow->setDrawIncomingArcs(fileDialog->drawIncomingArcs());
-	
-	connect(duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
-		dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
-	connect(duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
-		dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
-	connect(duchainControlFlow,  SIGNAL(clearGraph()), dotControlFlowGraph, SLOT(clearGraph()));
+	configureDuchainControlFlow(duchainControlFlow, dotControlFlowGraph, fileDialog);
 
-	dotControlFlowGraph->prepareNewGraph();
 	duchainControlFlow->generateControlFlowForDeclaration(declaration, declaration->topContext(), declaration->internalContext());
 	dotControlFlowGraph->exportGraph(fileDialog->selectedFile());
 
@@ -324,21 +309,7 @@ void KDevControlFlowGraphViewPlugin::slotExportClassControlFlowGraph(bool)
 	DUChainControlFlow *duchainControlFlow = new DUChainControlFlow;
 	DotControlFlowGraph *dotControlFlowGraph = new DotControlFlowGraph;
 
-	// Configure duchainControlFlow
-	duchainControlFlow->setControlFlowMode(fileDialog->controlFlowMode());
-	duchainControlFlow->setClusteringModes(fileDialog->clusteringModes());
-	duchainControlFlow->setMaxLevel(fileDialog->maxLevel());
-	duchainControlFlow->setUseFolderName(fileDialog->useFolderName());
-	duchainControlFlow->setUseShortNames(fileDialog->useShortNames());
-	duchainControlFlow->setDrawIncomingArcs(fileDialog->drawIncomingArcs());
-	
-	connect(duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
-		dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
-	connect(duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
-		dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
-	connect(duchainControlFlow,  SIGNAL(clearGraph()), dotControlFlowGraph, SLOT(clearGraph()));
-
-	dotControlFlowGraph->prepareNewGraph();
+	configureDuchainControlFlow(duchainControlFlow, dotControlFlowGraph, fileDialog);
 
 	DUChainReadLocker readLock(DUChain::lock());
 	ClassFunctionDeclaration *functionDeclaration;
@@ -364,12 +335,81 @@ void KDevControlFlowGraphViewPlugin::slotExportProjectControlFlowGraph(bool)
     QAction *action = static_cast<QAction *>(sender());
     Q_ASSERT(action->data().canConvert<QString>());
     QString projectName = qvariant_cast<QString>(action->data());
+    IProject *project = core()->projectController()->findProjectByName(projectName);
+
+    ControlFlowGraphFileDialog *fileDialog;
+    if ((fileDialog = exportControlFlowGraph(ControlFlowGraphFileDialog::ForClassConfigurationButtons)))
+    {
+	DUChainControlFlow *duchainControlFlow = new DUChainControlFlow;
+	DotControlFlowGraph *dotControlFlowGraph = new DotControlFlowGraph;
+
+	configureDuchainControlFlow(duchainControlFlow, dotControlFlowGraph, fileDialog);
+
+	DUChainReadLocker readLock(DUChain::lock());
+	foreach(const IndexedString &file, project->fileSet())
+	{
+	    uint codeModelItemCount = 0;
+	    const CodeModelItem *codeModelItems = 0;
+	    CodeModel::self().items(file, codeModelItemCount, codeModelItems);
+	    
+	    for (uint codeModelItemIndex = 0; codeModelItemIndex < codeModelItemCount; ++codeModelItemIndex)
+	    {
+		const CodeModelItem &item = codeModelItems[codeModelItemIndex];
+		
+		if ((item.kind & CodeModelItem::Class) && !item.id.identifier().last().toString().isEmpty())
+		{
+		    uint declarationCount = 0;
+		    const IndexedDeclaration *declarations = 0;
+		    PersistentSymbolTable::self().declarations(item.id.identifier(), declarationCount, declarations);
+		    for (uint i = 0; i < declarationCount; ++i)
+		    {
+			Declaration *declaration = dynamic_cast<Declaration *>(declarations[i].declaration());
+			if (declaration && !declaration->isForwardDeclaration() && declaration->internalContext())
+			{
+			    ClassFunctionDeclaration *functionDeclaration;
+			    foreach (Declaration *decl, declaration->internalContext()->localDeclarations())
+				if ((functionDeclaration = dynamic_cast<ClassFunctionDeclaration *>(decl)))
+				{
+				    Declaration *functionDefinition = FunctionDefinition::definition(functionDeclaration);
+				    if (functionDefinition)
+					duchainControlFlow->generateControlFlowForDeclaration(functionDefinition, functionDefinition->topContext(), functionDefinition->internalContext());
+				}
+			    break;
+			}
+		    }
+		}
+	    }
+	}
+	
+	dotControlFlowGraph->exportGraph(fileDialog->selectedFile());
+
+	delete dotControlFlowGraph;
+	delete duchainControlFlow;
+    }
 }
 
 void KDevControlFlowGraphViewPlugin::setActiveToolView(ControlFlowGraphView *activeToolView)
 {
     m_activeToolView = activeToolView;
     refreshActiveToolView();
+}
+
+void KDevControlFlowGraphViewPlugin::configureDuchainControlFlow(DUChainControlFlow *duchainControlFlow, DotControlFlowGraph *dotControlFlowGraph, ControlFlowGraphFileDialog *fileDialog)
+{
+    duchainControlFlow->setControlFlowMode(fileDialog->controlFlowMode());
+    duchainControlFlow->setClusteringModes(fileDialog->clusteringModes());
+    duchainControlFlow->setMaxLevel(fileDialog->maxLevel());
+    duchainControlFlow->setUseFolderName(fileDialog->useFolderName());
+    duchainControlFlow->setUseShortNames(fileDialog->useShortNames());
+    duchainControlFlow->setDrawIncomingArcs(fileDialog->drawIncomingArcs());
+
+    connect(duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
+	    dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
+    connect(duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
+	    dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
+    connect(duchainControlFlow,  SIGNAL(clearGraph()), dotControlFlowGraph, SLOT(clearGraph()));
+
+    dotControlFlowGraph->prepareNewGraph();
 }
 
 #include "kdevcontrolflowgraphviewplugin.moc"
