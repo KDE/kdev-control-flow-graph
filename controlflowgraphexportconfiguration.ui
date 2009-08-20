@@ -296,6 +296,9 @@
         <property name="text">
          <string>By namespace</string>
         </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>

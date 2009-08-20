@@ -53,13 +53,14 @@ using namespace KDevelop;
 DUChainControlFlow::DUChainControlFlow()
 : m_previousUppermostExecutableContext(0),
   m_currentProject(0),
-  m_maxLevel(0),
+  m_maxLevel(2),
+  m_currentLevel(1),
   m_locked(false),
   m_drawIncomingArcs(true),
   m_useFolderName(true),
   m_useShortNames(true),
   m_controlFlowMode(ControlFlowClass),
-  m_clusteringModes(ClusteringNone)
+  m_clusteringModes(ClusteringNamespace)
 {
     connect(this, SIGNAL(updateToolTip(const QString &, const QPoint&, QWidget *)),
 	    this, SLOT(slotUpdateToolTip(const QString &, const QPoint&, QWidget *)), Qt::QueuedConnection);
@@ -72,13 +73,11 @@ DUChainControlFlow::~DUChainControlFlow()
 void DUChainControlFlow::setControlFlowMode(ControlFlowMode controlFlowMode)
 {
     m_controlFlowMode = controlFlowMode;
-    refreshGraph();
 }
 
 void DUChainControlFlow::setClusteringModes(ClusteringModes clusteringModes)
 {
     m_clusteringModes = clusteringModes;
-    refreshGraph();
 }
 
 DUChainControlFlow::ClusteringModes DUChainControlFlow::clusteringModes() const
@@ -123,6 +122,7 @@ void DUChainControlFlow::generateControlFlowForDeclaration(Declaration* definiti
     }
 
     emit graphDone();
+    m_currentLevel = 1;
 }
 
 bool DUChainControlFlow::isLocked()
@@ -133,7 +133,6 @@ bool DUChainControlFlow::isLocked()
 void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
 {
     if (m_locked) return;
-    m_currentLevel = 1;
 
     if (!view->document()) return;
 
@@ -308,25 +307,21 @@ void DUChainControlFlow::setLocked(bool locked)
 void DUChainControlFlow::setUseFolderName(bool useFolderName)
 {
     m_useFolderName = useFolderName;
-    refreshGraph();
 }
 
 void DUChainControlFlow::setUseShortNames(bool useShortNames)
 {
     m_useShortNames = useShortNames;
-    refreshGraph();
 }
 
 void DUChainControlFlow::setDrawIncomingArcs(bool drawIncomingArcs)
 {
     m_drawIncomingArcs = drawIncomingArcs;
-    refreshGraph();
 }
 
 void DUChainControlFlow::setMaxLevel(int maxLevel)
 {
     m_maxLevel = maxLevel;
-    refreshGraph();
 }
 
 void DUChainControlFlow::refreshGraph()

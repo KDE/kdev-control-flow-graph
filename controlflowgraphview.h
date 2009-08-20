@@ -55,6 +55,10 @@ public Q_SLOTS:
     void setControlFlowMode(bool checked);
     void setClusteringModes(bool checked);
     void setUseMaxLevel(bool checked);
+    void setMaxLevel(int value);
+    void setDrawIncomingArcs(bool checked);
+    void setUseFolderName(bool checked);
+    void setUseShortNames(bool checked);
 Q_SIGNALS:
     void setReadWrite();
 protected:

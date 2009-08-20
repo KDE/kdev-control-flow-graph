@@ -142,6 +142,7 @@ void KDevControlFlowGraphViewPlugin::exportControlFlowGraph(DotControlFlowGraph 
 		duchainControlFlow = new DUChainControlFlow;
 		dotControlFlowGraph = new DotControlFlowGraph;
 
+		// Configure duchainControlFlow
 		duchainControlFlow->setControlFlowMode(fileDialog.controlFlowMode());
 		duchainControlFlow->setClusteringModes(fileDialog.clusteringModes());
 		duchainControlFlow->setMaxLevel(fileDialog.maxLevel());
@@ -154,8 +155,6 @@ void KDevControlFlowGraphViewPlugin::exportControlFlowGraph(DotControlFlowGraph 
 		connect(duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
 			dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
 		connect(duchainControlFlow,  SIGNAL(clearGraph()), dotControlFlowGraph, SLOT(clearGraph()));
-
-		// Configure duchainControlFlow
 
 		duchainControlFlow->generateControlFlowForDeclaration(m_declaration, m_declaration->topContext(), m_declaration->internalContext());
 	    }

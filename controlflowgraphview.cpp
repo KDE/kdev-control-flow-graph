@@ -93,15 +93,15 @@ m_graphLocked(false)
 
 	    // Configuration buttons signals
 	    connect(maxLevelSpinBox, SIGNAL(valueChanged(int)),
-		    m_duchainControlFlow, SLOT(setMaxLevel(int)));
+		    this, SLOT(setMaxLevel(int)));
 	    connect(maxLevelToolButton, SIGNAL(toggled(bool)),
 		    this, SLOT(setUseMaxLevel(bool)));
 	    connect(drawIncomingArcsToolButton, SIGNAL(toggled(bool)),
-		    m_duchainControlFlow, SLOT(setDrawIncomingArcs(bool)));
+		    this, SLOT(setDrawIncomingArcs(bool)));
 	    connect(useFolderNameToolButton, SIGNAL(toggled(bool)),
-		    m_duchainControlFlow, SLOT(setUseFolderName(bool)));
+		    this, SLOT(setUseFolderName(bool)));
 	    connect(useShortNamesToolButton, SIGNAL(toggled(bool)),
-		    m_duchainControlFlow, SLOT(setUseShortNames(bool)));
+		    this, SLOT(setUseShortNames(bool)));
 	    connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)),
 		    this, SLOT(updateLockIcon(bool)));
 
@@ -185,12 +185,14 @@ void ControlFlowGraphView::setControlFlowMode(bool checked)
 	if (toolButton->objectName() == "modeFunctionToolButton")
 	{
 	    m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowFunction);
+	    m_duchainControlFlow->refreshGraph();
 	    clusteringClassToolButton->setEnabled(true);
 	    clusteringNamespaceToolButton->setEnabled(true);
 	}
 	if (toolButton->objectName() == "modeClassToolButton")
 	{
 	    m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowClass);
+	    m_duchainControlFlow->refreshGraph();
 	    clusteringClassToolButton->setChecked(false);
 	    clusteringClassToolButton->setEnabled(false);
 	    clusteringNamespaceToolButton->setEnabled(true);
@@ -198,6 +200,7 @@ void ControlFlowGraphView::setControlFlowMode(bool checked)
 	if (toolButton->objectName() == "modeNamespaceToolButton")
 	{
 	    m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowNamespace);
+	    m_duchainControlFlow->refreshGraph();
 	    clusteringClassToolButton->setChecked(false);
 	    clusteringClassToolButton->setEnabled(false);
 	    clusteringNamespaceToolButton->setChecked(false);
@@ -217,13 +220,38 @@ void ControlFlowGraphView::setClusteringModes(bool checked)
     if (toolButton->objectName() == "clusteringProjectToolButton")
 	m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringProject);
 
+    m_duchainControlFlow->refreshGraph();
     useShortNamesToolButton->setEnabled(m_duchainControlFlow->clusteringModes() ? true:false);
 }
 
 void ControlFlowGraphView::setUseMaxLevel(bool checked)
 {
     maxLevelSpinBox->setEnabled(checked);
-    m_duchainControlFlow->setMaxLevel(checked ? maxLevelSpinBox->value():0);
+    setMaxLevel(checked ? maxLevelSpinBox->value():0);
+}
+
+void ControlFlowGraphView::setMaxLevel(int value)
+{
+    m_duchainControlFlow->setMaxLevel(value);
+    m_duchainControlFlow->refreshGraph();
+}
+
+void ControlFlowGraphView::setDrawIncomingArcs(bool checked)
+{
+    m_duchainControlFlow->setDrawIncomingArcs(checked);
+    m_duchainControlFlow->refreshGraph();
+}
+
+void ControlFlowGraphView::setUseFolderName(bool checked)
+{
+    m_duchainControlFlow->setUseFolderName(checked);
+    m_duchainControlFlow->refreshGraph();
+}
+
+void ControlFlowGraphView::setUseShortNames(bool checked)
+{
+    m_duchainControlFlow->setUseShortNames(checked);
+    m_duchainControlFlow->refreshGraph();
 }
 
 void ControlFlowGraphView::showEvent(QShowEvent *event)
