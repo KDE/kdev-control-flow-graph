@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2009 Sandro Andrade <sandro.andrade@gmail.com>              *
+ *   Copyright 2009 Sandro Andrade <sandroandrade@kde.org>                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -452,28 +452,31 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
     IBuildSystemManager *buildSystemManager;
     if (m_useFolderName && m_currentProject && (buildSystemManager = m_currentProject->buildSystemManager()))
     {
-	KUrl::List list = buildSystemManager->includeDirectories(
-			  (KDevelop::ProjectBaseItem *) m_currentProject->projectItem());
-	int minLength = std::numeric_limits<int>::max();
-
-	DUChainReadLocker lock(DUChain::lock());
-	QString folderName, smallestDirectory, declarationUrl = declaration->url().str();
-	
-	foreach (const KUrl &url, list)
+	if ((KDevelop::ProjectBaseItem *) m_currentProject->projectItem())
 	{
-	    QString urlString = url.toLocalFile();
-	    if (urlString.length() <= minLength && declarationUrl.startsWith(urlString))
+	    KUrl::List list = buildSystemManager->includeDirectories(
+			      (KDevelop::ProjectBaseItem *) m_currentProject->projectItem());
+	    int minLength = std::numeric_limits<int>::max();
+
+	    DUChainReadLocker lock(DUChain::lock());
+	    QString folderName, smallestDirectory, declarationUrl = declaration->url().str();
+	    
+	    foreach (const KUrl &url, list)
 	    {
-		smallestDirectory = urlString;
-		minLength = urlString.length();
+		QString urlString = url.toLocalFile();
+		if (urlString.length() <= minLength && declarationUrl.startsWith(urlString))
+		{
+		    smallestDirectory = urlString;
+		    minLength = urlString.length();
+		}
 	    }
+	    declarationUrl = declarationUrl.remove(0, smallestDirectory.length() + 1);
+	    declarationUrl = declarationUrl.remove(KUrl(declaration->url().str()).fileName());
+	    if (declarationUrl.endsWith('/')) declarationUrl.chop(1);
+	    declarationUrl = declarationUrl.replace('/', "::");
+	    if (!declarationUrl.isEmpty())
+		return declarationUrl;
 	}
-	declarationUrl = declarationUrl.remove(0, smallestDirectory.length() + 1);
-	declarationUrl = declarationUrl.remove(KUrl(declaration->url().str()).fileName());
-	if (declarationUrl.endsWith('/')) declarationUrl.chop(1);
-	declarationUrl = declarationUrl.replace('/', "::");
-	if (!declarationUrl.isEmpty())
-	    return declarationUrl;
     }
     return i18n("Global Namespace");
 }

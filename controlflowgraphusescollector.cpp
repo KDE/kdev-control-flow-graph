@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2009 Sandro Andrade <sandro.andrade@gmail.com>              *
+ *   Copyright 2009 Sandro Andrade <sandroandrade@kde.org>                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
