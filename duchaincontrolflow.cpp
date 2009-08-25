@@ -286,8 +286,14 @@ void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& po
 	DUChainReadLocker lock(DUChain::lock());
 	
 	if (declaration) // Node click, jump to definition/declaration
-	    ICore::self()->documentController()->openDocument(KUrl(declaration->url().str()),
-							      declaration->range().textRange().start());
+	{
+	    KUrl url(declaration->url().str());
+	    KTextEditor::Range range = declaration->range().textRange();
+	    
+	    lock.unlock();
+	    
+	    ICore::self()->documentController()->openDocument(url, range.start());
+	}
 	else if (label.contains("->")) // Edge click, show uses contained in the edge
 	{
 	    KParts::ReadOnlyPart *part = dynamic_cast<KParts::ReadOnlyPart *>(sender());

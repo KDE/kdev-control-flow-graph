@@ -76,5 +76,8 @@ void ControlFlowGraphNavigationContext::slotAnchorClicked(const QUrl &link)
     int position = link.toString().toInt();
     QPair<Use, IndexedString> pair = m_arcUses[position];
     DUChainReadLocker lock(DUChain::lock());
-    ICore::self()->documentController()->openDocument(KUrl(pair.second.toUrl()), pair.first.m_range.start.textCursor());
+    KUrl url(pair.second.toUrl());
+    KTextEditor::Cursor cursor = pair.first.m_range.start.textCursor();
+    lock.unlock();
+    ICore::self()->documentController()->openDocument(url, cursor);
 }
