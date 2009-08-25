@@ -125,20 +125,25 @@ void KDevControlFlowGraphViewPlugin::unRegisterToolView(ControlFlowGraphView *vi
 
 ControlFlowGraphFileDialog *KDevControlFlowGraphViewPlugin::exportControlFlowGraph(ControlFlowGraphFileDialog::OpeningMode mode)
 {
-    ControlFlowGraphFileDialog *fileDialog = new ControlFlowGraphFileDialog(KUrl(), "*.png|PNG (Portable Network Graphics)\n*.jpg *.jpeg|JPG \\/ JPEG (Joint Photographic Expert Group)\n*.gif|GIF (Graphics Interchange Format)\n*.svg *.svgz|SVG (Scalable Vector Graphics)\n*.dia|DIA (Dia Structured Diagrams)\n*.fig|FIG\n*.pdf|PDF (Portable Document Format)\n*.dot|DOT (Graph Description Language)", (QWidget *) core()->uiController()->activeMainWindow(), i18n("Export Control Flow Graph"), mode);
-    fileDialog->exec();
-    QString fileName = fileDialog->selectedFile();
-    if (!fileName.isEmpty())
+    QPointer<ControlFlowGraphFileDialog> fileDialog = new ControlFlowGraphFileDialog(KUrl(), "*.png|PNG (Portable Network Graphics)\n*.jpg *.jpeg|JPG \\/ JPEG (Joint Photographic Expert Group)\n*.gif|GIF (Graphics Interchange Format)\n*.svg *.svgz|SVG (Scalable Vector Graphics)\n*.dia|DIA (Dia Structured Diagrams)\n*.fig|FIG\n*.pdf|PDF (Portable Document Format)\n*.dot|DOT (Graph Description Language)", (QWidget *) core()->uiController()->activeMainWindow(), i18n("Export Control Flow Graph"), mode);
+    if (fileDialog->exec() == QDialog::Accepted)
     {
-	// Note: this is going to be removed with KDE 4.4 since getSaveFileName will support a KFileDialog::ConfirmOverwrite option
-	int code = KMessageBox::Yes;
-	if (QFile(fileName).exists())
-	    code = KMessageBox::warningYesNo((QWidget *) core()->uiController()->activeMainWindow(),
-						   i18n("File already exists. Are you sure you want to overwrite it ?"),
-						   i18n("Export Control Flow Graph"));
+	if (fileDialog)
+	{
+	    QString fileName = fileDialog->selectedFile();
+	    if (!fileName.isEmpty())
+	    {
+		// Note: this is going to be removed with KDE 4.4 since getSaveFileName will support a KFileDialog::ConfirmOverwrite option
+		int code = KMessageBox::Yes;
+		if (QFile(fileName).exists())
+		    code = KMessageBox::warningYesNo((QWidget *) core()->uiController()->activeMainWindow(),
+							  i18n("File already exists. Are you sure you want to overwrite it ?"),
+							  i18n("Export Control Flow Graph"));
 
-	if (code == KMessageBox::Yes)
-	    return fileDialog;
+		if (code == KMessageBox::Yes)
+		    return fileDialog;
+	    }
+	}
     }
     return 0;
 }
