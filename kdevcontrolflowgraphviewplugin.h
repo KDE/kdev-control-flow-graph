@@ -61,7 +61,7 @@ public:
 
     void registerToolView(ControlFlowGraphView *view);
     void unRegisterToolView(ControlFlowGraphView *view);
-    ControlFlowGraphFileDialog *exportControlFlowGraph(ControlFlowGraphFileDialog::OpeningMode mode = ControlFlowGraphFileDialog::ConfigurationButtons);
+    QPointer<ControlFlowGraphFileDialog> exportControlFlowGraph(ControlFlowGraphFileDialog::OpeningMode mode = ControlFlowGraphFileDialog::ConfigurationButtons);
 
     KDevelop::ContextMenuExtension contextMenuExtension(KDevelop::Context* context);
 public Q_SLOTS:

@@ -167,7 +167,7 @@ void ControlFlowGraphView::newGraph()
 
 void ControlFlowGraphView::exportControlFlowGraph()
 {
-    ControlFlowGraphFileDialog *fileDialog;
+    QPointer<ControlFlowGraphFileDialog> fileDialog;
     if ((fileDialog = m_plugin->exportControlFlowGraph(ControlFlowGraphFileDialog::NoConfigurationButtons)))
 	m_dotControlFlowGraph->exportGraph(fileDialog->selectedFile());
 }
