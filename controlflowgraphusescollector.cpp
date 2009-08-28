@@ -51,7 +51,7 @@ void ControlFlowGraphUsesCollector::processContext(DUContext *context, CodeRepre
 	    {
 		// Navigate to uppermost executable context
 		DUContext *uppermostExecutableContext = context;
-		while (uppermostExecutableContext->parentContext()->type() == DUContext::Other)
+		while (uppermostExecutableContext->parentContext() && uppermostExecutableContext->parentContext()->type() == DUContext::Other)
 		    uppermostExecutableContext = uppermostExecutableContext->parentContext();
 
 		// Get the definition
