@@ -33,7 +33,6 @@ namespace KDevelop {
 }
 using namespace KDevelop;
 
-class QTemporaryFile;
 class KUrl;
 
 class DotControlFlowGraph : public QObject
@@ -43,7 +42,7 @@ public:
     DotControlFlowGraph();
     virtual ~DotControlFlowGraph();
 Q_SIGNALS:
-    bool openUrl(const KUrl &url);
+    bool loadLibrary(graph_t *rootGraph);
 public Q_SLOTS:
     void prepareNewGraph();
     void foundRootNode (const QStringList &containers, const QString &label);
@@ -56,7 +55,6 @@ private:
     Agraph_t *m_rootGraph;
     QMap<QString, QColor> m_colorMap;
     QHash<QString, Agraph_t *> m_namedGraphs;
-    QTemporaryFile *m_tempFile;
 
     const QColor& colorFromQualifiedIdentifier(const QString &label);
 };

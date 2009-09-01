@@ -124,8 +124,8 @@ m_graphLocked(false)
                     m_dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
 	    connect(m_duchainControlFlow,  SIGNAL(clearGraph()), m_dotControlFlowGraph, SLOT(clearGraph()));
 	    connect(m_duchainControlFlow,  SIGNAL(graphDone()), m_dotControlFlowGraph, SLOT(graphDone()));
-	    connect(m_dotControlFlowGraph, SIGNAL(openUrl(const KUrl &)), m_part, SLOT(openUrl(const KUrl &)));
-
+	    connect(m_dotControlFlowGraph, SIGNAL(loadLibrary(graph_t *)), m_part, SLOT(slotLoadLibrary(graph_t *)));
+	    
 	    m_plugin->registerToolView(this);
 	}
         else

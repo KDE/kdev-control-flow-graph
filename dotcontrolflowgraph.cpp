@@ -19,22 +19,16 @@
 
 #include "dotcontrolflowgraph.h"
 
-#include <QTemporaryFile>
-
 #include <language/duchain/declaration.h>
 
 DotControlFlowGraph::DotControlFlowGraph() : m_rootGraph(0)
 {
     m_gvc = gvContext();
-    m_tempFile = new QTemporaryFile();
-    m_tempFile->open();
 }
 
 DotControlFlowGraph::~DotControlFlowGraph()
 {
     gvFreeContext(m_gvc);
-    m_tempFile->close();
-    delete m_tempFile;
 }
 
 void DotControlFlowGraph::graphDone()
@@ -42,10 +36,8 @@ void DotControlFlowGraph::graphDone()
     if (m_rootGraph)
     {
         gvLayout(m_gvc, m_rootGraph, "dot");
-	gvRenderFilename(m_gvc, m_rootGraph, "dot", m_tempFile->fileName().toUtf8().data());
         gvFreeLayout(m_gvc, m_rootGraph);
-	m_tempFile->flush();
-	emit openUrl("file://" + m_tempFile->fileName());
+	emit loadLibrary(m_rootGraph);
     }
 }
 
