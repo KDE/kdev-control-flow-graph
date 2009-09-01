@@ -69,16 +69,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="zoomfitToolButton">
-       <property name="toolTip">
-        <string>Best Fit</string>
-       </property>
-       <property name="text">
-        <string>...</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QToolButton" name="exportToolButton">
        <property name="toolTip">
         <string>Export control flow graph</string>
@@ -325,9 +315,6 @@
        </item>
        <item>
         <widget class="QToolButton" name="useShortNamesToolButton">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
          <property name="toolTip">
           <string>Use short (non-qualified) names for clustered graphs</string>
          </property>

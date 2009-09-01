@@ -74,7 +74,6 @@ m_graphLocked(false)
 	    birdseyeToolButton->setIcon(KIcon("edit-find"));
 	    zoominToolButton->setIcon(KIcon("zoom-in"));
 	    zoomoutToolButton->setIcon(KIcon("zoom-out"));
-	    zoomfitToolButton->setIcon(KIcon("zoom-fit-best"));
 	    
 	    if (ICore::self()->projectController()->projectCount() > 0)
 		setProjectButtonsEnabled(true);
