@@ -20,10 +20,11 @@
 #ifndef DUCHAINCONTROLFLOW_H
 #define DUCHAINCONTROLFLOW_H
 
-#include <QObject>
 #include <QSet>
 #include <QHash>
 #include <QPair>
+
+#include <Job.h>
 
 class QPoint;
 
@@ -41,13 +42,15 @@ namespace KDevelop {
 };
 using namespace KDevelop;
 
-class DUChainControlFlow : public QObject
+class DUChainControlFlow : public ThreadWeaver::Job
 {
     Q_OBJECT
 public:
     DUChainControlFlow();
     virtual ~DUChainControlFlow();
 
+    void run();
+    
     enum ControlFlowMode { ControlFlowFunction, ControlFlowClass, ControlFlowNamespace };
     void setControlFlowMode(ControlFlowMode controlFlowMode);
 
@@ -95,6 +98,10 @@ private:
     QString shortNameFromContainers(const QList<QString> &containers, const QString &qualifiedIdentifier);
 
     DUContext *m_previousUppermostExecutableContext;
+
+    Declaration *m_definition;
+    TopDUContext *m_topContext;
+    DUContext *m_uppermostExecutableContext;
     
     QSet<Declaration *> m_visitedFunctions;
     QHash<QString, Declaration *> m_identifierDeclarationMap;

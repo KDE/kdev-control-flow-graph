@@ -45,6 +45,8 @@
 
 #include <project/interfaces/ibuildsystemmanager.h>
 
+#include <ThreadWeaver.h>
+
 #include "controlflowgraphnavigationwidget.h"
 #include "controlflowgraphusescollector.h"
 
@@ -70,6 +72,11 @@ DUChainControlFlow::~DUChainControlFlow()
 {
 }
 
+void DUChainControlFlow::run()
+{
+    generateControlFlowForDeclaration(m_definition, m_topContext, m_uppermostExecutableContext);
+}
+
 void DUChainControlFlow::setControlFlowMode(ControlFlowMode controlFlowMode)
 {
     m_controlFlowMode = controlFlowMode;
@@ -85,7 +92,7 @@ DUChainControlFlow::ClusteringModes DUChainControlFlow::clusteringModes() const
     return m_clusteringModes;
 }
 
-void DUChainControlFlow::generateControlFlowForDeclaration(Declaration* definition, TopDUContext *topContext, DUContext *uppermostExecutableContext)
+void DUChainControlFlow::generateControlFlowForDeclaration(Declaration *definition, TopDUContext *topContext, DUContext *uppermostExecutableContext)
 {
     DUChainReadLocker lock(DUChain::lock());
 
@@ -184,7 +191,13 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     newGraph();
     m_currentProject = ICore::self()->projectController()->findProjectForUrl(view->document()->url());
     emit prepareNewGraph();
-    generateControlFlowForDeclaration(definition, topContext, uppermostExecutableContext);
+    
+    m_definition = definition;
+    m_topContext = topContext;
+    m_uppermostExecutableContext = uppermostExecutableContext;
+    
+    ThreadWeaver::Weaver::instance()->enqueue(this);
+    //generateControlFlowForDeclaration(definition, topContext, uppermostExecutableContext);
 }
 
 void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *target, const Use &use)

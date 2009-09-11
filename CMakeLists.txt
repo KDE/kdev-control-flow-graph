@@ -9,8 +9,9 @@ find_package(KDevPlatform REQUIRED)
 find_package(GraphViz REQUIRED)
 
 include_directories(
-    ${KDEVPLATFORM_INCLUDE_DIR}
     ${KDE4_INCLUDES}
+    ${KDE4_INCLUDE_DIR}/threadweaver
+    ${KDEVPLATFORM_INCLUDE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}
