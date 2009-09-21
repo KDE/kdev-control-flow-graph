@@ -19,13 +19,13 @@
 
 #include "controlflowgraphview.h"
 
-#include <kservice.h>
-#include <klibloader.h>
-#include <kparts/part.h>
-#include <kmessagebox.h>
-#include <kactioncollection.h>
-#include <ktexteditor/view.h>
-#include <ktexteditor/cursor.h>
+#include <KService>
+#include <KLibLoader>
+#include <KParts/Part>
+#include <KMessageBox>
+#include <KActionCollection>
+#include <KTextEditor/View>
+#include <KTextEditor/Cursor>
 
 #include <interfaces/icore.h>
 #include <interfaces/iprojectcontroller.h>
@@ -52,13 +52,13 @@ m_graphLocked(false)
     if (factory)
     {
         m_part = factory->create<KParts::ReadOnlyPart>(this);
-  	if (m_part)
+	if (m_part)
 	{
 	    connect(this, SIGNAL(setReadWrite()), m_part, SLOT(setReadWrite()));
 	    emit setReadWrite();
 
 	    verticalLayout->addWidget(m_part->widget());
-	    
+
 	    modeFunctionToolButton->setIcon(KIcon("flag-blue"));
 	    modeClassToolButton->setIcon(KIcon("flag-green"));
 	    modeNamespaceToolButton->setIcon(KIcon("flag-red"));
@@ -74,7 +74,7 @@ m_graphLocked(false)
 	    birdseyeToolButton->setIcon(KIcon("edit-find"));
 	    zoominToolButton->setIcon(KIcon("zoom-in"));
 	    zoomoutToolButton->setIcon(KIcon("zoom-out"));
-	    
+
 	    if (ICore::self()->projectController()->projectCount() > 0)
 		setProjectButtonsEnabled(true);
 
@@ -82,28 +82,22 @@ m_graphLocked(false)
 	    updateLockIcon(lockControlFlowGraphToolButton->isChecked());
 
 	    // Control flow mode buttons signals
-	    connect(modeFunctionToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
-	    connect(modeClassToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
-	    connect(modeNamespaceToolButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
+	    connect(modeFunctionToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
+	    connect(modeClassToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
+	    connect(modeNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
 
 	    // Clustering buttons signals
-	    connect(clusteringClassToolButton, SIGNAL(toggled(bool)), this, SLOT(setClusteringModes(bool)));
-	    connect(clusteringNamespaceToolButton, SIGNAL(toggled(bool)), this, SLOT(setClusteringModes(bool)));
-	    connect(clusteringProjectToolButton, SIGNAL(toggled(bool)), this, SLOT(setClusteringModes(bool)));
+	    connect(clusteringClassToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringModes(bool)));
+	    connect(clusteringNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringModes(bool)));
+	    connect(clusteringProjectToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringModes(bool)));
 
 	    // Configuration buttons signals
-	    connect(maxLevelSpinBox, SIGNAL(valueChanged(int)),
-		    this, SLOT(setMaxLevel(int)));
-	    connect(maxLevelToolButton, SIGNAL(toggled(bool)),
-		    this, SLOT(setUseMaxLevel(bool)));
-	    connect(drawIncomingArcsToolButton, SIGNAL(toggled(bool)),
-		    this, SLOT(setDrawIncomingArcs(bool)));
-	    connect(useFolderNameToolButton, SIGNAL(toggled(bool)),
-		    this, SLOT(setUseFolderName(bool)));
-	    connect(useShortNamesToolButton, SIGNAL(toggled(bool)),
-		    this, SLOT(setUseShortNames(bool)));
-	    connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)),
-		    this, SLOT(updateLockIcon(bool)));
+	    connect(maxLevelSpinBox, SIGNAL(valueChanged(int)), SLOT(setMaxLevel(int)));
+	    connect(maxLevelToolButton, SIGNAL(toggled(bool)), SLOT(setUseMaxLevel(bool)));
+	    connect(drawIncomingArcsToolButton, SIGNAL(toggled(bool)), SLOT(setDrawIncomingArcs(bool)));
+	    connect(useFolderNameToolButton, SIGNAL(toggled(bool)), SLOT(setUseFolderName(bool)));
+	    connect(useShortNamesToolButton, SIGNAL(toggled(bool)), SLOT(setUseShortNames(bool)));
+	    connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)), SLOT(updateLockIcon(bool)));
 
 	    // Left buttons signals
 	    connect(zoomoutToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_out"), SIGNAL(triggered()));
@@ -113,8 +107,8 @@ m_graphLocked(false)
 	    birdseyeToolButton->setDefaultAction(m_part->actionCollection()->action("view_bev_enabled"));
 	    connect(m_part, SIGNAL(selectionIs(const QList<QString>, const QPoint&)),
 		    m_duchainControlFlow, SLOT(selectionIs(const QList<QString>, const QPoint&)));
-	    connect(exportToolButton, SIGNAL(clicked()), this, SLOT(exportControlFlowGraph()));
-		    
+	    connect(exportToolButton, SIGNAL(clicked()), SLOT(exportControlFlowGraph()));
+
 	    // Graph generation signals
 	    connect(m_duchainControlFlow,  SIGNAL(prepareNewGraph()),
                     m_dotControlFlowGraph, SLOT  (prepareNewGraph()));
@@ -125,7 +119,7 @@ m_graphLocked(false)
 	    connect(m_duchainControlFlow,  SIGNAL(clearGraph()), m_dotControlFlowGraph, SLOT(clearGraph()));
 	    connect(m_duchainControlFlow,  SIGNAL(graphDone()), m_dotControlFlowGraph, SLOT(graphDone()));
 	    connect(m_dotControlFlowGraph, SIGNAL(loadLibrary(graph_t *)), m_part, SLOT(slotLoadLibrary(graph_t *)));
-	    
+
 	    m_plugin->registerToolView(this);
 	}
         else
@@ -168,7 +162,10 @@ void ControlFlowGraphView::exportControlFlowGraph()
 {
     QPointer<ControlFlowGraphFileDialog> fileDialog;
     if ((fileDialog = m_plugin->exportControlFlowGraph(ControlFlowGraphFileDialog::NoConfigurationButtons)))
+    {
 	m_dotControlFlowGraph->exportGraph(fileDialog->selectedFile());
+	KMessageBox::information(this, i18n("Control flow graph exported !"), i18n("Export Control Flow Graph"));
+    }
 }
 
 void ControlFlowGraphView::updateLockIcon(bool checked)

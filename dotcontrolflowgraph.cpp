@@ -35,8 +35,8 @@ void DotControlFlowGraph::graphDone()
 {
     if (m_rootGraph)
     {
-        gvLayout(m_gvc, m_rootGraph, "dot");
-        gvFreeLayout(m_gvc, m_rootGraph);
+	gvLayout(m_gvc, m_rootGraph, "dot");
+	gvFreeLayout(m_gvc, m_rootGraph);
 	emit loadLibrary(m_rootGraph);
     }
 }
@@ -45,7 +45,7 @@ void DotControlFlowGraph::clearGraph()
 {
     if (m_rootGraph)
     {
-        gvFreeLayout(m_gvc, m_rootGraph);
+	gvFreeLayout(m_gvc, m_rootGraph);
 	agclose(m_rootGraph);
 	m_rootGraph = 0;
     }
@@ -59,9 +59,9 @@ void DotControlFlowGraph::exportGraph(const QString &fileName)
 {
     if (m_rootGraph)
     {
-        gvLayout(m_gvc, m_rootGraph, "dot");
+	gvLayout(m_gvc, m_rootGraph, "dot");
 	gvRenderFilename(m_gvc, m_rootGraph, fileName.right(fileName.size()-fileName.lastIndexOf('.')-1).toUtf8().data(), fileName.toUtf8().data());
-        gvFreeLayout(m_gvc, m_rootGraph);
+	gvFreeLayout(m_gvc, m_rootGraph);
     }
 }
 

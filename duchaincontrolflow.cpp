@@ -21,16 +21,16 @@
 
 #include <limits>
 
-#include <ktexteditor/view.h>
-#include <ktexteditor/document.h>
-#include <ktexteditor/cursor.h>
-#include <klocale.h>
+#include <KTextEditor/View>
+#include <KTextEditor/Document>
+#include <KTextEditor/Cursor>
+#include <KLocale>
+#include <ThreadWeaver/Weaver>
 
 #include <interfaces/icore.h>
 #include <interfaces/iprojectcontroller.h>
 #include <interfaces/iproject.h>
 #include <interfaces/idocumentcontroller.h>
-
 #include <language/duchain/use.h>
 #include <language/duchain/duchain.h>
 #include <language/duchain/ducontext.h>
@@ -40,12 +40,8 @@
 #include <language/duchain/indexedstring.h>
 #include <language/duchain/functiondefinition.h>
 #include <language/duchain/types/functiontype.h>
-
 #include <language/util/navigationtooltip.h>
-
 #include <project/interfaces/ibuildsystemmanager.h>
-
-#include <ThreadWeaver.h>
 
 #include "controlflowgraphnavigationwidget.h"
 #include "controlflowgraphusescollector.h"
@@ -65,7 +61,7 @@ DUChainControlFlow::DUChainControlFlow()
   m_clusteringModes(ClusteringNamespace)
 {
     connect(this, SIGNAL(updateToolTip(const QString &, const QPoint&, QWidget *)),
-	    this, SLOT(slotUpdateToolTip(const QString &, const QPoint&, QWidget *)), Qt::QueuedConnection);
+	    SLOT(slotUpdateToolTip(const QString &, const QPoint&, QWidget *)), Qt::QueuedConnection);
 }
 
 DUChainControlFlow::~DUChainControlFlow()
@@ -123,7 +119,7 @@ void DUChainControlFlow::generateControlFlowForDeclaration(Declaration *definiti
 	    declaration = DUChainUtils::declarationForDefinition(declaration, topContext);
 	ControlFlowGraphUsesCollector collector(declaration);
 	collector.setProcessDeclarations(true);
-	connect(&collector, SIGNAL(processFunctionCall(Declaration *, Declaration *, const Use &)), this, SLOT(processFunctionCall(Declaration *, Declaration *, const Use &)));
+	connect(&collector, SIGNAL(processFunctionCall(Declaration *, Declaration *, const Use &)), SLOT(processFunctionCall(Declaration *, Declaration *, const Use &)));
 	collector.startCollecting();
     }
 
@@ -139,7 +135,6 @@ bool DUChainControlFlow::isLocked()
 void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
 {
     if (m_locked) return;
-
     if (!view->document()) return;
 
     DUChainReadLocker lock(DUChain::lock());
@@ -197,7 +192,6 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
     m_uppermostExecutableContext = uppermostExecutableContext;
     
     ThreadWeaver::Weaver::instance()->enqueue(this);
-    //generateControlFlowForDeclaration(definition, topContext, uppermostExecutableContext);
 }
 
 void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *target, const Use &use)
@@ -346,8 +340,8 @@ void DUChainControlFlow::refreshGraph()
     if (!m_locked)
     {
 	if(ICore::self()->documentController()->activeDocument() &&
-	  ICore::self()->documentController()->activeDocument()->textDocument() &&
-	  ICore::self()->documentController()->activeDocument()->textDocument()->activeView())
+	   ICore::self()->documentController()->activeDocument()->textDocument() &&
+	   ICore::self()->documentController()->activeDocument()->textDocument()->activeView())
 	{
 	    m_previousUppermostExecutableContext = 0;
 	    KTextEditor::View *view = ICore::self()->documentController()->activeDocument()->textDocument()->activeView();

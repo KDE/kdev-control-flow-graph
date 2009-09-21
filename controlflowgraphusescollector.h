@@ -31,14 +31,11 @@ class ControlFlowGraphUsesCollector : public UsesCollector
     Q_OBJECT
 public:
     ControlFlowGraphUsesCollector (IndexedDeclaration declaration);
-
 Q_SIGNALS:
     void processFunctionCall(Declaration *source, Declaration *target, const Use &use);
-
 private:
     virtual void processUses(ReferencedTopDUContext topContext);
     void processContext(DUContext *context, CodeRepresentation::Ptr code);
-    
 protected:
     IndexedDeclaration m_declaration;
 };

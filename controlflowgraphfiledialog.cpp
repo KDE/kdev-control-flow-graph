@@ -30,8 +30,7 @@ using namespace KDevelop;
 
 ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(const KUrl& startDir, const QString& filter,
 						       QWidget *parent, const QString & caption, OpeningMode mode)
-: KFileDialog(startDir, filter, parent),
-  m_configurationWidget(0)
+: KFileDialog(startDir, filter, parent), m_configurationWidget(0)
 {
     setCaption(caption);
     setOperationMode(KFileDialog::Saving);
@@ -42,7 +41,7 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(const KUrl& startDir, con
 	m_configurationWidget = new Ui::ControlFlowGraphExportConfiguration;
 	QWidget *widget = new QWidget;
 	m_configurationWidget->setupUi(widget);
-	
+
 	m_configurationWidget->controlFlowFunctionRadioButton->setIcon(KIcon("flag-blue"));
 	m_configurationWidget->controlFlowClassRadioButton->setIcon(KIcon("flag-green"));
 	m_configurationWidget->controlFlowNamespaceRadioButton->setIcon(KIcon("flag-red"));
@@ -59,24 +58,23 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(const KUrl& startDir, con
 	    m_configurationWidget->drawIncomingArcsCheckBox->setChecked(false);
 	    m_configurationWidget->drawIncomingArcsCheckBox->setEnabled(false);
 	}
-	    
-	connect(m_configurationWidget->controlFlowFunctionRadioButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
-	connect(m_configurationWidget->controlFlowClassRadioButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
-	connect(m_configurationWidget->controlFlowNamespaceRadioButton, SIGNAL(toggled(bool)), this, SLOT(setControlFlowMode(bool)));
 
-	connect(m_configurationWidget->clusteringClassCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setClusteringModes(int)));
-	connect(m_configurationWidget->clusteringNamespaceCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setClusteringModes(int)));
-	connect(m_configurationWidget->clusteringProjectCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setClusteringModes(int)));
+	connect(m_configurationWidget->controlFlowFunctionRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
+	connect(m_configurationWidget->controlFlowClassRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
+	connect(m_configurationWidget->controlFlowNamespaceRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
 
-	connect(m_configurationWidget->limitMaxLevelCheckBox, SIGNAL(stateChanged(int)),
-		this, SLOT(slotLimitMaxLevelChanged(int)));
+	connect(m_configurationWidget->clusteringClassCheckBox, SIGNAL(stateChanged(int)), SLOT(setClusteringModes(int)));
+	connect(m_configurationWidget->clusteringNamespaceCheckBox, SIGNAL(stateChanged(int)), SLOT(setClusteringModes(int)));
+	connect(m_configurationWidget->clusteringProjectCheckBox, SIGNAL(stateChanged(int)), SLOT(setClusteringModes(int)));
+
+	connect(m_configurationWidget->limitMaxLevelCheckBox, SIGNAL(stateChanged(int)), SLOT(slotLimitMaxLevelChanged(int)));
 
 	if (ICore::self()->projectController()->projectCount() > 0)
 	{
 	    m_configurationWidget->clusteringProjectCheckBox->setEnabled(true);
 	    m_configurationWidget->useFolderNameCheckBox->setEnabled(true);
 	}
-	
+
 	(dynamic_cast<QBoxLayout *>(mainWidget()->layout()))->insertWidget(1, widget);
     }
 }
@@ -91,7 +89,8 @@ DUChainControlFlow::ControlFlowMode ControlFlowGraphFileDialog::controlFlowMode(
     return (m_configurationWidget->controlFlowFunctionRadioButton->isChecked() ?
 	    DUChainControlFlow::ControlFlowFunction :
 	    ((m_configurationWidget->controlFlowClassRadioButton->isChecked()) ?
-	    DUChainControlFlow::ControlFlowClass : DUChainControlFlow::ControlFlowNamespace));
+		DUChainControlFlow::ControlFlowClass : DUChainControlFlow::ControlFlowNamespace)
+	   );
 }
 
 DUChainControlFlow::ClusteringModes ControlFlowGraphFileDialog::clusteringModes() const

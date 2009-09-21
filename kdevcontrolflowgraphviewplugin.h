@@ -20,7 +20,7 @@
 #ifndef KDEVCONTROLFLOWGRAPHVIEWPLUGIN_H
 #define KDEVCONTROLFLOWGRAPHVIEWPLUGIN_H
 
-#include <QtCore/QVariant>
+#include <QVariant>
 #include <QList>
 
 #include <interfaces/iplugin.h>
@@ -45,6 +45,7 @@ namespace KTextEditor
 };
 
 class ControlFlowGraphView;
+class DUChainControlFlow;
 class DotControlFlowGraph;
 class ControlFlowGraphFileDialog;
 
@@ -75,12 +76,16 @@ public Q_SLOTS:
     void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
 
     void refreshActiveToolView();
-    void slotExportControlFlowGraph(bool);
-    void slotExportClassControlFlowGraph(bool);
-    void slotExportProjectControlFlowGraph(bool);
+    void slotExportControlFlowGraph(bool value);
+    void slotExportClassControlFlowGraph(bool value);
+    void slotExportProjectControlFlowGraph(bool value);
     void setActiveToolView(ControlFlowGraphView *activeToolView);
+    void generationDone();
 private:
     void configureDuchainControlFlow(DUChainControlFlow *duchainControlFlow, DotControlFlowGraph *dotControlFlowGraph, ControlFlowGraphFileDialog *fileDialog);
+    void generateControlFlowGraph(Declaration *declaration);
+    void generateClassControlFlowGraph(Declaration *declaration);
+    void generateProjectControlFlowGraph(IProject *project);
 
     ControlFlowGraphView *activeToolView();
     class KDevControlFlowGraphViewFactory *m_toolViewFactory;
@@ -89,6 +94,11 @@ private:
     QAction *m_exportControlFlowGraph;
     QAction *m_exportClassControlFlowGraph;
     QAction *m_exportProjectControlFlowGraph;
+    
+    DUChainControlFlow *m_duchainControlFlow;
+    DotControlFlowGraph *m_dotControlFlowGraph;
+
+    ControlFlowGraphFileDialog *m_fileDialog;
 };
 
 #endif

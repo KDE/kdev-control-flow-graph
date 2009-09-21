@@ -34,13 +34,11 @@ public:
     typedef QList< QPair<Use, IndexedString> > ArcUses;
 
     ControlFlowGraphNavigationContext(const QString &label, const ArcUses &arcUses, TopDUContextPointer topContext, AbstractNavigationContext *previousContext = 0);
-    
+
     virtual QString name() const;
     virtual QString html(bool shorten = false);
-
 public Q_SLOTS:
     void slotAnchorClicked(const QUrl &link);
-    
 private:
     const QString &m_label;
     QList< QPair<Use, IndexedString> > m_arcUses;

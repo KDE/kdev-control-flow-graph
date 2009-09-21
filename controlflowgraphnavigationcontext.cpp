@@ -21,13 +21,12 @@
 
 #include <QTextDocument>
 
-#include <klocale.h>
+#include <KLocale>
 
 #include <interfaces/icore.h>
 #include <interfaces/idocumentcontroller.h>
 #include <language/duchain/duchain.h>
 #include <language/duchain/duchainlock.h>
-
 #include <language/codegen/coderepresentation.h>
 
 using namespace KDevelop;
@@ -65,7 +64,7 @@ QString ControlFlowGraphNavigationContext::html(bool shorten)
       	CodeRepresentation::Ptr code = createCodeRepresentation(pair.second);
 	modifyHtml() += "<a href='" + QString::number(i--) + "'>" + pair.second.toUrl().fileName() + " (" + QString::number(pair.first.m_range.start.line+1) + ")</a>: " + Qt::escape(code->line(pair.first.m_range.start.line).trimmed()) + "<br>";
     }
-    
+
     modifyHtml() += "</small></small></p></body></html>";
 
     return currentHtml();

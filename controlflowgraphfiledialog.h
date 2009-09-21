@@ -20,7 +20,7 @@
 #ifndef CONTROLFLOWGRAPHFILEDIALOG_H
 #define CONTROLFLOWGRAPHFILEDIALOG_H
 
-#include <kfiledialog.h>
+#include <KFileDialog>
 
 #include "duchaincontrolflow.h"
 
