@@ -19,13 +19,10 @@
 
 #include "controlflowgraphview.h"
 
-#include <KService>
 #include <KLibLoader>
-#include <KParts/Part>
 #include <KMessageBox>
 #include <KActionCollection>
-#include <KTextEditor/View>
-#include <KTextEditor/Cursor>
+#include <KParts/Part>
 
 #include <interfaces/icore.h>
 #include <interfaces/iprojectcontroller.h>

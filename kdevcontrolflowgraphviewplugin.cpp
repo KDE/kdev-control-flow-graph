@@ -20,18 +20,14 @@
 #include "kdevcontrolflowgraphviewplugin.h"
 
 #include <QAction>
-#include <QtConcurrentRun>
 #include <QFuture>
 #include <QFutureWatcher>
+#include <QtConcurrentRun>
 
-#include <KGenericFactory>
 #include <KAboutData>
-#include <KService>
 #include <KMessageBox>
 #include <KLocale>
-#include <KTextEditor/View>
-#include <KTextEditor/Document>
-#include <KTextEditor/Cursor>
+#include <KGenericFactory>
 
 #include <interfaces/icore.h>
 #include <interfaces/iuicontroller.h>
@@ -53,6 +49,8 @@
 #include <language/backgroundparser/parsejob.h>
 #include <language/duchain/codemodel.h>
 #include <project/projectmodel.h>
+
+#include <KTextEditor/Document>
 
 #include "controlflowgraphview.h"
 #include "duchaincontrolflow.h"

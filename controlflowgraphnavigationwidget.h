@@ -20,8 +20,6 @@
 #ifndef CONTROLFLOWGRAPHNAVIGATIONWIDGET_H
 #define CONTROLFLOWGRAPHNAVIGATIONWIDGET_H
 
-#include <QList>
-#include <QPair>
 #include <QString>
 
 #include <language/duchain/navigation/abstractnavigationwidget.h>
