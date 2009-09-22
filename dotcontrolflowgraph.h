@@ -28,12 +28,10 @@
 #include <graphviz/gvc.h>
 
 namespace KDevelop {
-    class Declaration;
     class QualifiedIdentifier;
 }
 using namespace KDevelop;
 
-class KUrl;
 
 class DotControlFlowGraph : public QObject
 {
