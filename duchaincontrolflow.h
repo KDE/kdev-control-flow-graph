@@ -31,7 +31,7 @@ class QPoint;
 namespace KTextEditor {
     class View;
     class Cursor;
-};
+}
 namespace KDevelop {
     class Use;
     class IndexedString;
@@ -39,7 +39,7 @@ namespace KDevelop {
     class Declaration;
     class TopDUContext;
     class IProject;
-};
+}
 using namespace KDevelop;
 
 class DUChainControlFlow : public ThreadWeaver::Job
@@ -61,7 +61,7 @@ public:
 	ClusteringNamespace = 0x2,
 	ClusteringProject   = 0x4
     };
-    Q_DECLARE_FLAGS(ClusteringModes, ClusteringMode);
+    Q_DECLARE_FLAGS(ClusteringModes, ClusteringMode)
     void setClusteringModes(ClusteringModes clusteringModes);
     ClusteringModes clusteringModes() const;
     

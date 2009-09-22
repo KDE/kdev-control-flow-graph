@@ -33,8 +33,6 @@ find_path(GraphViz_INCLUDE_DIRECTORIES
   NAMES gvc.h
   PATHS
   ${GraphViz_INCLUDE_DIRS}
-  /usr/local/include
-  /usr/include
   /usr/local/include/graphviz
   /usr/include/graphviz
 )
@@ -43,40 +41,24 @@ find_library(GraphViz_GVC_LIBRARY
   NAMES gvc
   PATHS
   ${GraphViz_LIBRARY_DIRS}
-  /usr/local/lib64
-  /usr/lib64
-  /usr/local/lib
-  /usr/lib
 )
 
 find_library(GraphViz_CDT_LIBRARY
   NAMES cdt
   PATHS
   ${GraphViz_LIBRARY_DIRS}
-  /usr/local/lib64
-  /usr/lib64
-  /usr/local/lib
-  /usr/lib
 )
 
 find_library(GraphViz_GRAPH_LIBRARY
   NAMES graph
   PATHS
   ${GraphViz_LIBRARY_DIRS}
-  /usr/local/lib64
-  /usr/lib64
-  /usr/local/lib
-  /usr/lib
 )
 
 find_library(GraphViz_PATHPLAN_LIBRARY
   NAMES pathplan
   PATHS
   ${GraphViz_LIBRARY_DIRS}
-  /usr/local/lib64
-  /usr/lib64
-  /usr/local/lib
-  /usr/lib
 )
 
 if (GraphViz_INCLUDE_DIRECTORIES AND

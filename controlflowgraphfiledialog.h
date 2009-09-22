@@ -27,7 +27,7 @@
 namespace Ui
 {
     class ControlFlowGraphExportConfiguration;
-};
+}
 
 class ControlFlowGraphFileDialog : public KFileDialog
 {

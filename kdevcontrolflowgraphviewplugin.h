@@ -35,14 +35,14 @@ namespace KDevelop
     class IDocument;
     class ParseJob;
     class ContextMenuExtension;
-};
+}
 
 namespace KTextEditor
 {
     class View;
     class Document;
     class Cursor;
-};
+}
 
 class ControlFlowGraphView;
 class DUChainControlFlow;

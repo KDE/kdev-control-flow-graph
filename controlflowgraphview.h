@@ -27,12 +27,12 @@
 namespace KParts
 {
     class ReadOnlyPart;
-};
+}
 namespace KTextEditor
 {
     class View;
     class Cursor;
-};
+}
 class KDevControlFlowGraphViewPlugin;
 class DUChainControlFlow;
 class DotControlFlowGraph;
