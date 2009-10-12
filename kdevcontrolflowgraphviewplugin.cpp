@@ -138,7 +138,7 @@ QPointer<ControlFlowGraphFileDialog> KDevControlFlowGraphViewPlugin::exportContr
 		int code = KMessageBox::Yes;
 		if (QFile(fileName).exists())
 		    code = KMessageBox::warningYesNo((QWidget *) core()->uiController()->activeMainWindow(),
-							  i18n("File already exists. Are you sure you want to overwrite it ?"),
+							  i18n("File already exists. Are you sure you want to overwrite it?"),
 							  i18n("Export Control Flow Graph"));
 
 		if (code == KMessageBox::Yes)
@@ -285,7 +285,7 @@ void KDevControlFlowGraphViewPlugin::slotExportControlFlowGraph(bool value)
 	declaration = FunctionDefinition::definition(declaration);
 	if (!declaration || !declaration->internalContext())
 	{
-	    KMessageBox::error((QWidget *) core()->uiController()->activeMainWindow(), i18n("Couldn't generate control flow graph"));
+	    KMessageBox::error((QWidget *) core()->uiController()->activeMainWindow(), i18n("Could not generate control flow graph."));
 	    return;
 	}
     }
@@ -433,7 +433,7 @@ void KDevControlFlowGraphViewPlugin::generationDone()
     delete m_duchainControlFlow;
 
     KMessageBox::information((QWidget *) core()->uiController()->activeMainWindow(),
-			     i18n("Control flow graph exported !"),
+			     i18n("Control flow graph exported."),
 			     i18n("Export Control Flow Graph"));
 }
 

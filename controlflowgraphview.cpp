@@ -161,7 +161,7 @@ void ControlFlowGraphView::exportControlFlowGraph()
     if ((fileDialog = m_plugin->exportControlFlowGraph(ControlFlowGraphFileDialog::NoConfigurationButtons)))
     {
 	m_dotControlFlowGraph->exportGraph(fileDialog->selectedFile());
-	KMessageBox::information(this, i18n("Control flow graph exported !"), i18n("Export Control Flow Graph"));
+	KMessageBox::information(this, i18n("Control flow graph exported."), i18n("Export Control Flow Graph"));
     }
 }
 
