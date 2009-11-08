@@ -69,7 +69,7 @@ private:
     QPointer<KParts::ReadOnlyPart>  m_part;
     QPointer<DUChainControlFlow>    m_duchainControlFlow;
     QPointer<DotControlFlowGraph>   m_dotControlFlowGraph;
-    bool		  	    m_graphLocked;
+    bool                              m_graphLocked;
 };
 
 #endif

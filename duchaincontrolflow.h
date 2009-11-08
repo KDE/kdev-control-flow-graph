@@ -56,10 +56,10 @@ public:
 
     enum ClusteringMode
     {
-	ClusteringNone      = 0x0,
-	ClusteringClass     = 0x1,
-	ClusteringNamespace = 0x2,
-	ClusteringProject   = 0x4
+        ClusteringNone      = 0x0,
+        ClusteringClass     = 0x1,
+        ClusteringNamespace = 0x2,
+        ClusteringProject   = 0x4
     };
     Q_DECLARE_FLAGS(ClusteringModes, ClusteringMode)
     void setClusteringModes(ClusteringModes clusteringModes);

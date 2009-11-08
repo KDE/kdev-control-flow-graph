@@ -49,7 +49,7 @@ QString ControlFlowGraphNavigationContext::html(bool shorten)
 
     QStringList nodes = m_label.split("->");
     if (nodes.size() < 2)
-	return "";
+        return "";
 
     modifyHtml() += importantHighlight(i18n("Uses of") + " ") + nodes[1] + importantHighlight(" " + i18n("from") + " ") + nodes[0] + "<hr>";
     unsigned int i = m_arcUses.size()-1;
@@ -60,9 +60,9 @@ QString ControlFlowGraphNavigationContext::html(bool shorten)
     DUChainReadLocker lock(DUChain::lock());
     while (iterator.hasPrevious())
     {
-	pair = iterator.previous();
-      	CodeRepresentation::Ptr code = createCodeRepresentation(pair.second);
-	modifyHtml() += "<a href='" + QString::number(i--) + "'>" + pair.second.toUrl().fileName() + " (" + QString::number(pair.first.m_range.start.line+1) + ")</a>: " + Qt::escape(code->line(pair.first.m_range.start.line).trimmed()) + "<br>";
+        pair = iterator.previous();
+              CodeRepresentation::Ptr code = createCodeRepresentation(pair.second);
+        modifyHtml() += "<a href='" + QString::number(i--) + "'>" + pair.second.toUrl().fileName() + " (" + QString::number(pair.first.m_range.start.line+1) + ")</a>: " + Qt::escape(code->line(pair.first.m_range.start.line).trimmed()) + "<br>";
     }
 
     modifyHtml() += "</small></small></p></body></html>";

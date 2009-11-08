@@ -34,8 +34,8 @@ void ControlFlowGraphUsesCollector::processUses(ReferencedTopDUContext topContex
 {
     if (topContext.data())
     {
-	CodeRepresentation::Ptr code = createCodeRepresentation(topContext.data()->url());
-	processContext(topContext.data(), code);
+        CodeRepresentation::Ptr code = createCodeRepresentation(topContext.data()->url());
+        processContext(topContext.data(), code);
     }
 }
 
@@ -45,27 +45,27 @@ void ControlFlowGraphUsesCollector::processContext(DUContext *context, CodeRepre
     
     foreach (const IndexedDeclaration &declaration, declarations())
     {
-	int declarationIndex = context->topContext()->indexForUsedDeclaration(declaration.data(), false);
-	for (int useIndex = 0; useIndex < context->usesCount(); ++useIndex)
-	    if (context->uses()[useIndex].m_declarationIndex == declarationIndex)
-	    {
-		// Navigate to uppermost executable context
-		DUContext *uppermostExecutableContext = context;
-		while (uppermostExecutableContext->parentContext() && uppermostExecutableContext->parentContext()->type() == DUContext::Other)
-		    uppermostExecutableContext = uppermostExecutableContext->parentContext();
+        int declarationIndex = context->topContext()->indexForUsedDeclaration(declaration.data(), false);
+        for (int useIndex = 0; useIndex < context->usesCount(); ++useIndex)
+            if (context->uses()[useIndex].m_declarationIndex == declarationIndex)
+            {
+                // Navigate to uppermost executable context
+                DUContext *uppermostExecutableContext = context;
+                while (uppermostExecutableContext->parentContext() && uppermostExecutableContext->parentContext()->type() == DUContext::Other)
+                    uppermostExecutableContext = uppermostExecutableContext->parentContext();
 
-		// Get the definition
-		Declaration* definition = 0;
-		if (!uppermostExecutableContext || !uppermostExecutableContext->owner())
-		    continue;
-		else
-		    definition = uppermostExecutableContext->owner();
+                // Get the definition
+                Declaration* definition = 0;
+                if (!uppermostExecutableContext || !uppermostExecutableContext->owner())
+                    continue;
+                else
+                    definition = uppermostExecutableContext->owner();
 
-		if (!definition) continue;
+                if (!definition) continue;
 
-		emit processFunctionCall(definition, m_declaration.data(), context->uses()[useIndex]);
-	    }
+                emit processFunctionCall(definition, m_declaration.data(), context->uses()[useIndex]);
+            }
     }
     foreach (DUContext *child, context->childContexts())
-	processContext(child, code);
+        processContext(child, code);
 }

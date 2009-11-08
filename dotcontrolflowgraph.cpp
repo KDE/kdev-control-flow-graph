@@ -35,9 +35,9 @@ void DotControlFlowGraph::graphDone()
 {
     if (m_rootGraph)
     {
-	gvLayout(m_gvc, m_rootGraph, "dot");
-	gvFreeLayout(m_gvc, m_rootGraph);
-	emit loadLibrary(m_rootGraph);
+        gvLayout(m_gvc, m_rootGraph, "dot");
+        gvFreeLayout(m_gvc, m_rootGraph);
+        emit loadLibrary(m_rootGraph);
     }
 }
 
@@ -45,9 +45,9 @@ void DotControlFlowGraph::clearGraph()
 {
     if (m_rootGraph)
     {
-	gvFreeLayout(m_gvc, m_rootGraph);
-	agclose(m_rootGraph);
-	m_rootGraph = 0;
+        gvFreeLayout(m_gvc, m_rootGraph);
+        agclose(m_rootGraph);
+        m_rootGraph = 0;
     }
 
     m_namedGraphs.clear();
@@ -59,9 +59,9 @@ void DotControlFlowGraph::exportGraph(const QString &fileName)
 {
     if (m_rootGraph)
     {
-	gvLayout(m_gvc, m_rootGraph, "dot");
-	gvRenderFilename(m_gvc, m_rootGraph, fileName.right(fileName.size()-fileName.lastIndexOf('.')-1).toUtf8().data(), fileName.toUtf8().data());
-	gvFreeLayout(m_gvc, m_rootGraph);
+        gvLayout(m_gvc, m_rootGraph, "dot");
+        gvRenderFilename(m_gvc, m_rootGraph, fileName.right(fileName.size()-fileName.lastIndexOf('.')-1).toUtf8().data(), fileName.toUtf8().data());
+        gvFreeLayout(m_gvc, m_rootGraph);
     }
 }
 
@@ -77,9 +77,9 @@ void DotControlFlowGraph::foundRootNode (const QStringList &containers, const QS
     QString absoluteContainer;
     foreach (const QString& container, containers)
     {
-	absoluteContainer += container;
-	graph = m_namedGraphs[absoluteContainer] = agsubg(graph, ("cluster_" + absoluteContainer).toUtf8().data());
-	agsafeset(graph, (char *) "label", container.toUtf8().data(), (char *) "");
+        absoluteContainer += container;
+        graph = m_namedGraphs[absoluteContainer] = agsubg(graph, ("cluster_" + absoluteContainer).toUtf8().data());
+        agsafeset(graph, (char *) "label", container.toUtf8().data(), (char *) "");
     }
 
     Agnode_t *node = agnode(graph, label.toUtf8().data());
@@ -99,24 +99,24 @@ void DotControlFlowGraph::foundFunctionCall (const QStringList &sourceContainers
 
     foreach (const QString& container, sourceContainers)
     {
-	previousGraph = sourceGraph;
-	absoluteContainer += container;
-	if (!(sourceGraph = m_namedGraphs[absoluteContainer]))
-	{
-	    sourceGraph = m_namedGraphs[absoluteContainer] = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data());
-	    agsafeset(sourceGraph, (char *) "label", container.toUtf8().data(), (char *) "");
-	}
+        previousGraph = sourceGraph;
+        absoluteContainer += container;
+        if (!(sourceGraph = m_namedGraphs[absoluteContainer]))
+        {
+            sourceGraph = m_namedGraphs[absoluteContainer] = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data());
+            agsafeset(sourceGraph, (char *) "label", container.toUtf8().data(), (char *) "");
+        }
     }
     absoluteContainer.clear();
     foreach (const QString& container, targetContainers)
     {
-	previousGraph = targetGraph;
-	absoluteContainer += container;
-	if (!(targetGraph = m_namedGraphs[absoluteContainer]))
-	{
-	    targetGraph = m_namedGraphs[absoluteContainer] = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data());
-	    agsafeset(targetGraph, (char *) "label", container.toUtf8().data(), (char *) "");
-	}
+        previousGraph = targetGraph;
+        absoluteContainer += container;
+        if (!(targetGraph = m_namedGraphs[absoluteContainer]))
+        {
+            targetGraph = m_namedGraphs[absoluteContainer] = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data());
+            agsafeset(targetGraph, (char *) "label", container.toUtf8().data(), (char *) "");
+        }
     }
 
     Agnode_t* src = agnode(sourceGraph, source.toUtf8().data());
@@ -135,9 +135,9 @@ void DotControlFlowGraph::foundFunctionCall (const QStringList &sourceContainers
     agsafeset(tgt, (char *) "fillcolor", color, (char *) "");
     Agedge_t* edge;
     if (sourceGraph == targetGraph)
-	edge = agedge(sourceGraph, src, tgt);
+        edge = agedge(sourceGraph, src, tgt);
     else
-	edge = agedge(m_rootGraph, src, tgt);
+        edge = agedge(m_rootGraph, src, tgt);
     agsafeset(edge, (char *) "id", (source + "->" + target).toUtf8().data(), (char *) "");
 }
 

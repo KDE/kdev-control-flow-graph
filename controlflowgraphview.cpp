@@ -49,78 +49,78 @@ m_graphLocked(false)
     if (factory)
     {
         m_part = factory->create<KParts::ReadOnlyPart>(this);
-	if (m_part)
-	{
-	    connect(this, SIGNAL(setReadWrite()), m_part, SLOT(setReadWrite()));
-	    emit setReadWrite();
+        if (m_part)
+        {
+            connect(this, SIGNAL(setReadWrite()), m_part, SLOT(setReadWrite()));
+            emit setReadWrite();
 
-	    verticalLayout->addWidget(m_part->widget());
+            verticalLayout->addWidget(m_part->widget());
 
-	    modeFunctionToolButton->setIcon(KIcon("flag-blue"));
-	    modeClassToolButton->setIcon(KIcon("flag-green"));
-	    modeNamespaceToolButton->setIcon(KIcon("flag-red"));
-	    clusteringClassToolButton->setIcon(KIcon("code-class"));
-	    clusteringNamespaceToolButton->setIcon(KIcon("namespace"));
-	    clusteringProjectToolButton->setIcon(KIcon("folder-development"));
-	    useFolderNameToolButton->setIcon(KIcon("folder-favorites"));
-	    drawIncomingArcsToolButton->setIcon(KIcon("draw-arrow-down"));
-	    maxLevelToolButton->setIcon(KIcon("zoom-fit-height"));
-	    exportToolButton->setIcon(KIcon("document-export"));
-	    m_duchainControlFlow->setMaxLevel(2);
+            modeFunctionToolButton->setIcon(KIcon("flag-blue"));
+            modeClassToolButton->setIcon(KIcon("flag-green"));
+            modeNamespaceToolButton->setIcon(KIcon("flag-red"));
+            clusteringClassToolButton->setIcon(KIcon("code-class"));
+            clusteringNamespaceToolButton->setIcon(KIcon("namespace"));
+            clusteringProjectToolButton->setIcon(KIcon("folder-development"));
+            useFolderNameToolButton->setIcon(KIcon("folder-favorites"));
+            drawIncomingArcsToolButton->setIcon(KIcon("draw-arrow-down"));
+            maxLevelToolButton->setIcon(KIcon("zoom-fit-height"));
+            exportToolButton->setIcon(KIcon("document-export"));
+            m_duchainControlFlow->setMaxLevel(2);
 
-	    birdseyeToolButton->setIcon(KIcon("edit-find"));
-	    zoominToolButton->setIcon(KIcon("zoom-in"));
-	    zoomoutToolButton->setIcon(KIcon("zoom-out"));
+            birdseyeToolButton->setIcon(KIcon("edit-find"));
+            zoominToolButton->setIcon(KIcon("zoom-in"));
+            zoomoutToolButton->setIcon(KIcon("zoom-out"));
 
-	    if (ICore::self()->projectController()->projectCount() > 0)
-		setProjectButtonsEnabled(true);
+            if (ICore::self()->projectController()->projectCount() > 0)
+                setProjectButtonsEnabled(true);
 
-	    useShortNamesToolButton->setIcon(KIcon("application-x-arc"));
-	    updateLockIcon(lockControlFlowGraphToolButton->isChecked());
+            useShortNamesToolButton->setIcon(KIcon("application-x-arc"));
+            updateLockIcon(lockControlFlowGraphToolButton->isChecked());
 
-	    // Control flow mode buttons signals
-	    connect(modeFunctionToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
-	    connect(modeClassToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
-	    connect(modeNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
+            // Control flow mode buttons signals
+            connect(modeFunctionToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
+            connect(modeClassToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
+            connect(modeNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
 
-	    // Clustering buttons signals
-	    connect(clusteringClassToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringModes(bool)));
-	    connect(clusteringNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringModes(bool)));
-	    connect(clusteringProjectToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringModes(bool)));
+            // Clustering buttons signals
+            connect(clusteringClassToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringModes(bool)));
+            connect(clusteringNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringModes(bool)));
+            connect(clusteringProjectToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringModes(bool)));
 
-	    // Configuration buttons signals
-	    connect(maxLevelSpinBox, SIGNAL(valueChanged(int)), SLOT(setMaxLevel(int)));
-	    connect(maxLevelToolButton, SIGNAL(toggled(bool)), SLOT(setUseMaxLevel(bool)));
-	    connect(drawIncomingArcsToolButton, SIGNAL(toggled(bool)), SLOT(setDrawIncomingArcs(bool)));
-	    connect(useFolderNameToolButton, SIGNAL(toggled(bool)), SLOT(setUseFolderName(bool)));
-	    connect(useShortNamesToolButton, SIGNAL(toggled(bool)), SLOT(setUseShortNames(bool)));
-	    connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)), SLOT(updateLockIcon(bool)));
+            // Configuration buttons signals
+            connect(maxLevelSpinBox, SIGNAL(valueChanged(int)), SLOT(setMaxLevel(int)));
+            connect(maxLevelToolButton, SIGNAL(toggled(bool)), SLOT(setUseMaxLevel(bool)));
+            connect(drawIncomingArcsToolButton, SIGNAL(toggled(bool)), SLOT(setDrawIncomingArcs(bool)));
+            connect(useFolderNameToolButton, SIGNAL(toggled(bool)), SLOT(setUseFolderName(bool)));
+            connect(useShortNamesToolButton, SIGNAL(toggled(bool)), SLOT(setUseShortNames(bool)));
+            connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)), SLOT(updateLockIcon(bool)));
 
-	    // Left buttons signals
-	    connect(zoomoutToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_out"), SIGNAL(triggered()));
-	    connect(zoominToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_in"), SIGNAL(triggered()));
-	    m_part->actionCollection()->action("view_bev_enabled")->setIcon(KIcon("edit-find.png"));
-	    m_part->actionCollection()->action("view_bev_enabled")->setChecked(false);
-	    birdseyeToolButton->setDefaultAction(m_part->actionCollection()->action("view_bev_enabled"));
-	    connect(m_part, SIGNAL(selectionIs(const QList<QString>, const QPoint&)),
-		    m_duchainControlFlow, SLOT(selectionIs(const QList<QString>, const QPoint&)));
-	    connect(exportToolButton, SIGNAL(clicked()), SLOT(exportControlFlowGraph()));
+            // Left buttons signals
+            connect(zoomoutToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_out"), SIGNAL(triggered()));
+            connect(zoominToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_in"), SIGNAL(triggered()));
+            m_part->actionCollection()->action("view_bev_enabled")->setIcon(KIcon("edit-find.png"));
+            m_part->actionCollection()->action("view_bev_enabled")->setChecked(false);
+            birdseyeToolButton->setDefaultAction(m_part->actionCollection()->action("view_bev_enabled"));
+            connect(m_part, SIGNAL(selectionIs(const QList<QString>, const QPoint&)),
+                    m_duchainControlFlow, SLOT(selectionIs(const QList<QString>, const QPoint&)));
+            connect(exportToolButton, SIGNAL(clicked()), SLOT(exportControlFlowGraph()));
 
-	    // Graph generation signals
-	    connect(m_duchainControlFlow,  SIGNAL(prepareNewGraph()),
+            // Graph generation signals
+            connect(m_duchainControlFlow,  SIGNAL(prepareNewGraph()),
                     m_dotControlFlowGraph, SLOT  (prepareNewGraph()));
-	    connect(m_duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
+            connect(m_duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
                     m_dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
-	    connect(m_duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
+            connect(m_duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
                     m_dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
-	    connect(m_duchainControlFlow,  SIGNAL(clearGraph()), m_dotControlFlowGraph, SLOT(clearGraph()));
-	    connect(m_duchainControlFlow,  SIGNAL(graphDone()), m_dotControlFlowGraph, SLOT(graphDone()));
-	    connect(m_dotControlFlowGraph, SIGNAL(loadLibrary(graph_t *)), m_part, SLOT(slotLoadLibrary(graph_t *)));
+            connect(m_duchainControlFlow,  SIGNAL(clearGraph()), m_dotControlFlowGraph, SLOT(clearGraph()));
+            connect(m_duchainControlFlow,  SIGNAL(graphDone()), m_dotControlFlowGraph, SLOT(graphDone()));
+            connect(m_dotControlFlowGraph, SIGNAL(loadLibrary(graph_t *)), m_part, SLOT(slotLoadLibrary(graph_t *)));
 
-	    m_plugin->registerToolView(this);
-	}
+            m_plugin->registerToolView(this);
+        }
         else
-	    KMessageBox::error((QWidget *) m_plugin->core()->uiController()->activeMainWindow(), i18n("Could not load the KGraphViewer kpart"));
+            KMessageBox::error((QWidget *) m_plugin->core()->uiController()->activeMainWindow(), i18n("Could not load the KGraphViewer kpart"));
     }
     else
         KMessageBox::error((QWidget *) m_plugin->core()->uiController()->activeMainWindow(), i18n("Could not find the KGraphViewer factory"));
@@ -160,8 +160,8 @@ void ControlFlowGraphView::exportControlFlowGraph()
     QPointer<ControlFlowGraphFileDialog> fileDialog;
     if ((fileDialog = m_plugin->exportControlFlowGraph(ControlFlowGraphFileDialog::NoConfigurationButtons)))
     {
-	m_dotControlFlowGraph->exportGraph(fileDialog->selectedFile());
-	KMessageBox::information(this, i18n("Control flow graph exported."), i18n("Export Control Flow Graph"));
+        m_dotControlFlowGraph->exportGraph(fileDialog->selectedFile());
+        KMessageBox::information(this, i18n("Control flow graph exported."), i18n("Export Control Flow Graph"));
     }
 }
 
@@ -172,38 +172,38 @@ void ControlFlowGraphView::updateLockIcon(bool checked)
     m_duchainControlFlow->setLocked(checked);
     m_graphLocked = checked;
     if (!checked)
-	m_duchainControlFlow->refreshGraph();
+        m_duchainControlFlow->refreshGraph();
 }
 
 void ControlFlowGraphView::setControlFlowMode(bool checked)
 {
     if (checked)
     {
-	QToolButton *toolButton = qobject_cast<QToolButton *>(sender());
-	if (toolButton->objectName() == "modeFunctionToolButton")
-	{
-	    m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowFunction);
-	    m_duchainControlFlow->refreshGraph();
-	    clusteringClassToolButton->setEnabled(true);
-	    clusteringNamespaceToolButton->setEnabled(true);
-	}
-	if (toolButton->objectName() == "modeClassToolButton")
-	{
-	    m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowClass);
-	    m_duchainControlFlow->refreshGraph();
-	    clusteringClassToolButton->setChecked(false);
-	    clusteringClassToolButton->setEnabled(false);
-	    clusteringNamespaceToolButton->setEnabled(true);
-	}
-	if (toolButton->objectName() == "modeNamespaceToolButton")
-	{
-	    m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowNamespace);
-	    m_duchainControlFlow->refreshGraph();
-	    clusteringClassToolButton->setChecked(false);
-	    clusteringClassToolButton->setEnabled(false);
-	    clusteringNamespaceToolButton->setChecked(false);
-	    clusteringNamespaceToolButton->setEnabled(false);
-	}
+        QToolButton *toolButton = qobject_cast<QToolButton *>(sender());
+        if (toolButton->objectName() == "modeFunctionToolButton")
+        {
+            m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowFunction);
+            m_duchainControlFlow->refreshGraph();
+            clusteringClassToolButton->setEnabled(true);
+            clusteringNamespaceToolButton->setEnabled(true);
+        }
+        if (toolButton->objectName() == "modeClassToolButton")
+        {
+            m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowClass);
+            m_duchainControlFlow->refreshGraph();
+            clusteringClassToolButton->setChecked(false);
+            clusteringClassToolButton->setEnabled(false);
+            clusteringNamespaceToolButton->setEnabled(true);
+        }
+        if (toolButton->objectName() == "modeNamespaceToolButton")
+        {
+            m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowNamespace);
+            m_duchainControlFlow->refreshGraph();
+            clusteringClassToolButton->setChecked(false);
+            clusteringClassToolButton->setEnabled(false);
+            clusteringNamespaceToolButton->setChecked(false);
+            clusteringNamespaceToolButton->setEnabled(false);
+        }
     }
 }
 
@@ -212,11 +212,11 @@ void ControlFlowGraphView::setClusteringModes(bool checked)
     Q_UNUSED(checked);
     QToolButton *toolButton = qobject_cast<QToolButton *>(sender());
     if (toolButton->objectName() == "clusteringClassToolButton")
-	m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringClass);
+        m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringClass);
     if (toolButton->objectName() == "clusteringNamespaceToolButton")
-	m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringNamespace);
+        m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringNamespace);
     if (toolButton->objectName() == "clusteringProjectToolButton")
-	m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringProject);
+        m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringProject);
 
     m_duchainControlFlow->refreshGraph();
     useShortNamesToolButton->setEnabled(m_duchainControlFlow->clusteringModes() ? true:false);

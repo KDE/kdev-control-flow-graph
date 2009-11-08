@@ -29,7 +29,7 @@
 using namespace KDevelop;
 
 ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(const KUrl& startDir, const QString& filter,
-						       QWidget *parent, const QString & caption, OpeningMode mode)
+                                                       QWidget *parent, const QString & caption, OpeningMode mode)
 : KFileDialog(startDir, filter, parent), m_configurationWidget(0)
 {
     setCaption(caption);
@@ -38,44 +38,44 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(const KUrl& startDir, con
 
     if (mode != NoConfigurationButtons)
     {
-	m_configurationWidget = new Ui::ControlFlowGraphExportConfiguration;
-	QWidget *widget = new QWidget;
-	m_configurationWidget->setupUi(widget);
+        m_configurationWidget = new Ui::ControlFlowGraphExportConfiguration;
+        QWidget *widget = new QWidget;
+        m_configurationWidget->setupUi(widget);
 
-	m_configurationWidget->controlFlowFunctionRadioButton->setIcon(KIcon("flag-blue"));
-	m_configurationWidget->controlFlowClassRadioButton->setIcon(KIcon("flag-green"));
-	m_configurationWidget->controlFlowNamespaceRadioButton->setIcon(KIcon("flag-red"));
-	m_configurationWidget->clusteringClassCheckBox->setIcon(KIcon("code-class"));
-	m_configurationWidget->clusteringNamespaceCheckBox->setIcon(KIcon("namespace"));
-	m_configurationWidget->clusteringProjectCheckBox->setIcon(KIcon("folder-development"));
-	m_configurationWidget->limitMaxLevelCheckBox->setIcon(KIcon("zoom-fit-height"));
-	m_configurationWidget->drawIncomingArcsCheckBox->setIcon(KIcon("draw-arrow-down"));
-	m_configurationWidget->useFolderNameCheckBox->setIcon(KIcon("folder-favorites"));
-	m_configurationWidget->useShortNamesCheckBox->setIcon(KIcon("application-x-arc"));
+        m_configurationWidget->controlFlowFunctionRadioButton->setIcon(KIcon("flag-blue"));
+        m_configurationWidget->controlFlowClassRadioButton->setIcon(KIcon("flag-green"));
+        m_configurationWidget->controlFlowNamespaceRadioButton->setIcon(KIcon("flag-red"));
+        m_configurationWidget->clusteringClassCheckBox->setIcon(KIcon("code-class"));
+        m_configurationWidget->clusteringNamespaceCheckBox->setIcon(KIcon("namespace"));
+        m_configurationWidget->clusteringProjectCheckBox->setIcon(KIcon("folder-development"));
+        m_configurationWidget->limitMaxLevelCheckBox->setIcon(KIcon("zoom-fit-height"));
+        m_configurationWidget->drawIncomingArcsCheckBox->setIcon(KIcon("draw-arrow-down"));
+        m_configurationWidget->useFolderNameCheckBox->setIcon(KIcon("folder-favorites"));
+        m_configurationWidget->useShortNamesCheckBox->setIcon(KIcon("application-x-arc"));
 
-	if (mode == ForClassConfigurationButtons)
-	{
-	    m_configurationWidget->drawIncomingArcsCheckBox->setChecked(false);
-	    m_configurationWidget->drawIncomingArcsCheckBox->setEnabled(false);
-	}
+        if (mode == ForClassConfigurationButtons)
+        {
+            m_configurationWidget->drawIncomingArcsCheckBox->setChecked(false);
+            m_configurationWidget->drawIncomingArcsCheckBox->setEnabled(false);
+        }
 
-	connect(m_configurationWidget->controlFlowFunctionRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
-	connect(m_configurationWidget->controlFlowClassRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
-	connect(m_configurationWidget->controlFlowNamespaceRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
+        connect(m_configurationWidget->controlFlowFunctionRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
+        connect(m_configurationWidget->controlFlowClassRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
+        connect(m_configurationWidget->controlFlowNamespaceRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
 
-	connect(m_configurationWidget->clusteringClassCheckBox, SIGNAL(stateChanged(int)), SLOT(setClusteringModes(int)));
-	connect(m_configurationWidget->clusteringNamespaceCheckBox, SIGNAL(stateChanged(int)), SLOT(setClusteringModes(int)));
-	connect(m_configurationWidget->clusteringProjectCheckBox, SIGNAL(stateChanged(int)), SLOT(setClusteringModes(int)));
+        connect(m_configurationWidget->clusteringClassCheckBox, SIGNAL(stateChanged(int)), SLOT(setClusteringModes(int)));
+        connect(m_configurationWidget->clusteringNamespaceCheckBox, SIGNAL(stateChanged(int)), SLOT(setClusteringModes(int)));
+        connect(m_configurationWidget->clusteringProjectCheckBox, SIGNAL(stateChanged(int)), SLOT(setClusteringModes(int)));
 
-	connect(m_configurationWidget->limitMaxLevelCheckBox, SIGNAL(stateChanged(int)), SLOT(slotLimitMaxLevelChanged(int)));
+        connect(m_configurationWidget->limitMaxLevelCheckBox, SIGNAL(stateChanged(int)), SLOT(slotLimitMaxLevelChanged(int)));
 
-	if (ICore::self()->projectController()->projectCount() > 0)
-	{
-	    m_configurationWidget->clusteringProjectCheckBox->setEnabled(true);
-	    m_configurationWidget->useFolderNameCheckBox->setEnabled(true);
-	}
+        if (ICore::self()->projectController()->projectCount() > 0)
+        {
+            m_configurationWidget->clusteringProjectCheckBox->setEnabled(true);
+            m_configurationWidget->useFolderNameCheckBox->setEnabled(true);
+        }
 
-	(dynamic_cast<QBoxLayout *>(mainWidget()->layout()))->insertWidget(1, widget);
+        (dynamic_cast<QBoxLayout *>(mainWidget()->layout()))->insertWidget(1, widget);
     }
 }
 
@@ -87,10 +87,10 @@ ControlFlowGraphFileDialog::~ControlFlowGraphFileDialog()
 DUChainControlFlow::ControlFlowMode ControlFlowGraphFileDialog::controlFlowMode() const
 {
     return (m_configurationWidget->controlFlowFunctionRadioButton->isChecked() ?
-	    DUChainControlFlow::ControlFlowFunction :
-	    ((m_configurationWidget->controlFlowClassRadioButton->isChecked()) ?
-		DUChainControlFlow::ControlFlowClass : DUChainControlFlow::ControlFlowNamespace)
-	   );
+            DUChainControlFlow::ControlFlowFunction :
+            ((m_configurationWidget->controlFlowClassRadioButton->isChecked()) ?
+                DUChainControlFlow::ControlFlowClass : DUChainControlFlow::ControlFlowNamespace)
+           );
 }
 
 DUChainControlFlow::ClusteringModes ControlFlowGraphFileDialog::clusteringModes() const
@@ -98,11 +98,11 @@ DUChainControlFlow::ClusteringModes ControlFlowGraphFileDialog::clusteringModes(
     DUChainControlFlow::ClusteringModes clusteringModes;
 
     if (m_configurationWidget->clusteringClassCheckBox->isChecked())
-	clusteringModes |= DUChainControlFlow::ClusteringClass;
+        clusteringModes |= DUChainControlFlow::ClusteringClass;
     if (m_configurationWidget->clusteringNamespaceCheckBox->isChecked())
-	clusteringModes |= DUChainControlFlow::ClusteringNamespace;
+        clusteringModes |= DUChainControlFlow::ClusteringNamespace;
     if (m_configurationWidget->clusteringProjectCheckBox->isChecked())
-	clusteringModes |= DUChainControlFlow::ClusteringProject;
+        clusteringModes |= DUChainControlFlow::ClusteringProject;
 
     return clusteringModes;
 }
@@ -110,9 +110,9 @@ DUChainControlFlow::ClusteringModes ControlFlowGraphFileDialog::clusteringModes(
 int ControlFlowGraphFileDialog::maxLevel() const
 {
     if (m_configurationWidget->limitMaxLevelCheckBox->isChecked())
-	return m_configurationWidget->maxLevelSpinBox->value();
+        return m_configurationWidget->maxLevelSpinBox->value();
     else
-	return 0;
+        return 0;
 }
 
 bool ControlFlowGraphFileDialog::useFolderName() const
@@ -134,25 +134,25 @@ void ControlFlowGraphFileDialog::setControlFlowMode(bool checked)
 {
     if (checked)
     {
-	QRadioButton *radioButton = qobject_cast<QRadioButton *>(sender());
-	if (radioButton->objectName() == "controlFlowFunctionRadioButton")
-	{
-	    m_configurationWidget->clusteringClassCheckBox->setEnabled(true);
-	    m_configurationWidget->clusteringNamespaceCheckBox->setEnabled(true);
-	}
-	if (radioButton->objectName() == "controlFlowClassRadioButton")
-	{
-	    m_configurationWidget->clusteringClassCheckBox->setChecked(false);
-	    m_configurationWidget->clusteringClassCheckBox->setEnabled(false);
-	    m_configurationWidget->clusteringNamespaceCheckBox->setEnabled(true);
-	}
-	if (radioButton->objectName() == "controlFlowNamespaceRadioButton")
-	{
-	    m_configurationWidget->clusteringClassCheckBox->setChecked(false);
-	    m_configurationWidget->clusteringClassCheckBox->setEnabled(false);
-	    m_configurationWidget->clusteringNamespaceCheckBox->setChecked(false);
-	    m_configurationWidget->clusteringNamespaceCheckBox->setEnabled(false);
-	}
+        QRadioButton *radioButton = qobject_cast<QRadioButton *>(sender());
+        if (radioButton->objectName() == "controlFlowFunctionRadioButton")
+        {
+            m_configurationWidget->clusteringClassCheckBox->setEnabled(true);
+            m_configurationWidget->clusteringNamespaceCheckBox->setEnabled(true);
+        }
+        if (radioButton->objectName() == "controlFlowClassRadioButton")
+        {
+            m_configurationWidget->clusteringClassCheckBox->setChecked(false);
+            m_configurationWidget->clusteringClassCheckBox->setEnabled(false);
+            m_configurationWidget->clusteringNamespaceCheckBox->setEnabled(true);
+        }
+        if (radioButton->objectName() == "controlFlowNamespaceRadioButton")
+        {
+            m_configurationWidget->clusteringClassCheckBox->setChecked(false);
+            m_configurationWidget->clusteringClassCheckBox->setEnabled(false);
+            m_configurationWidget->clusteringNamespaceCheckBox->setChecked(false);
+            m_configurationWidget->clusteringNamespaceCheckBox->setEnabled(false);
+        }
     }
 }
 
@@ -160,8 +160,8 @@ void ControlFlowGraphFileDialog::setClusteringModes(int state)
 {
     Q_UNUSED(state);
     m_configurationWidget->useShortNamesCheckBox->setEnabled(m_configurationWidget->clusteringClassCheckBox->isChecked() ||
-							     m_configurationWidget->clusteringNamespaceCheckBox->isChecked() ||
-							     m_configurationWidget->clusteringProjectCheckBox->isChecked());
+                                                             m_configurationWidget->clusteringNamespaceCheckBox->isChecked() ||
+                                                             m_configurationWidget->clusteringProjectCheckBox->isChecked());
 }
 
 void ControlFlowGraphFileDialog::slotLimitMaxLevelChanged(int state)

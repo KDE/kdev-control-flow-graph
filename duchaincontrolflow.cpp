@@ -61,7 +61,7 @@ DUChainControlFlow::DUChainControlFlow()
   m_clusteringModes(ClusteringNamespace)
 {
     connect(this, SIGNAL(updateToolTip(const QString &, const QPoint&, QWidget *)),
-	    SLOT(slotUpdateToolTip(const QString &, const QPoint&, QWidget *)), Qt::QueuedConnection);
+            SLOT(slotUpdateToolTip(const QString &, const QPoint&, QWidget *)), Qt::QueuedConnection);
 }
 
 DUChainControlFlow::~DUChainControlFlow()
@@ -102,25 +102,25 @@ void DUChainControlFlow::generateControlFlowForDeclaration(Declaration *definiti
 
     if (m_maxLevel != 1 && !m_visitedFunctions.contains(definition))
     {
-	emit foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace &&
-					nodeDefinition->internalContext()->type() != DUContext::Namespace) ? 
-									  globalNamespaceOrFolderNames(nodeDefinition):
-									  shortName);
-	++m_currentLevel;
-	m_visitedFunctions.insert(definition);
+        emit foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace &&
+                                        nodeDefinition->internalContext()->type() != DUContext::Namespace) ? 
+                                                                          globalNamespaceOrFolderNames(nodeDefinition):
+                                                                          shortName);
+        ++m_currentLevel;
+        m_visitedFunctions.insert(definition);
         m_identifierDeclarationMap[shortName] = nodeDefinition;
-	useDeclarationsFromDefinition(definition, topContext, uppermostExecutableContext);
+        useDeclarationsFromDefinition(definition, topContext, uppermostExecutableContext);
     }
 
     if (m_drawIncomingArcs)
     {
-	Declaration *declaration = nodeDefinition;
-	if (declaration->isDefinition())
-	    declaration = DUChainUtils::declarationForDefinition(declaration, topContext);
-	ControlFlowGraphUsesCollector collector(declaration);
-	collector.setProcessDeclarations(true);
-	connect(&collector, SIGNAL(processFunctionCall(Declaration *, Declaration *, const Use &)), SLOT(processFunctionCall(Declaration *, Declaration *, const Use &)));
-	collector.startCollecting();
+        Declaration *declaration = nodeDefinition;
+        if (declaration->isDefinition())
+            declaration = DUChainUtils::declarationForDefinition(declaration, topContext);
+        ControlFlowGraphUsesCollector collector(declaration);
+        collector.setProcessDeclarations(true);
+        connect(&collector, SIGNAL(processFunctionCall(Declaration *, Declaration *, const Use &)), SLOT(processFunctionCall(Declaration *, Declaration *, const Use &)));
+        collector.startCollecting();
     }
 
     emit graphDone();
@@ -146,21 +146,21 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
 
     // If cursor is in a method arguments context change it to internal context
     if (context && context->type() == DUContext::Function && context->importers().size() == 1)
-	context = context->importers()[0];
+        context = context->importers()[0];
 
     Declaration *declarationUnderCursor = DUChainUtils::itemUnderCursor(view->document()->url(), KDevelop::SimpleCursor(cursor));
     if (declarationUnderCursor && (!context || context->type() != DUContext::Other) && declarationUnderCursor->internalContext())
-	context = declarationUnderCursor->internalContext();
+        context = declarationUnderCursor->internalContext();
 
     if (!context || context->type() != DUContext::Other)
     {
-	// If there is a previous graph
-	if (m_previousUppermostExecutableContext != 0)
-	{
-	    newGraph();
-	    m_previousUppermostExecutableContext = 0;
-	}
-	return;
+        // If there is a previous graph
+        if (m_previousUppermostExecutableContext != 0)
+        {
+            newGraph();
+            m_previousUppermostExecutableContext = 0;
+        }
+        return;
     }
     
     // Navigate to uppermost executable context
@@ -170,7 +170,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
 
     // If cursor is in the same function definition
     if (uppermostExecutableContext == m_previousUppermostExecutableContext)
-	return;
+        return;
     
     m_previousUppermostExecutableContext = uppermostExecutableContext;
 
@@ -214,41 +214,41 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     prepareContainers(targetContainers, target);
 
     QString sourceLabel = shortNameFromContainers(sourceContainers,
-			  (m_controlFlowMode == ControlFlowNamespace &&
-			   nodeSource->internalContext()->type() != DUContext::Namespace) ?
-					    globalNamespaceOrFolderNames(nodeSource) :
-					    prependFolderNames(nodeSource));
+                          (m_controlFlowMode == ControlFlowNamespace &&
+                           nodeSource->internalContext()->type() != DUContext::Namespace) ?
+                                            globalNamespaceOrFolderNames(nodeSource) :
+                                            prependFolderNames(nodeSource));
 
     QString targetLabel = shortNameFromContainers(targetContainers,
-			  (m_controlFlowMode == ControlFlowNamespace &&
-			   nodeTarget->internalContext()->type() != DUContext::Namespace) ?
-					    globalNamespaceOrFolderNames(nodeTarget) :
-					    prependFolderNames(nodeTarget));
+                          (m_controlFlowMode == ControlFlowNamespace &&
+                           nodeTarget->internalContext()->type() != DUContext::Namespace) ?
+                                            globalNamespaceOrFolderNames(nodeTarget) :
+                                            prependFolderNames(nodeTarget));
 
     QString targetShortName = shortNameFromContainers(targetContainers, prependFolderNames(nodeTarget));
     QString sourceShortName = shortNameFromContainers(sourceContainers, prependFolderNames(nodeSource));
 
     if (sender() && dynamic_cast<ControlFlowGraphUsesCollector *>(sender()))
     {
-	m_identifierDeclarationMap[sourceShortName] = nodeSource;
-	sourceContainers.prepend(i18n("Uses of") + ' ' + targetLabel);
+        m_identifierDeclarationMap[sourceShortName] = nodeSource;
+        sourceContainers.prepend(i18n("Uses of") + ' ' + targetLabel);
     }
 
     // If there is a flow (in accordance with control flow mode) emit signal
     if (targetLabel != sourceLabel ||
-	m_controlFlowMode == ControlFlowFunction ||
-	(calledFunctionDefinition && m_visitedFunctions.contains(calledFunctionDefinition)))
-	emit foundFunctionCall(sourceContainers, sourceLabel, targetContainers, targetLabel); 
+        m_controlFlowMode == ControlFlowFunction ||
+        (calledFunctionDefinition && m_visitedFunctions.contains(calledFunctionDefinition)))
+        emit foundFunctionCall(sourceContainers, sourceLabel, targetContainers, targetLabel); 
 
     if (calledFunctionDefinition)
-	calledFunctionContext = calledFunctionDefinition->internalContext();
+        calledFunctionContext = calledFunctionDefinition->internalContext();
     else
     {
-	// Store method declaration for navigation
-	m_identifierDeclarationMap[targetShortName] = nodeTarget;
-	// Store use for edge inspection
-	m_arcUsesMap.insert(sourceLabel + "->" + targetLabel, QPair<Use, IndexedString>(use, source->url()));
-	return;
+        // Store method declaration for navigation
+        m_identifierDeclarationMap[targetShortName] = nodeTarget;
+        // Store use for edge inspection
+        m_arcUsesMap.insert(sourceLabel + "->" + targetLabel, QPair<Use, IndexedString>(use, source->url()));
+        return;
     }
 
     // Store use for edge inspection
@@ -258,26 +258,26 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 
     if (calledFunctionContext && (m_currentLevel < m_maxLevel || m_maxLevel == 0))
     {
-	// For prevent endless loop in recursive methods
-	if (!m_visitedFunctions.contains(calledFunctionDefinition))
-	{
-	    ++m_currentLevel;
-	    m_visitedFunctions.insert(calledFunctionDefinition);
-	    // Recursive call for method invocation
-	    useDeclarationsFromDefinition(calledFunctionDefinition, calledFunctionDefinition->topContext(), calledFunctionContext);
-	}
+        // For prevent endless loop in recursive methods
+        if (!m_visitedFunctions.contains(calledFunctionDefinition))
+        {
+            ++m_currentLevel;
+            m_visitedFunctions.insert(calledFunctionDefinition);
+            // Recursive call for method invocation
+            useDeclarationsFromDefinition(calledFunctionDefinition, calledFunctionDefinition->topContext(), calledFunctionContext);
+        }
     }
 }
 
 void DUChainControlFlow::slotUpdateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget)
 {
     ControlFlowGraphNavigationWidget *navigationWidget =
-		new ControlFlowGraphNavigationWidget(edge, m_arcUsesMap.values(edge));
+                new ControlFlowGraphNavigationWidget(edge, m_arcUsesMap.values(edge));
     
     KDevelop::NavigationToolTip *usesToolTip = new KDevelop::NavigationToolTip(
-				  partWidget,
-				  partWidget->mapToGlobal(QPoint(20, 20)) + point,
-				  navigationWidget);
+                                  partWidget,
+                                  partWidget->mapToGlobal(QPoint(20, 20)) + point,
+                                  navigationWidget);
 
     usesToolTip->resize(navigationWidget->sizeHint() + QSize(10, 10));
     ActiveToolTip::showToolTip(usesToolTip);
@@ -287,26 +287,26 @@ void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& po
 {
     if (!list.isEmpty())
     {
-	QString label = list[0];
-	Declaration *declaration = m_identifierDeclarationMap[label];
-	
-	DUChainReadLocker lock(DUChain::lock());
-	
-	if (declaration) // Node click, jump to definition/declaration
-	{
-	    KUrl url(declaration->url().str());
-	    KTextEditor::Range range = declaration->range().textRange();
-	    
-	    lock.unlock();
-	    
-	    ICore::self()->documentController()->openDocument(url, range.start());
-	}
-	else if (label.contains("->")) // Edge click, show uses contained in the edge
-	{
-	    KParts::ReadOnlyPart *part = dynamic_cast<KParts::ReadOnlyPart *>(sender());
-	    if (!part) return;
-	    emit updateToolTip(label, point, part->widget());
-	}
+        QString label = list[0];
+        Declaration *declaration = m_identifierDeclarationMap[label];
+        
+        DUChainReadLocker lock(DUChain::lock());
+        
+        if (declaration) // Node click, jump to definition/declaration
+        {
+            KUrl url(declaration->url().str());
+            KTextEditor::Range range = declaration->range().textRange();
+            
+            lock.unlock();
+            
+            ICore::self()->documentController()->openDocument(url, range.start());
+        }
+        else if (label.contains("->")) // Edge click, show uses contained in the edge
+        {
+            KParts::ReadOnlyPart *part = dynamic_cast<KParts::ReadOnlyPart *>(sender());
+            if (!part) return;
+            emit updateToolTip(label, point, part->widget());
+        }
     }
 }
 
@@ -339,14 +339,14 @@ void DUChainControlFlow::refreshGraph()
 {
     if (!m_locked)
     {
-	if(ICore::self()->documentController()->activeDocument() &&
-	   ICore::self()->documentController()->activeDocument()->textDocument() &&
-	   ICore::self()->documentController()->activeDocument()->textDocument()->activeView())
-	{
-	    m_previousUppermostExecutableContext = 0;
-	    KTextEditor::View *view = ICore::self()->documentController()->activeDocument()->textDocument()->activeView();
-	    cursorPositionChanged(view, view->cursorPosition());
-	}
+        if(ICore::self()->documentController()->activeDocument() &&
+           ICore::self()->documentController()->activeDocument()->textDocument() &&
+           ICore::self()->documentController()->activeDocument()->textDocument()->activeView())
+        {
+            m_previousUppermostExecutableContext = 0;
+            KTextEditor::View *view = ICore::self()->documentController()->activeDocument()->textDocument()->activeView();
+            cursorPositionChanged(view, view->cursorPosition());
+        }
     }
 }
 
@@ -374,32 +374,32 @@ void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition,
     Declaration *declaration;
     for (unsigned int i = 0; i < usesCount; ++i)
     {
-	declaration = topContext->usedDeclarationForIndex(uses[i].m_declarationIndex);
+        declaration = topContext->usedDeclarationForIndex(uses[i].m_declarationIndex);
         if (declaration && declaration->type<KDevelop::FunctionType>())
         {
-	    if (subContextsIterator != subContextsEnd)
-	    {
-	        if (uses[i].m_range.start < (*subContextsIterator)->range().start)
-		    processFunctionCall(definition, declaration, uses[i]);
-	        else if ((*subContextsIterator)->type() == DUContext::Other)
-		{
-		    // Recursive call for sub-contexts
-	            useDeclarationsFromDefinition(definition, topContext, *subContextsIterator);
-		    subContextsIterator++;
-		    --i;
-		}
-	    }
-	    else
-		processFunctionCall(definition, declaration, uses[i]);
+            if (subContextsIterator != subContextsEnd)
+            {
+                if (uses[i].m_range.start < (*subContextsIterator)->range().start)
+                    processFunctionCall(definition, declaration, uses[i]);
+                else if ((*subContextsIterator)->type() == DUContext::Other)
+                {
+                    // Recursive call for sub-contexts
+                    useDeclarationsFromDefinition(definition, topContext, *subContextsIterator);
+                    subContextsIterator++;
+                    --i;
+                }
+            }
+            else
+                processFunctionCall(definition, declaration, uses[i]);
         }
     }
     while (subContextsIterator != subContextsEnd)
-	if ((*subContextsIterator)->type() == DUContext::Other)
-	{
-	    // Recursive call for remaining sub-contexts
+        if ((*subContextsIterator)->type() == DUContext::Other)
+        {
+            // Recursive call for remaining sub-contexts
             useDeclarationsFromDefinition(definition, topContext, *subContextsIterator);
-	    subContextsIterator++;
-	}
+            subContextsIterator++;
+        }
 }
 
 Declaration *DUChainControlFlow::declarationFromControlFlowMode(Declaration *definitionDeclaration)
@@ -410,17 +410,17 @@ Declaration *DUChainControlFlow::declarationFromControlFlowMode(Declaration *def
     {
         DUChainReadLocker lock(DUChain::lock());
 
-	if (nodeDeclaration->isDefinition())
-	    nodeDeclaration = DUChainUtils::declarationForDefinition(nodeDeclaration, nodeDeclaration->topContext());
-	if (!nodeDeclaration || !nodeDeclaration->context() || !nodeDeclaration->context()->owner()) return definitionDeclaration;
-	while (nodeDeclaration->context() &&
-	       nodeDeclaration->context()->owner() &&
-	       ((m_controlFlowMode == ControlFlowClass && nodeDeclaration->context()->type() == DUContext::Class) ||
-	        (m_controlFlowMode == ControlFlowNamespace && (
-							      nodeDeclaration->context()->type() == DUContext::Class ||
-							      nodeDeclaration->context()->type() == DUContext::Namespace)
-	      )))
-	    nodeDeclaration = nodeDeclaration->context()->owner();
+        if (nodeDeclaration->isDefinition())
+            nodeDeclaration = DUChainUtils::declarationForDefinition(nodeDeclaration, nodeDeclaration->topContext());
+        if (!nodeDeclaration || !nodeDeclaration->context() || !nodeDeclaration->context()->owner()) return definitionDeclaration;
+        while (nodeDeclaration->context() &&
+               nodeDeclaration->context()->owner() &&
+               ((m_controlFlowMode == ControlFlowClass && nodeDeclaration->context()->type() == DUContext::Class) ||
+                (m_controlFlowMode == ControlFlowNamespace && (
+                                                              nodeDeclaration->context()->type() == DUContext::Class ||
+                                                              nodeDeclaration->context()->type() == DUContext::Namespace)
+              )))
+            nodeDeclaration = nodeDeclaration->context()->owner();
     }
     return nodeDeclaration;
 }
@@ -432,29 +432,29 @@ void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration*
 
     // Handling project clustering
     if (m_clusteringModes.testFlag(ClusteringProject) && ICore::self()->projectController()->findProjectForUrl(definition->url().str()))
-	containers << ICore::self()->projectController()->findProjectForUrl(definition->url().str())->name();
+        containers << ICore::self()->projectController()->findProjectForUrl(definition->url().str())->name();
 
     // Handling namespace clustering
     if (m_clusteringModes.testFlag(ClusteringNamespace))
     {
-	m_controlFlowMode = ControlFlowNamespace;
-	Declaration *namespaceDefinition = declarationFromControlFlowMode(definition);
-	DUChainReadLocker lock(DUChain::lock());
-	strGlobalNamespaceOrFolderNames = ((namespaceDefinition->internalContext()->type() != DUContext::Namespace) ?
-							      globalNamespaceOrFolderNames(namespaceDefinition):
-							      shortNameFromContainers(containers, prependFolderNames(namespaceDefinition)));
-	foreach(const QString &container, strGlobalNamespaceOrFolderNames.split("::"))
-	    containers << container;
+        m_controlFlowMode = ControlFlowNamespace;
+        Declaration *namespaceDefinition = declarationFromControlFlowMode(definition);
+        DUChainReadLocker lock(DUChain::lock());
+        strGlobalNamespaceOrFolderNames = ((namespaceDefinition->internalContext()->type() != DUContext::Namespace) ?
+                                                              globalNamespaceOrFolderNames(namespaceDefinition):
+                                                              shortNameFromContainers(containers, prependFolderNames(namespaceDefinition)));
+        foreach(const QString &container, strGlobalNamespaceOrFolderNames.split("::"))
+            containers << container;
     }
 
     // Handling class clustering
     if (m_clusteringModes.testFlag(ClusteringClass))
     {
-	m_controlFlowMode = ControlFlowClass;
-	Declaration *classDefinition = declarationFromControlFlowMode(definition);
-	DUChainReadLocker lock(DUChain::lock());
-	if (classDefinition->internalContext() && classDefinition->internalContext()->type() == DUContext::Class)
-	    containers << shortNameFromContainers(containers, prependFolderNames(classDefinition));
+        m_controlFlowMode = ControlFlowClass;
+        Declaration *classDefinition = declarationFromControlFlowMode(definition);
+        DUChainReadLocker lock(DUChain::lock());
+        if (classDefinition->internalContext() && classDefinition->internalContext()->type() == DUContext::Class)
+            containers << shortNameFromContainers(containers, prependFolderNames(classDefinition));
     }
 
     m_controlFlowMode = originalControlFlowMode;
@@ -465,31 +465,31 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
     IBuildSystemManager *buildSystemManager;
     if (m_useFolderName && m_currentProject && (buildSystemManager = m_currentProject->buildSystemManager()))
     {
-	if ((KDevelop::ProjectBaseItem *) m_currentProject->projectItem())
-	{
-	    KUrl::List list = buildSystemManager->includeDirectories(
-			      (KDevelop::ProjectBaseItem *) m_currentProject->projectItem());
-	    int minLength = std::numeric_limits<int>::max();
+        if ((KDevelop::ProjectBaseItem *) m_currentProject->projectItem())
+        {
+            KUrl::List list = buildSystemManager->includeDirectories(
+                              (KDevelop::ProjectBaseItem *) m_currentProject->projectItem());
+            int minLength = std::numeric_limits<int>::max();
 
-	    DUChainReadLocker lock(DUChain::lock());
-	    QString folderName, smallestDirectory, declarationUrl = declaration->url().str();
-	    
-	    foreach (const KUrl &url, list)
-	    {
-		QString urlString = url.toLocalFile();
-		if (urlString.length() <= minLength && declarationUrl.startsWith(urlString))
-		{
-		    smallestDirectory = urlString;
-		    minLength = urlString.length();
-		}
-	    }
-	    declarationUrl = declarationUrl.remove(0, smallestDirectory.length() + 1);
-	    declarationUrl = declarationUrl.remove(KUrl(declaration->url().str()).fileName());
-	    if (declarationUrl.endsWith('/')) declarationUrl.chop(1);
-	    declarationUrl = declarationUrl.replace('/', "::");
-	    if (!declarationUrl.isEmpty())
-		return declarationUrl;
-	}
+            DUChainReadLocker lock(DUChain::lock());
+            QString folderName, smallestDirectory, declarationUrl = declaration->url().str();
+            
+            foreach (const KUrl &url, list)
+            {
+                QString urlString = url.toLocalFile();
+                if (urlString.length() <= minLength && declarationUrl.startsWith(urlString))
+                {
+                    smallestDirectory = urlString;
+                    minLength = urlString.length();
+                }
+            }
+            declarationUrl = declarationUrl.remove(0, smallestDirectory.length() + 1);
+            declarationUrl = declarationUrl.remove(KUrl(declaration->url().str()).fileName());
+            if (declarationUrl.endsWith('/')) declarationUrl.chop(1);
+            declarationUrl = declarationUrl.replace('/', "::");
+            if (!declarationUrl.isEmpty())
+                return declarationUrl;
+        }
     }
     return i18n("Global Namespace");
 }
@@ -499,16 +499,16 @@ QString DUChainControlFlow::prependFolderNames(Declaration *declaration)
     QString prependedQualifiedName = declaration->qualifiedIdentifier().toString();
     if (m_useFolderName)
     {
-	ControlFlowMode originalControlFlowMode = m_controlFlowMode;
-	m_controlFlowMode = ControlFlowNamespace;
-	Declaration *namespaceDefinition = declarationFromControlFlowMode(declaration);
-	m_controlFlowMode = originalControlFlowMode;
+        ControlFlowMode originalControlFlowMode = m_controlFlowMode;
+        m_controlFlowMode = ControlFlowNamespace;
+        Declaration *namespaceDefinition = declarationFromControlFlowMode(declaration);
+        m_controlFlowMode = originalControlFlowMode;
 
-	QString prefix = globalNamespaceOrFolderNames(namespaceDefinition);
-	DUChainReadLocker lock(DUChain::lock());
-	if (namespaceDefinition->internalContext()->type() != DUContext::Namespace &&
-	    prefix != i18n("Global Namespace"))
-	    prependedQualifiedName.prepend(prefix + "::");
+        QString prefix = globalNamespaceOrFolderNames(namespaceDefinition);
+        DUChainReadLocker lock(DUChain::lock());
+        if (namespaceDefinition->internalContext()->type() != DUContext::Namespace &&
+            prefix != i18n("Global Namespace"))
+            prependedQualifiedName.prepend(prefix + "::");
     }
 
     return prependedQualifiedName;
@@ -520,9 +520,9 @@ QString DUChainControlFlow::shortNameFromContainers(const QList<QString> &contai
 
     if (m_useShortNames)
     {
-	foreach(const QString &container, containers)
-	    if (shortName.contains(container))
-		shortName.remove(shortName.indexOf(container + "::"), (container + "::").length());
+        foreach(const QString &container, containers)
+            if (shortName.contains(container))
+                shortName.remove(shortName.indexOf(container + "::"), (container + "::").length());
     }
     return shortName;
 }
