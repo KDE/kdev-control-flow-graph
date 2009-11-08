@@ -53,7 +53,6 @@ private:
     Agraph_t *m_rootGraph;
     QMap<QString, QColor> m_colorMap;
     QHash<QString, Agraph_t *> m_namedGraphs;
-
     const QColor& colorFromQualifiedIdentifier(const QString &label);
 };
 

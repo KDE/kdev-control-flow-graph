@@ -21,6 +21,20 @@
 
 #include <language/duchain/declaration.h>
 
+namespace {
+    // C interface takes char*, so to avoid deprecated cast and/or undefined behaviour,
+    // defined the needed constants here.
+    static char SUFFIX[] = "dot";
+    static char GRAPH_NAME[] = "Root_Graph";
+    static char LABEL[] = "label";
+    static char EMPTY[] = "";
+    static char FILLED[] = "filled";
+    static char FILLCOLOR[] = "fillcolor";
+    static char SHAPE[] = "shape";
+    static char STYLE[] = "style";
+    static char BOX[] = "box";
+}
+
 DotControlFlowGraph::DotControlFlowGraph() : m_rootGraph(0)
 {
     m_gvc = gvContext();
@@ -35,7 +49,7 @@ void DotControlFlowGraph::graphDone()
 {
     if (m_rootGraph)
     {
-        gvLayout(m_gvc, m_rootGraph, "dot");
+        gvLayout(m_gvc, m_rootGraph, SUFFIX);
         gvFreeLayout(m_gvc, m_rootGraph);
         emit loadLibrary(m_rootGraph);
     }
@@ -51,7 +65,7 @@ void DotControlFlowGraph::clearGraph()
     }
 
     m_namedGraphs.clear();
-    m_rootGraph = agopen((char *) "Root_Graph", AGDIGRAPHSTRICT);
+    m_rootGraph = agopen(GRAPH_NAME, AGDIGRAPHSTRICT);
     graphDone();
 }
 
@@ -59,7 +73,7 @@ void DotControlFlowGraph::exportGraph(const QString &fileName)
 {
     if (m_rootGraph)
     {
-        gvLayout(m_gvc, m_rootGraph, "dot");
+        gvLayout(m_gvc, m_rootGraph, SUFFIX);
         gvRenderFilename(m_gvc, m_rootGraph, fileName.right(fileName.size()-fileName.lastIndexOf('.')-1).toUtf8().data(), fileName.toUtf8().data());
         gvFreeLayout(m_gvc, m_rootGraph);
     }
@@ -68,7 +82,7 @@ void DotControlFlowGraph::exportGraph(const QString &fileName)
 void DotControlFlowGraph::prepareNewGraph()
 {
     clearGraph();
-    m_rootGraph = agopen((char *) "Root_Graph", AGDIGRAPHSTRICT);
+    m_rootGraph = agopen(GRAPH_NAME, AGDIGRAPHSTRICT);
 }
 
 void DotControlFlowGraph::foundRootNode (const QStringList &containers, const QString &label)
@@ -79,16 +93,16 @@ void DotControlFlowGraph::foundRootNode (const QStringList &containers, const QS
     {
         absoluteContainer += container;
         graph = m_namedGraphs[absoluteContainer] = agsubg(graph, ("cluster_" + absoluteContainer).toUtf8().data());
-        agsafeset(graph, (char *) "label", container.toUtf8().data(), (char *) "");
+        agsafeset(graph, LABEL, container.toUtf8().data(), EMPTY);
     }
 
     Agnode_t *node = agnode(graph, label.toUtf8().data());
-    agsafeset(node, (char *) "shape", (char *) "box", (char *) "");
+    agsafeset(node, SHAPE, BOX, EMPTY);
     QColor c = colorFromQualifiedIdentifier(label);
     char color[8];
     sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
-    agsafeset(node, (char *) "style", (char *) "filled", (char *) "");
-    agsafeset(node, (char *) "fillcolor", color, (char *) "");
+    agsafeset(node, STYLE, FILLED, EMPTY);
+    agsafeset(node, FILLCOLOR, color, EMPTY);
 }
 
 void DotControlFlowGraph::foundFunctionCall (const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target)
@@ -104,7 +118,7 @@ void DotControlFlowGraph::foundFunctionCall (const QStringList &sourceContainers
         if (!(sourceGraph = m_namedGraphs[absoluteContainer]))
         {
             sourceGraph = m_namedGraphs[absoluteContainer] = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data());
-            agsafeset(sourceGraph, (char *) "label", container.toUtf8().data(), (char *) "");
+            agsafeset(sourceGraph, LABEL, container.toUtf8().data(), EMPTY);
         }
     }
     absoluteContainer.clear();
@@ -115,7 +129,7 @@ void DotControlFlowGraph::foundFunctionCall (const QStringList &sourceContainers
         if (!(targetGraph = m_namedGraphs[absoluteContainer]))
         {
             targetGraph = m_namedGraphs[absoluteContainer] = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data());
-            agsafeset(targetGraph, (char *) "label", container.toUtf8().data(), (char *) "");
+            agsafeset(targetGraph, LABEL, container.toUtf8().data(), EMPTY);
         }
     }
 
@@ -123,22 +137,23 @@ void DotControlFlowGraph::foundFunctionCall (const QStringList &sourceContainers
     Agnode_t* tgt = agnode(targetGraph, target.toUtf8().data());
 
     char color[8];
-    agsafeset(src, (char *) "shape", (char *) "box", (char *) "");
+    char ID[] = "id";
+    agsafeset(src, SHAPE, BOX, EMPTY);
     QColor c = colorFromQualifiedIdentifier(source);
     sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
-    agsafeset(src, (char *) "style", (char *) "filled", (char *) "");
-    agsafeset(src, (char *) "fillcolor", color, (char *) "");
-    agsafeset(tgt, (char *) "shape", (char *) "box", (char *) "");
+    agsafeset(src, STYLE, FILLED, EMPTY);
+    agsafeset(src, FILLCOLOR, color, EMPTY);
+    agsafeset(tgt, SHAPE, BOX, EMPTY);
     c = colorFromQualifiedIdentifier(target);
     sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
-    agsafeset(tgt, (char *) "style", (char *) "filled", (char *) "");
-    agsafeset(tgt, (char *) "fillcolor", color, (char *) "");
+    agsafeset(tgt, STYLE, FILLED, EMPTY);
+    agsafeset(tgt, FILLCOLOR, color, EMPTY);
     Agedge_t* edge;
     if (sourceGraph == targetGraph)
         edge = agedge(sourceGraph, src, tgt);
     else
         edge = agedge(m_rootGraph, src, tgt);
-    agsafeset(edge, (char *) "id", (source + "->" + target).toUtf8().data(), (char *) "");
+    agsafeset(edge, ID, (source + "->" + target).toUtf8().data(), EMPTY);
 }
 
 const QColor& DotControlFlowGraph::colorFromQualifiedIdentifier(const QString &label)
@@ -148,3 +163,4 @@ const QColor& DotControlFlowGraph::colorFromQualifiedIdentifier(const QString &l
     else
         return m_colorMap[label.split("::")[0]] = QColor::fromHsv(qrand() % 256, 255, 190);
 }
+
