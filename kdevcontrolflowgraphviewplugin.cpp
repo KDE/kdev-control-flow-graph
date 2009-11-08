@@ -446,13 +446,14 @@ void KDevControlFlowGraphViewPlugin::configureDuchainControlFlow(DUChainControlF
     duchainControlFlow->setUseShortNames(fileDialog->useShortNames());
     duchainControlFlow->setDrawIncomingArcs(fileDialog->drawIncomingArcs());
 
+    dotControlFlowGraph->prepareNewGraph();
+
     connect(duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
             dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
     connect(duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
             dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
     connect(duchainControlFlow,  SIGNAL(clearGraph()), dotControlFlowGraph, SLOT(clearGraph()));
 
-    dotControlFlowGraph->prepareNewGraph();
 }
 
 #include "kdevcontrolflowgraphviewplugin.moc"
