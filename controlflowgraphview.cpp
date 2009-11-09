@@ -106,6 +106,9 @@ m_graphLocked(false)
                     m_duchainControlFlow, SLOT(slotGraphElementSelected(const QList<QString>,QPoint)));
             connect(exportToolButton, SIGNAL(clicked()), SLOT(exportControlFlowGraph()));
 
+            // Make sure we have a graph before we hook up signals to act on it
+            m_dotControlFlowGraph->prepareNewGraph();
+
             // Graph generation signals
             connect(m_duchainControlFlow,  SIGNAL(prepareNewGraph()),
                     m_dotControlFlowGraph, SLOT  (prepareNewGraph()));

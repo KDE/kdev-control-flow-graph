@@ -83,12 +83,17 @@ void DotControlFlowGraph::exportGraph(const QString &fileName)
 void DotControlFlowGraph::prepareNewGraph()
 {
     clearGraph();
-    m_rootGraph = agopen(GRAPH_NAME, AGDIGRAPHSTRICT);
 }
 
 void DotControlFlowGraph::foundRootNode (const QStringList &containers, const QString &label)
 {
     Agraph_t *graph = m_rootGraph;
+    if (!m_rootGraph) {
+        // This shouldn't happen, as the graph should be generated before this function
+        // is connected.
+        Q_ASSERT(false);
+        return;
+    }
     QString absoluteContainer;
     foreach (const QString& container, containers)
     {
@@ -108,13 +113,19 @@ void DotControlFlowGraph::foundRootNode (const QStringList &containers, const QS
 
 void DotControlFlowGraph::foundFunctionCall (const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target)
 {
-    Agraph_t *sourceGraph, *targetGraph, *previousGraph;
+    if (!m_rootGraph) {
+        // This shouldn't happen, as the graph should be generated before this function
+        // is connected.
+        Q_ASSERT(false);
+        return;
+    }
+    Agraph_t *sourceGraph, *targetGraph;
     sourceGraph = targetGraph = m_rootGraph;
     QString absoluteContainer;
 
     foreach (const QString& container, sourceContainers)
     {
-        previousGraph = sourceGraph;
+        Agraph_t *previousGraph = sourceGraph;
         absoluteContainer += container;
         if (!(sourceGraph = m_namedGraphs[absoluteContainer]))
         {
@@ -125,7 +136,7 @@ void DotControlFlowGraph::foundFunctionCall (const QStringList &sourceContainers
     absoluteContainer.clear();
     foreach (const QString& container, targetContainers)
     {
-        previousGraph = targetGraph;
+        Agraph_t *previousGraph = targetGraph;
         absoluteContainer += container;
         if (!(targetGraph = m_namedGraphs[absoluteContainer]))
         {
