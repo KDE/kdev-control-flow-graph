@@ -51,8 +51,7 @@ m_graphLocked(false)
         m_part = factory->create<KParts::ReadOnlyPart>(this);
         if (m_part)
         {
-            connect(this, SIGNAL(setReadWrite()), m_part, SLOT(setReadWrite()));
-            emit setReadWrite();
+            QMetaObject::invokeMethod(m_part, "setReadWrite");
 
             verticalLayout->addWidget(m_part->widget());
 
