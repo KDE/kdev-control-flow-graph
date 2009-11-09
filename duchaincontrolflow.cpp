@@ -45,6 +45,7 @@
 
 #include "controlflowgraphnavigationwidget.h"
 #include "controlflowgraphusescollector.h"
+#include <project/projectmodel.h>
 
 using namespace KDevelop;
 
@@ -465,10 +466,9 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
     IBuildSystemManager *buildSystemManager;
     if (m_useFolderName && m_currentProject && (buildSystemManager = m_currentProject->buildSystemManager()))
     {
-        if ((KDevelop::ProjectBaseItem *) m_currentProject->projectItem())
+        if (KDevelop::ProjectBaseItem *project_item = m_currentProject->projectItem())
         {
-            KUrl::List list = buildSystemManager->includeDirectories(
-                              (KDevelop::ProjectBaseItem *) m_currentProject->projectItem());
+            KUrl::List list = buildSystemManager->includeDirectories( project_item );
             int minLength = std::numeric_limits<int>::max();
 
             DUChainReadLocker lock(DUChain::lock());
