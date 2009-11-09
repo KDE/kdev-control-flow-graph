@@ -52,8 +52,12 @@ public Q_SLOTS:
     void exportControlFlowGraph();
 
     void updateLockIcon(bool checked);
-    void setControlFlowMode(bool checked);
-    void setClusteringModes(bool checked);
+    void setControlFlowClass(bool checked);
+    void setControlFlowFunction(bool checked);
+    void setControlFlowNamespace(bool checked);
+    void setClusteringClass(bool checked);
+    void setClusteringProject(bool checked);
+    void setClusteringNamespace(bool checked);
     void setUseMaxLevel(bool checked);
     void setMaxLevel(int value);
     void setDrawIncomingArcs(bool checked);

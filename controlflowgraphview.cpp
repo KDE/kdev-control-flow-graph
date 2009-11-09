@@ -79,14 +79,14 @@ m_graphLocked(false)
             updateLockIcon(lockControlFlowGraphToolButton->isChecked());
 
             // Control flow mode buttons signals
-            connect(modeFunctionToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
-            connect(modeClassToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
-            connect(modeNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
+            connect(modeFunctionToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowFunction(bool)));
+            connect(modeClassToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowClass(bool)));
+            connect(modeNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowNamespace(bool)));
 
             // Clustering buttons signals
-            connect(clusteringClassToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringModes(bool)));
-            connect(clusteringNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringModes(bool)));
-            connect(clusteringProjectToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringModes(bool)));
+            connect(clusteringClassToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringClass(bool)));
+            connect(clusteringNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringNamespace(bool)));
+            connect(clusteringProjectToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringProject(bool)));
 
             // Configuration buttons signals
             connect(maxLevelSpinBox, SIGNAL(valueChanged(int)), SLOT(setMaxLevel(int)));
@@ -178,49 +178,59 @@ void ControlFlowGraphView::updateLockIcon(bool checked)
         m_duchainControlFlow->refreshGraph();
 }
 
-void ControlFlowGraphView::setControlFlowMode(bool checked)
+void ControlFlowGraphView::setControlFlowClass(bool checked)
 {
     if (checked)
     {
-        QToolButton *toolButton = qobject_cast<QToolButton *>(sender());
-        if (toolButton->objectName() == "modeFunctionToolButton")
-        {
-            m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowFunction);
-            m_duchainControlFlow->refreshGraph();
-            clusteringClassToolButton->setEnabled(true);
-            clusteringNamespaceToolButton->setEnabled(true);
-        }
-        if (toolButton->objectName() == "modeClassToolButton")
-        {
-            m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowClass);
-            m_duchainControlFlow->refreshGraph();
-            clusteringClassToolButton->setChecked(false);
-            clusteringClassToolButton->setEnabled(false);
-            clusteringNamespaceToolButton->setEnabled(true);
-        }
-        if (toolButton->objectName() == "modeNamespaceToolButton")
-        {
-            m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowNamespace);
-            m_duchainControlFlow->refreshGraph();
-            clusteringClassToolButton->setChecked(false);
-            clusteringClassToolButton->setEnabled(false);
-            clusteringNamespaceToolButton->setChecked(false);
-            clusteringNamespaceToolButton->setEnabled(false);
-        }
+        m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowClass);
+        m_duchainControlFlow->refreshGraph();
+        clusteringClassToolButton->setChecked(false);
+        clusteringClassToolButton->setEnabled(false);
+        clusteringNamespaceToolButton->setEnabled(true);
     }
 }
 
-void ControlFlowGraphView::setClusteringModes(bool checked)
+void ControlFlowGraphView::setControlFlowFunction(bool checked)
 {
-    Q_UNUSED(checked);
-    QToolButton *toolButton = qobject_cast<QToolButton *>(sender());
-    if (toolButton->objectName() == "clusteringClassToolButton")
-        m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringClass);
-    if (toolButton->objectName() == "clusteringNamespaceToolButton")
-        m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringNamespace);
-    if (toolButton->objectName() == "clusteringProjectToolButton")
-        m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringProject);
+    if (checked)
+    {
+        m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowFunction);
+        m_duchainControlFlow->refreshGraph();
+        clusteringClassToolButton->setEnabled(true);
+        clusteringNamespaceToolButton->setEnabled(true);
+    }
+}
 
+void ControlFlowGraphView::setControlFlowNamespace(bool checked)
+{
+    if (checked)
+    {
+        m_duchainControlFlow->setControlFlowMode(DUChainControlFlow::ControlFlowNamespace);
+        m_duchainControlFlow->refreshGraph();
+        clusteringClassToolButton->setChecked(false);
+        clusteringClassToolButton->setEnabled(false);
+        clusteringNamespaceToolButton->setChecked(false);
+        clusteringNamespaceToolButton->setEnabled(false);
+    }
+}
+
+void ControlFlowGraphView::setClusteringClass(bool /* checked */)
+{
+    m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringClass);
+    m_duchainControlFlow->refreshGraph();
+    useShortNamesToolButton->setEnabled(m_duchainControlFlow->clusteringModes() ? true:false);
+}
+
+void ControlFlowGraphView::setClusteringProject(bool /* checked */)
+{
+    m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringProject);
+    m_duchainControlFlow->refreshGraph();
+    useShortNamesToolButton->setEnabled(m_duchainControlFlow->clusteringModes() ? true:false);
+}
+
+void ControlFlowGraphView::setClusteringNamespace(bool /* checked */)
+{
+    m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringNamespace);
     m_duchainControlFlow->refreshGraph();
     useShortNamesToolButton->setEnabled(m_duchainControlFlow->clusteringModes() ? true:false);
 }
