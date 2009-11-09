@@ -103,7 +103,7 @@ m_graphLocked(false)
             m_part->actionCollection()->action("view_bev_enabled")->setChecked(false);
             birdseyeToolButton->setDefaultAction(m_part->actionCollection()->action("view_bev_enabled"));
             connect(m_part, SIGNAL(selectionIs(const QList<QString>, const QPoint&)),
-                    m_duchainControlFlow, SLOT(selectionIs(const QList<QString>, const QPoint&)));
+                    m_duchainControlFlow, SLOT(slotGraphElementSelected(const QList<QString>,QPoint)));
             connect(exportToolButton, SIGNAL(clicked()), SLOT(exportControlFlowGraph()));
 
             // Graph generation signals

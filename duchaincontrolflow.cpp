@@ -283,7 +283,7 @@ void DUChainControlFlow::slotUpdateToolTip(const QString &edge, const QPoint& po
     ActiveToolTip::showToolTip(usesToolTip);
 }
 
-void DUChainControlFlow::selectionIs(const QList<QString> list, const QPoint& point)
+void DUChainControlFlow::slotGraphElementSelected(const QList<QString> list, const QPoint& point)
 {
     if (!list.isEmpty())
     {

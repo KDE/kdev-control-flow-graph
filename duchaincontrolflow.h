@@ -79,7 +79,7 @@ public Q_SLOTS:
     void processFunctionCall(Declaration *source, Declaration *target, const Use &use);
 
     void slotUpdateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget);
-    void selectionIs(const QList<QString> list, const QPoint& point);
+    void slotGraphElementSelected(const QList<QString> list, const QPoint& point);
 
     void setLocked(bool locked);
     void setUseFolderName(bool useFolderName);
