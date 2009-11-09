@@ -20,6 +20,7 @@
 #include "dotcontrolflowgraph.h"
 
 #include <language/duchain/declaration.h>
+#include <cstdio>
 
 namespace {
     // C interface takes char*, so to avoid deprecated cast and/or undefined behaviour,
@@ -100,7 +101,7 @@ void DotControlFlowGraph::foundRootNode (const QStringList &containers, const QS
     agsafeset(node, SHAPE, BOX, EMPTY);
     QColor c = colorFromQualifiedIdentifier(label);
     char color[8];
-    sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
+    std::sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
     agsafeset(node, STYLE, FILLED, EMPTY);
     agsafeset(node, FILLCOLOR, color, EMPTY);
 }
@@ -140,12 +141,12 @@ void DotControlFlowGraph::foundFunctionCall (const QStringList &sourceContainers
     char ID[] = "id";
     agsafeset(src, SHAPE, BOX, EMPTY);
     QColor c = colorFromQualifiedIdentifier(source);
-    sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
+    std::sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
     agsafeset(src, STYLE, FILLED, EMPTY);
     agsafeset(src, FILLCOLOR, color, EMPTY);
     agsafeset(tgt, SHAPE, BOX, EMPTY);
     c = colorFromQualifiedIdentifier(target);
-    sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
+    std::sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
     agsafeset(tgt, STYLE, FILLED, EMPTY);
     agsafeset(tgt, FILLCOLOR, color, EMPTY);
     Agedge_t* edge;
