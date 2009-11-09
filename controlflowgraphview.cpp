@@ -45,6 +45,7 @@ m_dotControlFlowGraph(new DotControlFlowGraph),
 m_graphLocked(false)
 {
     setupUi(this);
+    connect(plugin, SIGNAL(unloaded()), SLOT(slotUnloaded()));
     KLibFactory *factory = KLibLoader::self()->factory("kgraphviewerpart");
     if (factory)
     {
@@ -265,3 +266,10 @@ void ControlFlowGraphView::hideEvent(QHideEvent *event)
     Q_UNUSED(event);
     m_plugin->setActiveToolView(0);
 }
+
+void ControlFlowGraphView::slotUnloaded()
+{
+    m_plugin->unRegisterToolView(this);
+}
+
+#include "controlflowgraphview.moc"

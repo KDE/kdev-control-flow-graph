@@ -59,6 +59,8 @@ public Q_SLOTS:
     void setDrawIncomingArcs(bool checked);
     void setUseFolderName(bool checked);
     void setUseShortNames(bool checked);
+
+    void slotUnloaded();
 protected:
     void showEvent(QShowEvent *event);
     void hideEvent(QHideEvent *event);

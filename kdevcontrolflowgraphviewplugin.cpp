@@ -112,6 +112,7 @@ KDevControlFlowGraphViewPlugin::~KDevControlFlowGraphViewPlugin()
 void KDevControlFlowGraphViewPlugin::unload()
 {
     core()->uiController()->removeToolView(m_toolViewFactory);
+    emit unloaded();
 }
 
 void KDevControlFlowGraphViewPlugin::registerToolView(ControlFlowGraphView *view)

@@ -27,6 +27,7 @@
 
 #include "controlflowgraphfiledialog.h"
 
+class KDevControlFlowGraphViewFactory;
 class QAction;
 
 namespace KDevelop
@@ -81,6 +82,8 @@ public Q_SLOTS:
     void slotExportProjectControlFlowGraph(bool value);
     void setActiveToolView(ControlFlowGraphView *activeToolView);
     void generationDone();
+Q_SIGNALS:
+    void unloaded();
 private:
     void configureDuchainControlFlow(DUChainControlFlow *duchainControlFlow, DotControlFlowGraph *dotControlFlowGraph, ControlFlowGraphFileDialog *fileDialog);
     void generateControlFlowGraph(Declaration *declaration);
@@ -88,7 +91,7 @@ private:
     void generateProjectControlFlowGraph(IProject *project);
 
     ControlFlowGraphView *activeToolView();
-    class KDevControlFlowGraphViewFactory *m_toolViewFactory;
+    KDevControlFlowGraphViewFactory *m_toolViewFactory;
     QList<ControlFlowGraphView *> m_toolViews;
     ControlFlowGraphView *m_activeToolView;
     QAction *m_exportControlFlowGraph;
