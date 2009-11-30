@@ -19,6 +19,7 @@ Name[x-test]=xxKDevelop Control Flow Graphsxx
 GenericName=KDevelop Control Flow Graphs
 GenericName[en_GB]=KDevelop Control Flow Graphs
 GenericName[pt]=Gráficos de Fluxo de Controlo do KDevelop
+GenericName[sv]=Kdevelop kontrollflödesgrafer
 GenericName[uk]=Потокові графи керування KDevelop
 GenericName[x-test]=xxKDevelop Control Flow Graphsxx
 ServiceTypes=KDevelop/Plugin
