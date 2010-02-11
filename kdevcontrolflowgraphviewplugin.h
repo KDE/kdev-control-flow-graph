@@ -82,8 +82,6 @@ public Q_SLOTS:
     void slotExportProjectControlFlowGraph(bool value);
     void setActiveToolView(ControlFlowGraphView *activeToolView);
     void generationDone();
-Q_SIGNALS:
-    void unloaded();
 private:
     void configureDuchainControlFlow(DUChainControlFlow *duchainControlFlow, DotControlFlowGraph *dotControlFlowGraph, ControlFlowGraphFileDialog *fileDialog);
     void generateControlFlowGraph(Declaration *declaration);

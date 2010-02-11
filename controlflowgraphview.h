@@ -64,7 +64,6 @@ public Q_SLOTS:
     void setUseFolderName(bool checked);
     void setUseShortNames(bool checked);
 
-    void slotUnloaded();
 protected:
     void showEvent(QShowEvent *event);
     void hideEvent(QHideEvent *event);
@@ -73,7 +72,7 @@ private:
     QPointer<KParts::ReadOnlyPart>  m_part;
     QPointer<DUChainControlFlow>    m_duchainControlFlow;
     QPointer<DotControlFlowGraph>   m_dotControlFlowGraph;
-    bool                              m_graphLocked;
+    bool                            m_graphLocked;
 };
 
 #endif

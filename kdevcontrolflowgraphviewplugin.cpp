@@ -111,8 +111,8 @@ KDevControlFlowGraphViewPlugin::~KDevControlFlowGraphViewPlugin()
 
 void KDevControlFlowGraphViewPlugin::unload()
 {
+    // When calling removeToolView all existing views are destroyed and their destructor invoke unRegisterToolView.
     core()->uiController()->removeToolView(m_toolViewFactory);
-    emit unloaded();
 }
 
 void KDevControlFlowGraphViewPlugin::registerToolView(ControlFlowGraphView *view)
