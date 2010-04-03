@@ -42,6 +42,6 @@ GenericName[x-test]=xxKDevelop Control Flow Graphsxx
 ServiceTypes=KDevelop/Plugin
 X-KDE-Library=kdevcontrolflowgraphview
 X-KDE-PluginInfo-Name=kdevcontrolflowgraphview
-X-KDevelop-Version=8
+X-KDevelop-Version=9
 X-KDevelop-Category=Global
 X-KDevelop-Mode=GUI
