@@ -21,6 +21,8 @@
 
 #include <limits>
 
+#include <QMutexLocker>
+
 #include <KTextEditor/View>
 #include <KTextEditor/Document>
 #include <KTextEditor/Cursor>
@@ -466,9 +468,20 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
     IBuildSystemManager *buildSystemManager;
     if (m_useFolderName && m_currentProject && (buildSystemManager = m_currentProject->buildSystemManager()))
     {
-        if (KDevelop::ProjectBaseItem *project_item = m_currentProject->projectItem())
+        KDevelop::ProjectBaseItem *project_item = 0;
         {
-            KUrl::List list = buildSystemManager->includeDirectories( project_item );
+            QMutexLocker locker (&mutex);
+            if (m_currentProject)
+                project_item = m_currentProject->projectItem();
+        }
+        if (project_item)
+        {
+            KUrl::List list;
+            {
+                QMutexLocker locker (&mutex);
+                list = buildSystemManager->includeDirectories( project_item );
+            }
+            
             int minLength = std::numeric_limits<int>::max();
 
             DUChainReadLocker lock(DUChain::lock());
@@ -483,13 +496,14 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
                     minLength = urlString.length();
                 }
             }
-            declarationUrl = declarationUrl.remove(0, smallestDirectory.length() + 1);
+            declarationUrl = declarationUrl.remove(0, smallestDirectory.length());
             declarationUrl = declarationUrl.remove(KUrl(declaration->url().str()).fileName());
             if (declarationUrl.endsWith('/')) declarationUrl.chop(1);
             declarationUrl = declarationUrl.replace('/', "::");
             if (!declarationUrl.isEmpty())
                 return declarationUrl;
         }
+        else return i18n("Global Namespace");
     }
     return i18n("Global Namespace");
 }

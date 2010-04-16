@@ -23,6 +23,7 @@
 #include <QSet>
 #include <QHash>
 #include <QPair>
+#include <QMutex>
 
 #include <Job.h>
 
@@ -117,6 +118,8 @@ private:
 
     ControlFlowMode m_controlFlowMode;
     ClusteringModes m_clusteringModes;
+    
+    mutable QMutex mutex;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(DUChainControlFlow::ClusteringModes)
