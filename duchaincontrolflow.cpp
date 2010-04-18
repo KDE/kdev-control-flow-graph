@@ -94,7 +94,7 @@ DUChainControlFlow::ClusteringModes DUChainControlFlow::clusteringModes() const
 void DUChainControlFlow::generateControlFlowForDeclaration(Declaration *definition, TopDUContext *topContext, DUContext *uppermostExecutableContext)
 {
     DUChainReadLocker lock(DUChain::lock());
-
+    
     // Convert to a declaration in accordance with control flow mode (function, class or namespace)
     Declaration *nodeDefinition = declarationFromControlFlowMode(definition);
 
@@ -201,8 +201,6 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 {
     FunctionDefinition *calledFunctionDefinition;
     DUContext *calledFunctionContext;
-
-    DUChainReadLocker lock(DUChain::lock());
 
     // Convert to a declaration in accordance with control flow mode (function, class or namespace)
     Declaration *nodeSource = declarationFromControlFlowMode(source);
@@ -366,8 +364,6 @@ void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition,
 {
     if (!topContext) return;
 
-    DUChainReadLocker lock(DUChain::lock());
-
     const Use *uses = context->uses();
     unsigned int usesCount = context->usesCount();
     QVector<DUContext *> subContexts = context->childContexts();
@@ -411,8 +407,6 @@ Declaration *DUChainControlFlow::declarationFromControlFlowMode(Declaration *def
 
     if (m_controlFlowMode != ControlFlowFunction)
     {
-        DUChainReadLocker lock(DUChain::lock());
-
         if (nodeDeclaration->isDefinition())
             nodeDeclaration = DUChainUtils::declarationForDefinition(nodeDeclaration, nodeDeclaration->topContext());
         if (!nodeDeclaration || !nodeDeclaration->context() || !nodeDeclaration->context()->owner()) return definitionDeclaration;
@@ -442,7 +436,7 @@ void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration*
     {
         m_controlFlowMode = ControlFlowNamespace;
         Declaration *namespaceDefinition = declarationFromControlFlowMode(definition);
-        DUChainReadLocker lock(DUChain::lock());
+
         strGlobalNamespaceOrFolderNames = ((namespaceDefinition->internalContext()->type() != DUContext::Namespace) ?
                                                               globalNamespaceOrFolderNames(namespaceDefinition):
                                                               shortNameFromContainers(containers, prependFolderNames(namespaceDefinition)));
@@ -455,7 +449,7 @@ void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration*
     {
         m_controlFlowMode = ControlFlowClass;
         Declaration *classDefinition = declarationFromControlFlowMode(definition);
-        DUChainReadLocker lock(DUChain::lock());
+        
         if (classDefinition->internalContext() && classDefinition->internalContext()->type() == DUContext::Class)
             containers << shortNameFromContainers(containers, prependFolderNames(classDefinition));
     }
@@ -484,7 +478,6 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
             
             int minLength = std::numeric_limits<int>::max();
 
-            DUChainReadLocker lock(DUChain::lock());
             QString folderName, smallestDirectory, declarationUrl = declaration->url().str();
             
             foreach (const KUrl &url, list)
@@ -519,7 +512,7 @@ QString DUChainControlFlow::prependFolderNames(Declaration *declaration)
         m_controlFlowMode = originalControlFlowMode;
 
         QString prefix = globalNamespaceOrFolderNames(namespaceDefinition);
-        DUChainReadLocker lock(DUChain::lock());
+        
         if (namespaceDefinition->internalContext()->type() != DUContext::Namespace &&
             prefix != i18n("Global Namespace"))
             prependedQualifiedName.prepend(prefix + "::");
