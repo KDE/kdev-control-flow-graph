@@ -61,10 +61,12 @@ DUChainControlFlow::DUChainControlFlow()
   m_useFolderName(true),
   m_useShortNames(true),
   m_controlFlowMode(ControlFlowClass),
-  m_clusteringModes(ClusteringNamespace)
+  m_clusteringModes(ClusteringNamespace),
+  m_graphThreadRunning(false)
 {
     connect(this, SIGNAL(updateToolTip(const QString &, const QPoint&, QWidget *)),
             SLOT(slotUpdateToolTip(const QString &, const QPoint&, QWidget *)), Qt::QueuedConnection);
+    connect(this, SIGNAL(done(ThreadWeaver::Job*)), SLOT(slotThreadDone(ThreadWeaver::Job*)));
 }
 
 DUChainControlFlow::~DUChainControlFlow()
@@ -91,9 +93,12 @@ DUChainControlFlow::ClusteringModes DUChainControlFlow::clusteringModes() const
     return m_clusteringModes;
 }
 
-void DUChainControlFlow::generateControlFlowForDeclaration(Declaration *definition, TopDUContext *topContext, DUContext *uppermostExecutableContext)
+void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration idefinition, TopDUContext *topContext, DUContext *uppermostExecutableContext)
 {
     DUChainReadLocker lock(DUChain::lock());
+    Declaration *definition = idefinition.data();
+    if (!definition)
+        return;
     
     // Convert to a declaration in accordance with control flow mode (function, class or namespace)
     Declaration *nodeDefinition = declarationFromControlFlowMode(definition);
@@ -137,64 +142,68 @@ bool DUChainControlFlow::isLocked()
 
 void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
 {
-    if (m_locked) return;
-    if (!view->document()) return;
-
-    DUChainReadLocker lock(DUChain::lock());
-    
-    TopDUContext *topContext = DUChainUtils::standardContextForUrl(view->document()->url());
-    if (!topContext) return;
-    
-    DUContext *context = topContext->findContext(KDevelop::SimpleCursor(cursor));
-
-    // If cursor is in a method arguments context change it to internal context
-    if (context && context->type() == DUContext::Function && context->importers().size() == 1)
-        context = context->importers()[0];
-
-    Declaration *declarationUnderCursor = DUChainUtils::itemUnderCursor(view->document()->url(), KDevelop::SimpleCursor(cursor));
-    if (declarationUnderCursor && (!context || context->type() != DUContext::Other) && declarationUnderCursor->internalContext())
-        context = declarationUnderCursor->internalContext();
-
-    if (!context || context->type() != DUContext::Other)
+    if (!m_graphThreadRunning)
     {
-        // If there is a previous graph
-        if (m_previousUppermostExecutableContext != 0)
+        if (m_locked) return;
+        if (!view->document()) return;
+
+        DUChainReadLocker lock(DUChain::lock());
+        
+        TopDUContext *topContext = DUChainUtils::standardContextForUrl(view->document()->url());
+        if (!topContext) return;
+        
+        DUContext *context = topContext->findContext(KDevelop::SimpleCursor(cursor));
+
+        // If cursor is in a method arguments context change it to internal context
+        if (context && context->type() == DUContext::Function && context->importers().size() == 1)
+            context = context->importers()[0];
+
+        Declaration *declarationUnderCursor = DUChainUtils::itemUnderCursor(view->document()->url(), KDevelop::SimpleCursor(cursor));
+        if (declarationUnderCursor && (!context || context->type() != DUContext::Other) && declarationUnderCursor->internalContext())
+            context = declarationUnderCursor->internalContext();
+
+        if (!context || context->type() != DUContext::Other)
         {
-            newGraph();
-            m_previousUppermostExecutableContext = 0;
+            // If there is a previous graph
+            if (m_previousUppermostExecutableContext != 0)
+            {
+                newGraph();
+                m_previousUppermostExecutableContext = 0;
+            }
+            return;
         }
-        return;
+        
+        // Navigate to uppermost executable context
+        DUContext *uppermostExecutableContext = context;
+        while (uppermostExecutableContext->parentContext()->type() == DUContext::Other)
+            uppermostExecutableContext = uppermostExecutableContext->parentContext();
+
+        // If cursor is in the same function definition
+        if (uppermostExecutableContext == m_previousUppermostExecutableContext)
+            return;
+        
+        m_previousUppermostExecutableContext = uppermostExecutableContext;
+
+        // Get the definition
+        Declaration* definition = 0;
+        if (!uppermostExecutableContext || !uppermostExecutableContext->owner())
+            return;
+        else
+            definition = uppermostExecutableContext->owner();
+
+        if (!definition) return;
+        
+        newGraph();
+        m_currentProject = ICore::self()->projectController()->findProjectForUrl(view->document()->url());
+        emit prepareNewGraph();
+        
+        m_definition = IndexedDeclaration(definition);
+        m_topContext = topContext;
+        m_uppermostExecutableContext = uppermostExecutableContext;
+     
+        m_graphThreadRunning = true;
+        ThreadWeaver::Weaver::instance()->enqueue(this);
     }
-    
-    // Navigate to uppermost executable context
-    DUContext *uppermostExecutableContext = context;
-    while (uppermostExecutableContext->parentContext()->type() == DUContext::Other)
-        uppermostExecutableContext = uppermostExecutableContext->parentContext();
-
-    // If cursor is in the same function definition
-    if (uppermostExecutableContext == m_previousUppermostExecutableContext)
-        return;
-    
-    m_previousUppermostExecutableContext = uppermostExecutableContext;
-
-    // Get the definition
-    Declaration* definition = 0;
-    if (!uppermostExecutableContext || !uppermostExecutableContext->owner())
-        return;
-    else
-        definition = uppermostExecutableContext->owner();
-
-    if (!definition) return;
-    
-    newGraph();
-    m_currentProject = ICore::self()->projectController()->findProjectForUrl(view->document()->url());
-    emit prepareNewGraph();
-    
-    m_definition = definition;
-    m_topContext = topContext;
-    m_uppermostExecutableContext = uppermostExecutableContext;
-    
-    ThreadWeaver::Weaver::instance()->enqueue(this);
 }
 
 void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *target, const Use &use)
@@ -358,6 +367,12 @@ void DUChainControlFlow::newGraph()
     m_arcUsesMap.clear();
     m_currentProject = 0;
     emit clearGraph();
+}
+
+void DUChainControlFlow::slotThreadDone (ThreadWeaver::Job* job)
+{
+    if (job == this)
+        m_graphThreadRunning = false;
 }
 
 void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition, TopDUContext *topContext, DUContext *context)

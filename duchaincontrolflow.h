@@ -26,6 +26,7 @@
 #include <QMutex>
 
 #include <Job.h>
+#include <language/duchain/indexeditems.h>
 
 class QPoint;
 
@@ -66,7 +67,7 @@ public:
     void setClusteringModes(ClusteringModes clusteringModes);
     ClusteringModes clusteringModes() const;
     
-    void generateControlFlowForDeclaration(Declaration* definition, TopDUContext *topContext, DUContext *uppermostExecutableContext);
+    void generateControlFlowForDeclaration(IndexedDeclaration idefinition, TopDUContext *topContext, DUContext *uppermostExecutableContext);
     bool isLocked();
 Q_SIGNALS:
     void prepareNewGraph();
@@ -90,6 +91,8 @@ public Q_SLOTS:
 
     void refreshGraph();
     void newGraph();
+    
+    void slotThreadDone (ThreadWeaver::Job*);
 private:
     void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
     Declaration *declarationFromControlFlowMode(Declaration *definitionDeclaration);
@@ -100,7 +103,7 @@ private:
 
     DUContext *m_previousUppermostExecutableContext;
 
-    Declaration *m_definition;
+    IndexedDeclaration m_definition;
     TopDUContext *m_topContext;
     DUContext *m_uppermostExecutableContext;
     
@@ -120,6 +123,7 @@ private:
     ClusteringModes m_clusteringModes;
     
     mutable QMutex mutex;
+    bool m_graphThreadRunning;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(DUChainControlFlow::ClusteringModes)
