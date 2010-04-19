@@ -27,6 +27,7 @@
 
 #include <Job.h>
 #include <language/duchain/indexeditems.h>
+#include <language/duchain/ducontext.h>
 
 class QPoint;
 
@@ -67,7 +68,7 @@ public:
     void setClusteringModes(ClusteringModes clusteringModes);
     ClusteringModes clusteringModes() const;
     
-    void generateControlFlowForDeclaration(IndexedDeclaration idefinition, TopDUContext *topContext, DUContext *uppermostExecutableContext);
+    void generateControlFlowForDeclaration(IndexedDeclaration idefinition, IndexedTopDUContext itopContext, IndexedDUContext iuppermostExecutableContext);
     bool isLocked();
 Q_SIGNALS:
     void prepareNewGraph();
@@ -104,8 +105,8 @@ private:
     DUContext *m_previousUppermostExecutableContext;
 
     IndexedDeclaration m_definition;
-    TopDUContext *m_topContext;
-    DUContext *m_uppermostExecutableContext;
+    IndexedTopDUContext m_topContext;
+    IndexedDUContext m_uppermostExecutableContext;
     
     QSet<Declaration *> m_visitedFunctions;
     QHash<QString, Declaration *> m_identifierDeclarationMap;

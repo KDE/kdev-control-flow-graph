@@ -93,13 +93,22 @@ DUChainControlFlow::ClusteringModes DUChainControlFlow::clusteringModes() const
     return m_clusteringModes;
 }
 
-void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration idefinition, TopDUContext *topContext, DUContext *uppermostExecutableContext)
+void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration idefinition, IndexedTopDUContext itopContext, IndexedDUContext iuppermostExecutableContext)
 {
     DUChainReadLocker lock(DUChain::lock());
+
     Declaration *definition = idefinition.data();
     if (!definition)
         return;
     
+    TopDUContext *topContext = itopContext.data();
+    if (!topContext)
+        return;
+
+    DUContext *uppermostExecutableContext = iuppermostExecutableContext.data();
+    if (!uppermostExecutableContext)
+        return;
+
     // Convert to a declaration in accordance with control flow mode (function, class or namespace)
     Declaration *nodeDefinition = declarationFromControlFlowMode(definition);
 
@@ -198,8 +207,8 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         emit prepareNewGraph();
         
         m_definition = IndexedDeclaration(definition);
-        m_topContext = topContext;
-        m_uppermostExecutableContext = uppermostExecutableContext;
+        m_topContext = IndexedTopDUContext(topContext);
+        m_uppermostExecutableContext = IndexedDUContext(uppermostExecutableContext);
      
         m_graphThreadRunning = true;
         ThreadWeaver::Weaver::instance()->enqueue(this);
