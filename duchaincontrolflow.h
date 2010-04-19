@@ -102,7 +102,7 @@ private:
     QString prependFolderNames(Declaration *declaration);
     QString shortNameFromContainers(const QList<QString> &containers, const QString &qualifiedIdentifier);
 
-    DUContext *m_previousUppermostExecutableContext;
+    IndexedDUContext m_previousUppermostExecutableContext;
 
     IndexedDeclaration m_definition;
     IndexedTopDUContext m_topContext;

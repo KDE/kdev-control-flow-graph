@@ -52,7 +52,7 @@
 using namespace KDevelop;
 
 DUChainControlFlow::DUChainControlFlow()
-: m_previousUppermostExecutableContext(0),
+: m_previousUppermostExecutableContext(IndexedDUContext()),
   m_currentProject(0),
   m_currentLevel(1),
   m_maxLevel(2),
@@ -174,10 +174,10 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         if (!context || context->type() != DUContext::Other)
         {
             // If there is a previous graph
-            if (m_previousUppermostExecutableContext != 0)
+            if (!(m_previousUppermostExecutableContext == IndexedDUContext()))
             {
                 newGraph();
-                m_previousUppermostExecutableContext = 0;
+                m_previousUppermostExecutableContext = IndexedDUContext();
             }
             return;
         }
@@ -188,10 +188,10 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
             uppermostExecutableContext = uppermostExecutableContext->parentContext();
 
         // If cursor is in the same function definition
-        if (uppermostExecutableContext == m_previousUppermostExecutableContext)
+        if (IndexedDUContext(uppermostExecutableContext) == m_previousUppermostExecutableContext)
             return;
         
-        m_previousUppermostExecutableContext = uppermostExecutableContext;
+        m_previousUppermostExecutableContext = IndexedDUContext(uppermostExecutableContext);
 
         // Get the definition
         Declaration* definition = 0;
@@ -362,7 +362,7 @@ void DUChainControlFlow::refreshGraph()
            ICore::self()->documentController()->activeDocument()->textDocument() &&
            ICore::self()->documentController()->activeDocument()->textDocument()->activeView())
         {
-            m_previousUppermostExecutableContext = 0;
+            m_previousUppermostExecutableContext = IndexedDUContext();
             KTextEditor::View *view = ICore::self()->documentController()->activeDocument()->textDocument()->activeView();
             cursorPositionChanged(view, view->cursorPosition());
         }
@@ -497,7 +497,7 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
             KUrl::List list;
             {
                 QMutexLocker locker (&mutex);
-                list = buildSystemManager->includeDirectories( project_item );
+                list = buildSystemManager->includeDirectories(project_item);
             }
             
             int minLength = std::numeric_limits<int>::max();
