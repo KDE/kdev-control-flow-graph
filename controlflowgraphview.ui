@@ -101,6 +101,13 @@
         <number>0</number>
        </property>
        <item>
+        <widget class="QLabel" name="controlFlowModeLabel">
+         <property name="text">
+          <string>Control flow mode:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QToolButton" name="modeFunctionToolButton">
          <property name="toolTip">
           <string>Show control flow between functions (CTRL+ALT+1). This can produce large graphs.</string>
@@ -177,6 +184,13 @@
         </spacer>
        </item>
        <item>
+        <widget class="QLabel" name="clusteringModeLabel">
+         <property name="text">
+          <string>Clustering mode:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QToolButton" name="clusteringClassToolButton">
          <property name="enabled">
           <bool>false</bool>
@@ -245,6 +259,13 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="graphSettingsLabel">
+         <property name="text">
+          <string>Graph settings:</string>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QToolButton" name="maxLevelToolButton">

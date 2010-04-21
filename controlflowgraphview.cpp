@@ -55,9 +55,9 @@ m_graphLocked(false)
 
             verticalLayout->addWidget(m_part->widget());
 
-            modeFunctionToolButton->setIcon(KIcon("flag-blue"));
-            modeClassToolButton->setIcon(KIcon("flag-green"));
-            modeNamespaceToolButton->setIcon(KIcon("flag-red"));
+            modeFunctionToolButton->setIcon(KIcon("code-function"));
+            modeClassToolButton->setIcon(KIcon("code-class"));
+            modeNamespaceToolButton->setIcon(KIcon("namespace"));
             clusteringClassToolButton->setIcon(KIcon("code-class"));
             clusteringNamespaceToolButton->setIcon(KIcon("namespace"));
             clusteringProjectToolButton->setIcon(KIcon("folder-development"));
