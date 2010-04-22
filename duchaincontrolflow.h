@@ -43,6 +43,9 @@ namespace KDevelop {
     class TopDUContext;
     class IProject;
 }
+
+class ControlFlowGraphUsesCollector;
+
 using namespace KDevelop;
 
 class DUChainControlFlow : public ThreadWeaver::Job
@@ -108,8 +111,8 @@ private:
     IndexedTopDUContext m_topContext;
     IndexedDUContext m_uppermostExecutableContext;
     
-    QSet<Declaration *> m_visitedFunctions;
-    QHash<QString, Declaration *> m_identifierDeclarationMap;
+    QSet<IndexedDeclaration> m_visitedFunctions;
+    QHash<QString, IndexedDeclaration> m_identifierDeclarationMap;
     QMultiHash<QString, QPair<Use, IndexedString> > m_arcUsesMap;
     KDevelop::IProject *m_currentProject;
     
@@ -125,6 +128,8 @@ private:
     
     mutable QMutex mutex;
     bool m_graphThreadRunning;
+    
+    ControlFlowGraphUsesCollector *m_collector;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(DUChainControlFlow::ClusteringModes)

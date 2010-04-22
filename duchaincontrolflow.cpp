@@ -49,6 +49,8 @@
 #include "controlflowgraphusescollector.h"
 #include <project/projectmodel.h>
 
+Q_DECLARE_METATYPE(KDevelop::Use)
+
 using namespace KDevelop;
 
 DUChainControlFlow::DUChainControlFlow()
@@ -62,8 +64,10 @@ DUChainControlFlow::DUChainControlFlow()
   m_useShortNames(true),
   m_controlFlowMode(ControlFlowClass),
   m_clusteringModes(ClusteringNamespace),
-  m_graphThreadRunning(false)
+  m_graphThreadRunning(false),
+  m_collector(0)
 {
+    qRegisterMetaType<Use>("Use");
     connect(this, SIGNAL(updateToolTip(const QString &, const QPoint&, QWidget *)),
             SLOT(slotUpdateToolTip(const QString &, const QPoint&, QWidget *)), Qt::QueuedConnection);
     connect(this, SIGNAL(done(ThreadWeaver::Job*)), SLOT(slotThreadDone(ThreadWeaver::Job*)));
@@ -71,6 +75,7 @@ DUChainControlFlow::DUChainControlFlow()
 
 DUChainControlFlow::~DUChainControlFlow()
 {
+    delete m_collector;
 }
 
 void DUChainControlFlow::run()
@@ -117,15 +122,15 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
 
     QString shortName = shortNameFromContainers(containers, prependFolderNames(nodeDefinition));
 
-    if (m_maxLevel != 1 && !m_visitedFunctions.contains(definition))
+    if (m_maxLevel != 1 && !m_visitedFunctions.contains(idefinition))
     {
         emit foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace &&
                                         nodeDefinition->internalContext()->type() != DUContext::Namespace) ? 
                                                                           globalNamespaceOrFolderNames(nodeDefinition):
                                                                           shortName);
         ++m_currentLevel;
-        m_visitedFunctions.insert(definition);
-        m_identifierDeclarationMap[shortName] = nodeDefinition;
+        m_visitedFunctions.insert(idefinition);
+        m_identifierDeclarationMap[shortName] = IndexedDeclaration(nodeDefinition);
         useDeclarationsFromDefinition(definition, topContext, uppermostExecutableContext);
     }
 
@@ -134,10 +139,12 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
         Declaration *declaration = nodeDefinition;
         if (declaration->isDefinition())
             declaration = DUChainUtils::declarationForDefinition(declaration, topContext);
-        ControlFlowGraphUsesCollector collector(declaration);
-        collector.setProcessDeclarations(true);
-        connect(&collector, SIGNAL(processFunctionCall(Declaration *, Declaration *, const Use &)), SLOT(processFunctionCall(Declaration *, Declaration *, const Use &)));
-        collector.startCollecting();
+
+        delete m_collector;
+        m_collector = new ControlFlowGraphUsesCollector(declaration);
+        m_collector->setProcessDeclarations(true);
+        connect(m_collector, SIGNAL(processFunctionCall(Declaration *, Declaration *, const Use &)), SLOT(processFunctionCall(Declaration *, Declaration *, const Use &)));
+        m_collector->startCollecting();
     }
 
     emit graphDone();
@@ -249,14 +256,15 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 
     if (sender() && dynamic_cast<ControlFlowGraphUsesCollector *>(sender()))
     {
-        m_identifierDeclarationMap[sourceShortName] = nodeSource;
+        m_identifierDeclarationMap[sourceShortName] = IndexedDeclaration(nodeSource);
         sourceContainers.prepend(i18n("Uses of") + ' ' + targetLabel);
     }
 
+    IndexedDeclaration ideclaration = IndexedDeclaration(calledFunctionDefinition);
     // If there is a flow (in accordance with control flow mode) emit signal
     if (targetLabel != sourceLabel ||
         m_controlFlowMode == ControlFlowFunction ||
-        (calledFunctionDefinition && m_visitedFunctions.contains(calledFunctionDefinition)))
+        (calledFunctionDefinition && m_visitedFunctions.contains(ideclaration)))
         emit foundFunctionCall(sourceContainers, sourceLabel, targetContainers, targetLabel); 
 
     if (calledFunctionDefinition)
@@ -264,7 +272,7 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     else
     {
         // Store method declaration for navigation
-        m_identifierDeclarationMap[targetShortName] = nodeTarget;
+        m_identifierDeclarationMap[targetShortName] = IndexedDeclaration(nodeTarget);
         // Store use for edge inspection
         m_arcUsesMap.insert(sourceLabel + "->" + targetLabel, QPair<Use, IndexedString>(use, source->url()));
         return;
@@ -273,15 +281,15 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     // Store use for edge inspection
     m_arcUsesMap.insert(sourceLabel + "->" + targetLabel, QPair<Use, IndexedString>(use, source->url()));
     // Store method definition for navigation
-    m_identifierDeclarationMap[targetShortName] = declarationFromControlFlowMode(calledFunctionDefinition);
+    m_identifierDeclarationMap[targetShortName] = IndexedDeclaration(declarationFromControlFlowMode(calledFunctionDefinition));
 
     if (calledFunctionContext && (m_currentLevel < m_maxLevel || m_maxLevel == 0))
     {
         // For prevent endless loop in recursive methods
-        if (!m_visitedFunctions.contains(calledFunctionDefinition))
+        if (!m_visitedFunctions.contains(ideclaration))
         {
             ++m_currentLevel;
-            m_visitedFunctions.insert(calledFunctionDefinition);
+            m_visitedFunctions.insert(ideclaration);
             // Recursive call for method invocation
             useDeclarationsFromDefinition(calledFunctionDefinition, calledFunctionDefinition->topContext(), calledFunctionContext);
         }
@@ -307,7 +315,10 @@ void DUChainControlFlow::slotGraphElementSelected(const QList<QString> list, con
     if (!list.isEmpty())
     {
         QString label = list[0];
-        Declaration *declaration = m_identifierDeclarationMap[label];
+        Declaration *declaration = m_identifierDeclarationMap[label].data();
+        
+        if (!declaration)
+            return;
         
         DUChainReadLocker lock(DUChain::lock());
         
