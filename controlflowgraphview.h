@@ -33,6 +33,11 @@ namespace KTextEditor
     class View;
     class Cursor;
 }
+namespace Plasma
+{
+    class BusyWidget;
+}
+class QGraphicsView;
 class KDevControlFlowGraphViewPlugin;
 class DUChainControlFlow;
 class DotControlFlowGraph;
@@ -43,12 +48,15 @@ class ControlFlowGraphView : public QWidget, public Ui::ControlFlowGraphView
 public:
     explicit ControlFlowGraphView (KDevControlFlowGraphViewPlugin *plugin, QWidget *parent = 0);
     virtual ~ControlFlowGraphView ();
-public Q_SLOTS:
-    void setProjectButtonsEnabled(bool enabled);
-    void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
 
     void refreshGraph();
     void newGraph();
+public Q_SLOTS:
+    void prepareNewGraph();
+    void graphDone();
+    void setProjectButtonsEnabled(bool enabled);
+    void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
+
     void exportControlFlowGraph();
 
     void updateLockIcon(bool checked);
@@ -72,6 +80,8 @@ private:
     QPointer<KParts::ReadOnlyPart>  m_part;
     QPointer<DUChainControlFlow>    m_duchainControlFlow;
     QPointer<DotControlFlowGraph>   m_dotControlFlowGraph;
+    QGraphicsView                  *m_busyGraphicsView;
+    Plasma::BusyWidget             *m_busyWidget;
     bool                            m_graphLocked;
 };
 

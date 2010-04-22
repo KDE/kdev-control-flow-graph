@@ -19,10 +19,16 @@
 
 #include "controlflowgraphview.h"
 
+#include <QGraphicsView>
+#include <QGraphicsScene>
+#include <QFontMetricsF>
+
 #include <KLibLoader>
 #include <KMessageBox>
 #include <KActionCollection>
 #include <KParts/Part>
+
+#include <Plasma/BusyWidget>
 
 #include <interfaces/icore.h>
 #include <interfaces/iprojectcontroller.h>
@@ -54,6 +60,17 @@ m_graphLocked(false)
             QMetaObject::invokeMethod(m_part, "setReadWrite");
 
             verticalLayout->addWidget(m_part->widget());
+
+            m_busyGraphicsView = new QGraphicsView(new QGraphicsScene(), this);
+            m_busyGraphicsView->setStyleSheet("background: transparent");
+            m_busyWidget = new Plasma::BusyWidget();
+            QFontMetricsF metrics(font());
+            qreal size = metrics.width("Generating Graph") * 1.75;
+            m_busyWidget->resize(size, size);
+            m_busyGraphicsView->scene()->addItem(m_busyWidget);
+            m_busyWidget->setLabel(i18n("Generating Graph"));
+            m_busyWidget->setRunning(false);
+            m_busyGraphicsView->hide();
 
             modeFunctionToolButton->setIcon(KIcon("code-function"));
             modeClassToolButton->setIcon(KIcon("code-class"));
@@ -109,14 +126,13 @@ m_graphLocked(false)
             m_dotControlFlowGraph->prepareNewGraph();
 
             // Graph generation signals
-            connect(m_duchainControlFlow,  SIGNAL(prepareNewGraph()),
-                    m_dotControlFlowGraph, SLOT  (prepareNewGraph()));
+            connect(m_duchainControlFlow,  SIGNAL(prepareNewGraph()), SLOT  (prepareNewGraph()));
             connect(m_duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
                     m_dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
             connect(m_duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
                     m_dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
             connect(m_duchainControlFlow,  SIGNAL(clearGraph()), m_dotControlFlowGraph, SLOT(clearGraph()));
-            connect(m_duchainControlFlow,  SIGNAL(graphDone()), m_dotControlFlowGraph, SLOT(graphDone()));
+            connect(m_duchainControlFlow,  SIGNAL(graphDone()), SLOT(graphDone()));
             connect(m_dotControlFlowGraph, SIGNAL(loadLibrary(graph_t *)), m_part, SLOT(slotLoadLibrary(graph_t *)));
 
             m_plugin->registerToolView(this);
@@ -136,6 +152,40 @@ ControlFlowGraphView::~ControlFlowGraphView()
     delete m_part;
 }
 
+void ControlFlowGraphView::refreshGraph()
+{
+    m_duchainControlFlow->refreshGraph();
+}
+
+void ControlFlowGraphView::newGraph()
+{
+    m_duchainControlFlow->newGraph();
+}
+
+void ControlFlowGraphView::prepareNewGraph()
+{
+    setEnabled(false);
+    m_busyWidget->setRunning(true);
+    verticalLayout->removeWidget(m_part->widget());
+    m_busyGraphicsView->show();
+    verticalLayout->addWidget(m_busyGraphicsView);
+    m_part->widget()->hide();
+
+    m_dotControlFlowGraph->prepareNewGraph();
+}
+
+void ControlFlowGraphView::graphDone()
+{
+    setEnabled(true);
+    verticalLayout->removeWidget(m_busyGraphicsView);
+    m_busyGraphicsView->hide();
+    verticalLayout->addWidget(m_part->widget());
+    m_part->widget()->show();
+    m_busyWidget->setRunning(false);
+
+    m_dotControlFlowGraph->graphDone();
+}
+
 void ControlFlowGraphView::setProjectButtonsEnabled(bool enabled)
 {
     useFolderNameToolButton->setEnabled(enabled);
@@ -145,16 +195,6 @@ void ControlFlowGraphView::setProjectButtonsEnabled(bool enabled)
 void ControlFlowGraphView::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
 {
     m_duchainControlFlow->cursorPositionChanged(view, cursor);
-}
-
-void ControlFlowGraphView::refreshGraph()
-{
-    m_duchainControlFlow->refreshGraph();
-}
-
-void ControlFlowGraphView::newGraph()
-{
-    m_duchainControlFlow->newGraph();
 }
 
 void ControlFlowGraphView::exportControlFlowGraph()
