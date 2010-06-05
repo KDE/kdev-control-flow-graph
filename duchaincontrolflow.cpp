@@ -30,9 +30,11 @@
 #include <ThreadWeaver/Weaver>
 
 #include <interfaces/icore.h>
-#include <interfaces/iprojectcontroller.h>
 #include <interfaces/iproject.h>
+#include <interfaces/iuicontroller.h>
+#include <interfaces/iprojectcontroller.h>
 #include <interfaces/idocumentcontroller.h>
+
 #include <language/duchain/use.h>
 #include <language/duchain/duchain.h>
 #include <language/duchain/ducontext.h>
@@ -43,11 +45,12 @@
 #include <language/duchain/functiondefinition.h>
 #include <language/duchain/types/functiontype.h>
 #include <language/util/navigationtooltip.h>
+
+#include <project/projectmodel.h>
 #include <project/interfaces/ibuildsystemmanager.h>
 
-#include "controlflowgraphnavigationwidget.h"
 #include "controlflowgraphusescollector.h"
-#include <project/projectmodel.h>
+#include "controlflowgraphnavigationwidget.h"
 
 Q_DECLARE_METATYPE(KDevelop::Use)
 
@@ -71,11 +74,17 @@ DUChainControlFlow::DUChainControlFlow()
     connect(this, SIGNAL(updateToolTip(const QString &, const QPoint&, QWidget *)),
             SLOT(slotUpdateToolTip(const QString &, const QPoint&, QWidget *)), Qt::QueuedConnection);
     connect(this, SIGNAL(done(ThreadWeaver::Job*)), SLOT(slotThreadDone(ThreadWeaver::Job*)));
+    ICore::self()->uiController()->registerStatus(this);
 }
 
 DUChainControlFlow::~DUChainControlFlow()
 {
     delete m_collector;
+}
+
+QString DUChainControlFlow::statusName() const
+{
+    return i18n("Control Flow Graph");
 }
 
 void DUChainControlFlow::run()
@@ -114,6 +123,9 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
     if (!uppermostExecutableContext)
         return;
 
+    emit showProgress(this, 0, 0, 0);
+    emit showMessage(this, i18n("Control Flow Graph"));
+
     // Convert to a declaration in accordance with control flow mode (function, class or namespace)
     Declaration *nodeDefinition = declarationFromControlFlowMode(definition);
 
@@ -149,6 +161,7 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
 
     emit graphDone();
     m_currentLevel = 1;
+    emit hideProgress(this);
 }
 
 bool DUChainControlFlow::isLocked()
@@ -391,8 +404,11 @@ void DUChainControlFlow::newGraph()
 
 void DUChainControlFlow::slotThreadDone (ThreadWeaver::Job* job)
 {
+    kDebug();
     if (job == this)
         m_graphThreadRunning = false;
+    else
+        kDebug() << "job != this";
 }
 
 void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition, TopDUContext *topContext, DUContext *context)

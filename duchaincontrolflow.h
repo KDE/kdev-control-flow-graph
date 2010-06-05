@@ -25,7 +25,10 @@
 #include <QPair>
 #include <QMutex>
 
-#include <Job.h>
+#include <ThreadWeaver/Job>
+
+#include <interfaces/istatus.h>
+
 #include <language/duchain/indexeditems.h>
 #include <language/duchain/ducontext.h>
 
@@ -48,13 +51,15 @@ class ControlFlowGraphUsesCollector;
 
 using namespace KDevelop;
 
-class DUChainControlFlow : public ThreadWeaver::Job
+class DUChainControlFlow : public ThreadWeaver::Job, public IStatus
 {
     Q_OBJECT
+    Q_INTERFACES(KDevelop::IStatus)
 public:
     DUChainControlFlow();
     virtual ~DUChainControlFlow();
 
+    virtual QString statusName() const;
     void run();
     
     enum ControlFlowMode { ControlFlowFunction, ControlFlowClass, ControlFlowNamespace };
@@ -80,6 +85,13 @@ Q_SIGNALS:
     void graphDone();
     void clearGraph();
     void updateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget);
+    
+    // Implementations of IStatus signals
+    void clearMessage(KDevelop::IStatus*);
+    void showMessage(KDevelop::IStatus*, const QString &message, int timeout = 0);
+    void hideProgress(KDevelop::IStatus*);
+    void showProgress(KDevelop::IStatus*, int minimum, int maximum, int value);
+    void showErrorMessage(const QString&, int);
 public Q_SLOTS:
     void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
     void processFunctionCall(Declaration *source, Declaration *target, const Use &use);
