@@ -28,8 +28,6 @@
 #include <KActionCollection>
 #include <KParts/Part>
 
-#include <Plasma/BusyWidget>
-
 #include <interfaces/icore.h>
 #include <interfaces/iprojectcontroller.h>
 #include <interfaces/iuicontroller.h>
@@ -60,17 +58,6 @@ m_graphLocked(false)
             QMetaObject::invokeMethod(m_part, "setReadWrite");
 
             verticalLayout->addWidget(m_part->widget());
-
-            m_busyGraphicsView = new QGraphicsView(new QGraphicsScene(), this);
-            m_busyGraphicsView->setStyleSheet("background: transparent");
-            m_busyWidget = new Plasma::BusyWidget();
-            QFontMetricsF metrics(font());
-            qreal size = metrics.width("Generating Graph") * 1.75;
-            m_busyWidget->resize(size, size);
-            m_busyGraphicsView->scene()->addItem(m_busyWidget);
-            m_busyWidget->setLabel(i18n("Generating Graph"));
-            m_busyWidget->setRunning(false);
-            m_busyGraphicsView->hide();
 
             modeFunctionToolButton->setIcon(KIcon("code-function"));
             modeClassToolButton->setIcon(KIcon("code-class"));
@@ -165,24 +152,12 @@ void ControlFlowGraphView::newGraph()
 void ControlFlowGraphView::prepareNewGraph()
 {
     setEnabled(false);
-    m_busyWidget->setRunning(true);
-    verticalLayout->removeWidget(m_part->widget());
-    m_busyGraphicsView->show();
-    verticalLayout->addWidget(m_busyGraphicsView);
-    m_part->widget()->hide();
-
     m_dotControlFlowGraph->prepareNewGraph();
 }
 
 void ControlFlowGraphView::graphDone()
 {
     setEnabled(true);
-    verticalLayout->removeWidget(m_busyGraphicsView);
-    m_busyGraphicsView->hide();
-    verticalLayout->addWidget(m_part->widget());
-    m_part->widget()->show();
-    m_busyWidget->setRunning(false);
-
     m_dotControlFlowGraph->graphDone();
 }
 

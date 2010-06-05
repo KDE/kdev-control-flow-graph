@@ -33,10 +33,7 @@ namespace KTextEditor
     class View;
     class Cursor;
 }
-namespace Plasma
-{
-    class BusyWidget;
-}
+
 class QGraphicsView;
 class KDevControlFlowGraphViewPlugin;
 class DUChainControlFlow;
@@ -80,8 +77,6 @@ private:
     QPointer<KParts::ReadOnlyPart>  m_part;
     QPointer<DUChainControlFlow>    m_duchainControlFlow;
     QPointer<DotControlFlowGraph>   m_dotControlFlowGraph;
-    QGraphicsView                  *m_busyGraphicsView;
-    Plasma::BusyWidget             *m_busyWidget;
     bool                            m_graphLocked;
 };
 
