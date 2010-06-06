@@ -24,6 +24,7 @@
 #include <QHash>
 #include <QPair>
 #include <QMutex>
+#include <QPointer>
 
 #include <ThreadWeaver/Job>
 
@@ -60,7 +61,6 @@ public:
     virtual ~DUChainControlFlow();
 
     virtual QString statusName() const;
-    void run();
     
     enum ControlFlowMode { ControlFlowFunction, ControlFlowClass, ControlFlowNamespace };
     void setControlFlowMode(ControlFlowMode controlFlowMode);
@@ -78,6 +78,8 @@ public:
     
     void generateControlFlowForDeclaration(IndexedDeclaration idefinition, IndexedTopDUContext itopContext, IndexedDUContext iuppermostExecutableContext);
     bool isLocked();
+protected:
+    void run();
 Q_SIGNALS:
     void prepareNewGraph();
     void foundRootNode(const QStringList &containers, const QString &label);
@@ -119,6 +121,9 @@ private:
 
     IndexedDUContext m_previousUppermostExecutableContext;
 
+    KTextEditor::View *m_currentView;
+    IndexedDUContext m_currentContext;
+    
     IndexedDeclaration m_definition;
     IndexedTopDUContext m_topContext;
     IndexedDUContext m_uppermostExecutableContext;
@@ -126,7 +131,7 @@ private:
     QSet<IndexedDeclaration> m_visitedFunctions;
     QHash<QString, IndexedDeclaration> m_identifierDeclarationMap;
     QMultiHash<QString, QPair<Use, IndexedString> > m_arcUsesMap;
-    KDevelop::IProject *m_currentProject;
+    QPointer<KDevelop::IProject> m_currentProject;
     
     int  m_currentLevel;
     int  m_maxLevel;
@@ -138,7 +143,7 @@ private:
     ControlFlowMode m_controlFlowMode;
     ClusteringModes m_clusteringModes;
     
-    mutable QMutex mutex;
+    mutable QMutex m_mutex;
     bool m_graphThreadRunning;
     
     ControlFlowGraphUsesCollector *m_collector;

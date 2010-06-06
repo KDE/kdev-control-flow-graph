@@ -72,7 +72,7 @@ DUChainControlFlow::DUChainControlFlow()
 {
     qRegisterMetaType<Use>("Use");
     connect(this, SIGNAL(updateToolTip(const QString &, const QPoint&, QWidget *)),
-            SLOT(slotUpdateToolTip(const QString &, const QPoint&, QWidget *)), Qt::QueuedConnection);
+            SLOT(slotUpdateToolTip(const QString &, const QPoint&, QWidget *)));
     connect(this, SIGNAL(done(ThreadWeaver::Job*)), SLOT(slotThreadDone(ThreadWeaver::Job*)));
     ICore::self()->uiController()->registerStatus(this);
 }
@@ -85,11 +85,6 @@ DUChainControlFlow::~DUChainControlFlow()
 QString DUChainControlFlow::statusName() const
 {
     return i18n("Control Flow Graph");
-}
-
-void DUChainControlFlow::run()
-{
-    generateControlFlowForDeclaration(m_definition, m_topContext, m_uppermostExecutableContext);
 }
 
 void DUChainControlFlow::setControlFlowMode(ControlFlowMode controlFlowMode)
@@ -124,7 +119,7 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
         return;
 
     emit showProgress(this, 0, 0, 0);
-    emit showMessage(this, i18n("Control Flow Graph"));
+    emit showMessage(this, i18n("Generating graph"));
 
     // Convert to a declaration in accordance with control flow mode (function, class or namespace)
     Declaration *nodeDefinition = declarationFromControlFlowMode(definition);
@@ -159,14 +154,51 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
         m_collector->startCollecting();
     }
 
+    emit hideProgress(this);
     emit graphDone();
     m_currentLevel = 1;
-    emit hideProgress(this);
 }
 
 bool DUChainControlFlow::isLocked()
 {
     return m_locked;
+}
+
+void DUChainControlFlow::run()
+{
+    DUChainReadLocker lock(DUChain::lock());
+
+    // Navigate to uppermost executable context
+    DUContext *uppermostExecutableContext = m_currentContext.data();
+    if (!uppermostExecutableContext)
+        return;
+    
+    while (uppermostExecutableContext->parentContext()->type() == DUContext::Other)
+        uppermostExecutableContext = uppermostExecutableContext->parentContext();
+
+    // If cursor is in the same function definition
+    if (IndexedDUContext(uppermostExecutableContext) == m_previousUppermostExecutableContext)
+        return;
+
+    m_previousUppermostExecutableContext = IndexedDUContext(uppermostExecutableContext);
+
+    // Get the definition
+    Declaration* definition = 0;
+    if (!uppermostExecutableContext || !uppermostExecutableContext->owner())
+        return;
+    else
+        definition = uppermostExecutableContext->owner();
+
+    if (!definition) return;
+
+    newGraph();
+    m_currentProject = ICore::self()->projectController()->findProjectForUrl(m_currentView->document()->url());
+    emit prepareNewGraph();
+
+    m_definition = IndexedDeclaration(definition);
+    m_uppermostExecutableContext = IndexedDUContext(uppermostExecutableContext);
+
+    generateControlFlowForDeclaration(m_definition, m_topContext, m_uppermostExecutableContext);
 }
 
 void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
@@ -177,10 +209,10 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         if (!view->document()) return;
 
         DUChainReadLocker lock(DUChain::lock());
-        
+
         TopDUContext *topContext = DUChainUtils::standardContextForUrl(view->document()->url());
         if (!topContext) return;
-        
+
         DUContext *context = topContext->findContext(KDevelop::SimpleCursor(cursor));
 
         // If cursor is in a method arguments context change it to internal context
@@ -201,35 +233,11 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
             }
             return;
         }
-        
-        // Navigate to uppermost executable context
-        DUContext *uppermostExecutableContext = context;
-        while (uppermostExecutableContext->parentContext()->type() == DUContext::Other)
-            uppermostExecutableContext = uppermostExecutableContext->parentContext();
 
-        // If cursor is in the same function definition
-        if (IndexedDUContext(uppermostExecutableContext) == m_previousUppermostExecutableContext)
-            return;
-        
-        m_previousUppermostExecutableContext = IndexedDUContext(uppermostExecutableContext);
-
-        // Get the definition
-        Declaration* definition = 0;
-        if (!uppermostExecutableContext || !uppermostExecutableContext->owner())
-            return;
-        else
-            definition = uppermostExecutableContext->owner();
-
-        if (!definition) return;
-        
-        newGraph();
-        m_currentProject = ICore::self()->projectController()->findProjectForUrl(view->document()->url());
-        emit prepareNewGraph();
-        
-        m_definition = IndexedDeclaration(definition);
+        m_currentContext = IndexedDUContext(context);
+        m_currentView = view;
         m_topContext = IndexedTopDUContext(topContext);
-        m_uppermostExecutableContext = IndexedDUContext(uppermostExecutableContext);
-     
+        
         m_graphThreadRunning = true;
         ThreadWeaver::Weaver::instance()->enqueue(this);
     }
@@ -404,11 +412,8 @@ void DUChainControlFlow::newGraph()
 
 void DUChainControlFlow::slotThreadDone (ThreadWeaver::Job* job)
 {
-    kDebug();
     if (job == this)
         m_graphThreadRunning = false;
-    else
-        kDebug() << "job != this";
 }
 
 void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition, TopDUContext *topContext, DUContext *context)
@@ -515,7 +520,7 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
     {
         KDevelop::ProjectBaseItem *project_item = 0;
         {
-            QMutexLocker locker (&mutex);
+            QMutexLocker locker (&m_mutex);
             if (m_currentProject)
                 project_item = m_currentProject->projectItem();
         }
@@ -523,7 +528,7 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
         {
             KUrl::List list;
             {
-                QMutexLocker locker (&mutex);
+                QMutexLocker locker (&m_mutex);
                 list = buildSystemManager->includeDirectories(project_item);
             }
             
