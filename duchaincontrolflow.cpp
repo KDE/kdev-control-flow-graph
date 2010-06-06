@@ -548,6 +548,7 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
             declarationUrl = declarationUrl.remove(0, smallestDirectory.length());
             declarationUrl = declarationUrl.remove(KUrl(declaration->url().str()).fileName());
             if (declarationUrl.endsWith('/')) declarationUrl.chop(1);
+            if (declarationUrl.startsWith('/')) declarationUrl.remove(0, 1);
             declarationUrl = declarationUrl.replace('/', "::");
             if (!declarationUrl.isEmpty())
                 return declarationUrl;
