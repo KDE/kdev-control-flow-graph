@@ -109,6 +109,11 @@ KDevControlFlowGraphViewPlugin::~KDevControlFlowGraphViewPlugin()
 {
 }
 
+QString KDevControlFlowGraphViewPlugin::statusName() const
+{
+    return i18n("Control Flow Graph");    
+}
+
 void KDevControlFlowGraphViewPlugin::unload()
 {
     // When calling removeToolView all existing views are destroyed and their destructor invoke unRegisterToolView.
@@ -181,7 +186,7 @@ KDevControlFlowGraphViewPlugin::contextMenuExtension(KDevelop::Context* context)
                 ProjectFolderItem *folder = item->folder();
                 if (folder && folder->isProjectRoot())
                 {
-                    m_exportProjectControlFlowGraph->setData(QVariant::fromValue(folder->folderName()));
+                    m_exportProjectControlFlowGraph->setData(QVariant::fromValue(folder->project()->name()));
                     extension.addAction(KDevelop::ContextMenuExtension::ExtensionGroup, m_exportProjectControlFlowGraph);
                 }
             }
@@ -267,16 +272,17 @@ void KDevControlFlowGraphViewPlugin::slotExportControlFlowGraph(bool value)
     QAction *action = static_cast<QAction *>(sender());
     Q_ASSERT(action->data().canConvert<DUChainBasePointer>());
     DeclarationPointer declarationPointer = qvariant_cast<DUChainBasePointer>(action->data()).dynamicCast<Declaration>();
-    Declaration *declaration = declarationPointer.data();
 
     DUChainReadLocker lock(DUChain::lock());
     
+    Declaration *declaration = declarationPointer.data();
+
     if (!declaration->isDefinition())
     {
         declaration = FunctionDefinition::definition(declaration);
         if (!declaration || !declaration->internalContext())
         {
-            KMessageBox::error((QWidget *) core()->uiController()->activeMainWindow(), i18n("Could not generate control flow graph."));
+            KMessageBox::error((QWidget *) core()->uiController()->activeMainWindow(), i18n("Could not generate control flow graph"));
             return;
         }
     }
@@ -284,7 +290,7 @@ void KDevControlFlowGraphViewPlugin::slotExportControlFlowGraph(bool value)
     {
         QFutureWatcher<void> *watcher = new QFutureWatcher<void>();
         connect(watcher, SIGNAL(finished()), SLOT(generationDone()));
-        QFuture<void> future = QtConcurrent::run(this, &KDevControlFlowGraphViewPlugin::generateControlFlowGraph, declaration);
+        QFuture<void> future = QtConcurrent::run(this, &KDevControlFlowGraphViewPlugin::generateControlFlowGraph, IndexedDeclaration(declaration));
         watcher->setFuture(future);
     }
 }
@@ -297,14 +303,16 @@ void KDevControlFlowGraphViewPlugin::slotExportClassControlFlowGraph(bool value)
     QAction *action = static_cast<QAction *>(sender());
     Q_ASSERT(action->data().canConvert<DUChainBasePointer>());
     DeclarationPointer declarationPointer = qvariant_cast<DUChainBasePointer>(action->data()).dynamicCast<Declaration>();
+
+    DUChainReadLocker lock(DUChain::lock());
+
     Declaration *declaration = declarationPointer.data();
 
     if ((m_fileDialog = exportControlFlowGraph(ControlFlowGraphFileDialog::ForClassConfigurationButtons)))
     {
-
         QFutureWatcher<void> *watcher = new QFutureWatcher<void>();
         connect(watcher, SIGNAL(finished()), SLOT(generationDone()));
-        QFuture<void> future = QtConcurrent::run(this, &KDevControlFlowGraphViewPlugin::generateClassControlFlowGraph, declaration);
+        QFuture<void> future = QtConcurrent::run(this, &KDevControlFlowGraphViewPlugin::generateClassControlFlowGraph, IndexedDeclaration(declaration));
         watcher->setFuture(future);
     }
 }
@@ -319,6 +327,12 @@ void KDevControlFlowGraphViewPlugin::slotExportProjectControlFlowGraph(bool valu
     QString projectName = qvariant_cast<QString>(action->data());
     IProject *project = core()->projectController()->findProjectByName(projectName);
 
+    if (!project)
+    {
+        KMessageBox::error((QWidget *) core()->uiController()->activeMainWindow(), i18n("Could not generate project control flow graph"));
+        return;
+    }
+
     if ((m_fileDialog = exportControlFlowGraph(ControlFlowGraphFileDialog::ForClassConfigurationButtons)))
     {
         QFutureWatcher<void> *watcher = new QFutureWatcher<void>();
@@ -328,35 +342,57 @@ void KDevControlFlowGraphViewPlugin::slotExportProjectControlFlowGraph(bool valu
     }
 }
 
-void KDevControlFlowGraphViewPlugin::generateControlFlowGraph(Declaration *declaration)
+void KDevControlFlowGraphViewPlugin::generateControlFlowGraph(IndexedDeclaration ideclaration)
 {
-    m_duchainControlFlow = new DUChainControlFlow;
-    m_dotControlFlowGraph = new DotControlFlowGraph;
-
-    configureDuchainControlFlow(m_duchainControlFlow, m_dotControlFlowGraph, m_fileDialog);
-
-    m_duchainControlFlow->generateControlFlowForDeclaration(declaration, declaration->topContext(), declaration->internalContext());
-}
-
-void KDevControlFlowGraphViewPlugin::generateClassControlFlowGraph(Declaration *declaration)
-{
-    m_duchainControlFlow = new DUChainControlFlow;
-    m_dotControlFlowGraph = new DotControlFlowGraph;
-
-    configureDuchainControlFlow(m_duchainControlFlow, m_dotControlFlowGraph, m_fileDialog);
-
     DUChainReadLocker readLock(DUChain::lock());
 
-    ClassFunctionDeclaration *functionDeclaration;
-    if (declaration->internalContext())
+    Declaration *declaration = ideclaration.data();
+    if (!declaration)
+        return;
+
+    m_duchainControlFlow = new DUChainControlFlow;
+    m_dotControlFlowGraph = new DotControlFlowGraph;
+
+    configureDuchainControlFlow(m_duchainControlFlow, m_dotControlFlowGraph, m_fileDialog);
+
+    m_duchainControlFlow->generateControlFlowForDeclaration(ideclaration, IndexedTopDUContext(declaration->topContext()), IndexedDUContext(declaration->internalContext()));
+}
+
+void KDevControlFlowGraphViewPlugin::generateClassControlFlowGraph(IndexedDeclaration ideclaration)
+{
+    kDebug();
+    DUChainReadLocker readLock(DUChain::lock());
+
+    Declaration *declaration = ideclaration.data();
+    if (!declaration)
+        return;
+
+    m_duchainControlFlow = new DUChainControlFlow;
+    m_dotControlFlowGraph = new DotControlFlowGraph;
+    
+    configureDuchainControlFlow(m_duchainControlFlow, m_dotControlFlowGraph, m_fileDialog);
+
+    if (!declaration->isForwardDeclaration() && declaration->internalContext())
+    {
+        int i = 0;
+        int max = declaration->internalContext()->localDeclarations().size();
         // For each function declaration
+        ClassFunctionDeclaration *functionDeclaration;
         foreach (Declaration *decl, declaration->internalContext()->localDeclarations())
+        {
             if ((functionDeclaration = dynamic_cast<ClassFunctionDeclaration *>(decl)))
             {
                 Declaration *functionDefinition = FunctionDefinition::definition(functionDeclaration);
                 if (functionDefinition)
-                    m_duchainControlFlow->generateControlFlowForDeclaration(declaration, declaration->topContext(), declaration->internalContext());
+                    m_duchainControlFlow->generateControlFlowForDeclaration(IndexedDeclaration(functionDefinition), IndexedTopDUContext(functionDefinition->topContext()), IndexedDUContext(functionDefinition->internalContext()));
             }
+            emit showProgress(this, 0, max-1, i);
+            emit showMessage(this, i18n("Generating graph for class %1", declaration->identifier().toString()));
+            ++i;
+        }
+        emit hideProgress(this);
+        emit clearMessage(this);
+    }
 }
 
 void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph(IProject *project)
@@ -368,6 +404,8 @@ void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph(IProject *p
 
     DUChainReadLocker readLock(DUChain::lock());
     
+    int i = 0;
+    int max = project->fileSet().size();
     // For each source file
     foreach(const IndexedString &file, project->fileSet())
     {
@@ -390,21 +428,27 @@ void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph(IProject *p
                     Declaration *declaration = dynamic_cast<Declaration *>(declarations[i].declaration());
                     if (declaration && !declaration->isForwardDeclaration() && declaration->internalContext())
                     {
-                        ClassFunctionDeclaration *functionDeclaration;
                         // For each function declaration
+                        ClassFunctionDeclaration *functionDeclaration;
                         foreach (Declaration *decl, declaration->internalContext()->localDeclarations())
+                        {
                             if ((functionDeclaration = dynamic_cast<ClassFunctionDeclaration *>(decl)))
                             {
                                 Declaration *functionDefinition = FunctionDefinition::definition(functionDeclaration);
                                 if (functionDefinition)
-                                    m_duchainControlFlow->generateControlFlowForDeclaration(declaration, declaration->topContext(), declaration->internalContext());
+                                    m_duchainControlFlow->generateControlFlowForDeclaration(IndexedDeclaration(functionDefinition), IndexedTopDUContext(functionDefinition->topContext()), IndexedDUContext(functionDefinition->internalContext()));
                             }
-                        break;
+                        }
                     }
                 }
             }
         }
+        emit showProgress(this, 0, max-1, i);
+        emit showMessage(this, i18n("Generating graph for file %1", file.str()));
+        ++i;
     }
+    emit hideProgress(this);
+    emit clearMessage(this);
 }
 
 void KDevControlFlowGraphViewPlugin::setActiveToolView(ControlFlowGraphView *activeToolView)
@@ -424,7 +468,7 @@ void KDevControlFlowGraphViewPlugin::generationDone()
     delete m_duchainControlFlow;
 
     KMessageBox::information((QWidget *) core()->uiController()->activeMainWindow(),
-                             i18n("Control flow graph exported."),
+                             i18n("Control flow graph exported"),
                              i18n("Export Control Flow Graph"));
 }
 
@@ -444,7 +488,6 @@ void KDevControlFlowGraphViewPlugin::configureDuchainControlFlow(DUChainControlF
     connect(duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
             dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
     connect(duchainControlFlow,  SIGNAL(clearGraph()), dotControlFlowGraph, SLOT(clearGraph()));
-
 }
 
 #include "kdevcontrolflowgraphviewplugin.moc"

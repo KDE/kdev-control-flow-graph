@@ -24,6 +24,8 @@
 #include <QList>
 
 #include <interfaces/iplugin.h>
+#include <interfaces/istatus.h>
+#include <language/duchain/indexeditems.h>
 
 #include "controlflowgraphfiledialog.h"
 
@@ -52,13 +54,15 @@ class ControlFlowGraphFileDialog;
 
 using namespace KDevelop;
 
-class KDevControlFlowGraphViewPlugin : public KDevelop::IPlugin
+class KDevControlFlowGraphViewPlugin : public KDevelop::IPlugin, public KDevelop::IStatus
 {
     Q_OBJECT
+    Q_INTERFACES(KDevelop::IStatus)
 public:
     explicit KDevControlFlowGraphViewPlugin(QObject *, const QVariantList & = QVariantList());
     virtual ~KDevControlFlowGraphViewPlugin();
 
+    virtual QString statusName() const;
     virtual void unload();
 
     void registerToolView(ControlFlowGraphView *view);
@@ -82,10 +86,17 @@ public Q_SLOTS:
     void slotExportProjectControlFlowGraph(bool value);
     void setActiveToolView(ControlFlowGraphView *activeToolView);
     void generationDone();
+Q_SIGNALS:
+    // Implementations of IStatus signals
+    void clearMessage(KDevelop::IStatus*);
+    void showMessage(KDevelop::IStatus*, const QString &message, int timeout = 0);
+    void hideProgress(KDevelop::IStatus*);
+    void showProgress(KDevelop::IStatus*, int minimum, int maximum, int value);
+    void showErrorMessage(const QString&, int);
 private:
     void configureDuchainControlFlow(DUChainControlFlow *duchainControlFlow, DotControlFlowGraph *dotControlFlowGraph, ControlFlowGraphFileDialog *fileDialog);
-    void generateControlFlowGraph(Declaration *declaration);
-    void generateClassControlFlowGraph(Declaration *declaration);
+    void generateControlFlowGraph(IndexedDeclaration ideclaration);
+    void generateClassControlFlowGraph(IndexedDeclaration ideclaration);
     void generateProjectControlFlowGraph(IProject *project);
 
     ControlFlowGraphView *activeToolView();

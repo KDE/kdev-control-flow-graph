@@ -119,7 +119,7 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
         return;
 
     emit showProgress(this, 0, 0, 0);
-    emit showMessage(this, i18n("Generating graph"));
+    emit showMessage(this, i18n("Generating graph for function %1", definition->identifier().toString()));
 
     // Convert to a declaration in accordance with control flow mode (function, class or namespace)
     Declaration *nodeDefinition = declarationFromControlFlowMode(definition);
@@ -155,6 +155,7 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
     }
 
     emit hideProgress(this);
+    emit clearMessage(this);
     emit graphDone();
     m_currentLevel = 1;
 }
