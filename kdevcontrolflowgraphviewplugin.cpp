@@ -134,17 +134,7 @@ QPointer<ControlFlowGraphFileDialog> KDevControlFlowGraphViewPlugin::exportContr
         {
             QString fileName = fileDialog->selectedFile();
             if (!fileName.isEmpty())
-            {
-                // Note: this is going to be removed with KDE 4.4 since getSaveFileName will support a KFileDialog::ConfirmOverwrite option
-                int code = KMessageBox::Yes;
-                if (QFile(fileName).exists())
-                    code = KMessageBox::warningYesNo((QWidget *) core()->uiController()->activeMainWindow(),
-                                                          i18n("File already exists. Are you sure you want to overwrite it?"),
-                                                          i18n("Export Control Flow Graph"));
-
-                if (code == KMessageBox::Yes)
-                    return fileDialog;
-            }
+                return fileDialog;
         }
     }
     return 0;

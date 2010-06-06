@@ -34,6 +34,7 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(const KUrl& startDir, con
 {
     setCaption(caption);
     setOperationMode(KFileDialog::Saving);
+    setConfirmOverwrite(true);
     setMode(KFile::File);
 
     if (mode != NoConfigurationButtons)
