@@ -23,7 +23,6 @@
 #include <QSet>
 #include <QHash>
 #include <QPair>
-#include <QMutex>
 #include <QPointer>
 
 #include <ThreadWeaver/Job>
@@ -143,10 +142,10 @@ private:
     ControlFlowMode m_controlFlowMode;
     ClusteringModes m_clusteringModes;
     
-    mutable QMutex m_mutex;
     bool m_graphThreadRunning;
     
     ControlFlowGraphUsesCollector *m_collector;
+    KUrl::List m_includeDirectories;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(DUChainControlFlow::ClusteringModes)

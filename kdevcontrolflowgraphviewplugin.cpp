@@ -360,7 +360,6 @@ void KDevControlFlowGraphViewPlugin::generateControlFlowGraph(IndexedDeclaration
 
 void KDevControlFlowGraphViewPlugin::generateClassControlFlowGraph(IndexedDeclaration ideclaration)
 {
-    kDebug();
     DUChainReadLocker readLock(DUChain::lock());
 
     Declaration *declaration = ideclaration.data();

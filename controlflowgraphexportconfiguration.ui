@@ -20,6 +20,21 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_4">
      <item>
+      <widget class="QLabel" name="label">
+       <property name="font">
+        <font>
+         <pointsize>7</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Warning: changing such default values can make class and project graphs export extremely slow !</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
         <widget class="QGroupBox" name="controlFlowModeGroupBox">
@@ -323,16 +338,6 @@
         </widget>
        </item>
       </layout>
-     </item>
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Warning: changing such default values can make class and project graphs export extremely slow !</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
      </item>
     </layout>
    </item>

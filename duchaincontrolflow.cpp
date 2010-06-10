@@ -33,6 +33,7 @@
 #include <interfaces/iproject.h>
 #include <interfaces/iuicontroller.h>
 #include <interfaces/iprojectcontroller.h>
+#include <interfaces/ilanguagecontroller.h>
 #include <interfaces/idocumentcontroller.h>
 
 #include <language/duchain/use.h>
@@ -45,6 +46,7 @@
 #include <language/duchain/functiondefinition.h>
 #include <language/duchain/types/functiontype.h>
 #include <language/util/navigationtooltip.h>
+#include <language/backgroundparser/backgroundparser.h>
 
 #include <project/projectmodel.h>
 #include <project/interfaces/ibuildsystemmanager.h>
@@ -193,7 +195,6 @@ void DUChainControlFlow::run()
     if (!definition) return;
 
     newGraph();
-    m_currentProject = ICore::self()->projectController()->findProjectForUrl(m_currentView->document()->url());
     emit prepareNewGraph();
 
     m_definition = IndexedDeclaration(definition);
@@ -238,7 +239,20 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         m_currentContext = IndexedDUContext(context);
         m_currentView = view;
         m_topContext = IndexedTopDUContext(topContext);
-        
+
+        m_currentProject = ICore::self()->projectController()->findProjectForUrl(m_currentView->document()->url());
+        m_includeDirectories.clear();
+
+        // Invoke includeDirectories in advance. Running it in the background thread may crash because
+        // of thread-safety issues in KConfig / CMakeUtils.
+        if (m_currentProject)
+        {
+            KDevelop::ProjectBaseItem *project_item = m_currentProject->projectItem();
+            IBuildSystemManager *buildSystemManager = 0;
+            if (project_item && (buildSystemManager = m_currentProject->buildSystemManager()))
+                m_includeDirectories = buildSystemManager->includeDirectories(project_item);
+        }
+
         m_graphThreadRunning = true;
         ThreadWeaver::Weaver::instance()->enqueue(this);
     }
@@ -516,45 +530,28 @@ void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration*
 
 QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaration)
 {
-    IBuildSystemManager *buildSystemManager;
-    if (m_useFolderName && m_currentProject && (buildSystemManager = m_currentProject->buildSystemManager()))
+    if (m_useFolderName && m_currentProject && m_includeDirectories.count() > 0)
     {
-        KDevelop::ProjectBaseItem *project_item = 0;
-        {
-            QMutexLocker locker (&m_mutex);
-            if (m_currentProject)
-                project_item = m_currentProject->projectItem();
-        }
-        if (project_item)
-        {
-            KUrl::List list;
-            {
-                QMutexLocker locker (&m_mutex);
-                list = buildSystemManager->includeDirectories(project_item);
-            }
-            
-            int minLength = std::numeric_limits<int>::max();
+        int minLength = std::numeric_limits<int>::max();
 
-            QString folderName, smallestDirectory, declarationUrl = declaration->url().str();
-            
-            foreach (const KUrl &url, list)
+        QString folderName, smallestDirectory, declarationUrl = declaration->url().str();
+
+        foreach (const KUrl &url, m_includeDirectories)
+        {
+            QString urlString = url.toLocalFile();
+            if (urlString.length() <= minLength && declarationUrl.startsWith(urlString))
             {
-                QString urlString = url.toLocalFile();
-                if (urlString.length() <= minLength && declarationUrl.startsWith(urlString))
-                {
-                    smallestDirectory = urlString;
-                    minLength = urlString.length();
-                }
+                smallestDirectory = urlString;
+                minLength = urlString.length();
             }
-            declarationUrl = declarationUrl.remove(0, smallestDirectory.length());
-            declarationUrl = declarationUrl.remove(KUrl(declaration->url().str()).fileName());
-            if (declarationUrl.endsWith('/')) declarationUrl.chop(1);
-            if (declarationUrl.startsWith('/')) declarationUrl.remove(0, 1);
-            declarationUrl = declarationUrl.replace('/', "::");
-            if (!declarationUrl.isEmpty())
-                return declarationUrl;
         }
-        else return i18n("Global Namespace");
+        declarationUrl = declarationUrl.remove(0, smallestDirectory.length());
+        declarationUrl = declarationUrl.remove(KUrl(declaration->url().str()).fileName());
+        if (declarationUrl.endsWith('/')) declarationUrl.chop(1);
+        if (declarationUrl.startsWith('/')) declarationUrl.remove(0, 1);
+        declarationUrl = declarationUrl.replace('/', "::");
+        if (!declarationUrl.isEmpty())
+            return declarationUrl;
     }
     return i18n("Global Namespace");
 }
