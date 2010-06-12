@@ -23,6 +23,8 @@ set(kdevcontrolflowgraphview_PART_SRCS
     controlflowgraphview.cpp
     duchaincontrolflow.cpp
     dotcontrolflowgraph.cpp
+    duchaincontrolflowjob.cpp
+    duchaincontrolflowinternaljob.cpp
     controlflowgraphnavigationcontext.cpp
     controlflowgraphnavigationwidget.cpp
     controlflowgraphusescollector.cpp

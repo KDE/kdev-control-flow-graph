@@ -25,8 +25,6 @@
 #include <QPair>
 #include <QPointer>
 
-#include <ThreadWeaver/Job>
-
 #include <interfaces/istatus.h>
 
 #include <language/duchain/indexeditems.h>
@@ -47,11 +45,13 @@ namespace KDevelop {
     class IProject;
 }
 
+class KJob;
+
 class ControlFlowGraphUsesCollector;
 
 using namespace KDevelop;
 
-class DUChainControlFlow : public ThreadWeaver::Job, public IStatus
+class DUChainControlFlow : public QObject, public IStatus
 {
     Q_OBJECT
     Q_INTERFACES(KDevelop::IStatus)
@@ -60,7 +60,7 @@ public:
     virtual ~DUChainControlFlow();
 
     virtual QString statusName() const;
-    
+
     enum ControlFlowMode { ControlFlowFunction, ControlFlowClass, ControlFlowNamespace };
     void setControlFlowMode(ControlFlowMode controlFlowMode);
 
@@ -74,10 +74,9 @@ public:
     Q_DECLARE_FLAGS(ClusteringModes, ClusteringMode)
     void setClusteringModes(ClusteringModes clusteringModes);
     ClusteringModes clusteringModes() const;
-    
+
     void generateControlFlowForDeclaration(IndexedDeclaration idefinition, IndexedTopDUContext itopContext, IndexedDUContext iuppermostExecutableContext);
     bool isLocked();
-protected:
     void run();
 Q_SIGNALS:
     void prepareNewGraph();
@@ -86,7 +85,7 @@ Q_SIGNALS:
     void graphDone();
     void clearGraph();
     void updateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget);
-    
+
     // Implementations of IStatus signals
     void clearMessage(KDevelop::IStatus*);
     void showMessage(KDevelop::IStatus*, const QString &message, int timeout = 0);
@@ -108,8 +107,9 @@ public Q_SLOTS:
 
     void refreshGraph();
     void newGraph();
-    
-    void slotThreadDone (ThreadWeaver::Job*);
+
+private Q_SLOTS:
+    void jobDone (KJob* job);
 private:
     void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
     Declaration *declarationFromControlFlowMode(Declaration *definitionDeclaration);

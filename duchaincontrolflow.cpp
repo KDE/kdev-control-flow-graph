@@ -21,17 +21,15 @@
 
 #include <limits>
 
-#include <QMutexLocker>
-
 #include <KTextEditor/View>
 #include <KTextEditor/Document>
 #include <KTextEditor/Cursor>
 #include <KLocale>
-#include <ThreadWeaver/Weaver>
 
 #include <interfaces/icore.h>
 #include <interfaces/iproject.h>
 #include <interfaces/iuicontroller.h>
+#include <interfaces/iruncontroller.h>
 #include <interfaces/iprojectcontroller.h>
 #include <interfaces/ilanguagecontroller.h>
 #include <interfaces/idocumentcontroller.h>
@@ -53,6 +51,7 @@
 
 #include "controlflowgraphusescollector.h"
 #include "controlflowgraphnavigationwidget.h"
+#include "duchaincontrolflowjob.h"
 
 Q_DECLARE_METATYPE(KDevelop::Use)
 
@@ -75,7 +74,6 @@ DUChainControlFlow::DUChainControlFlow()
     qRegisterMetaType<Use>("Use");
     connect(this, SIGNAL(updateToolTip(const QString &, const QPoint&, QWidget *)),
             SLOT(slotUpdateToolTip(const QString &, const QPoint&, QWidget *)));
-    connect(this, SIGNAL(done(ThreadWeaver::Job*)), SLOT(slotThreadDone(ThreadWeaver::Job*)));
     ICore::self()->uiController()->registerStatus(this);
 }
 
@@ -254,7 +252,9 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         }
 
         m_graphThreadRunning = true;
-        ThreadWeaver::Weaver::instance()->enqueue(this);
+        DUChainControlFlowJob *job = new DUChainControlFlowJob(this);
+        connect (job, SIGNAL(result(KJob *)), this, SLOT(jobDone (KJob *)));
+        ICore::self()->runController()->registerJob(job);
     }
 }
 
@@ -425,10 +425,10 @@ void DUChainControlFlow::newGraph()
     emit clearGraph();
 }
 
-void DUChainControlFlow::slotThreadDone (ThreadWeaver::Job* job)
+void DUChainControlFlow::jobDone (KJob* job)
 {
-    if (job == this)
-        m_graphThreadRunning = false;
+    m_graphThreadRunning = false;
+    job->deleteLater();
 }
 
 void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition, TopDUContext *topContext, DUContext *context)
