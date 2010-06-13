@@ -27,7 +27,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Warning: changing such default values can make class and project graphs export extremely slow !</string>
+        <string>Warning: changing the default values can make class and project graph export extremely slow.</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
