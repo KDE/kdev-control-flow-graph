@@ -19,18 +19,23 @@
 
 #include "duchaincontrolflowjob.h"
 
+#include <KLocale>
+
 #include <ThreadWeaver/Weaver>
 
 #include "duchaincontrolflowinternaljob.h"
 
-DUChainControlFlowJob::DUChainControlFlowJob(DUChainControlFlow *duchainControlFlow)
+DUChainControlFlowJob::DUChainControlFlowJob(const QString &jobName, DUChainControlFlow *duchainControlFlow)
  : m_duchainControlFlow(duchainControlFlow),
    m_internalJob(0)
 {
+    setObjectName(i18n("Control flow graph generation for %1", jobName));
+    setCapabilities(Killable);
 }
 
 DUChainControlFlowJob::~DUChainControlFlowJob()
 {
+    delete m_internalJob;
 }
 
 void DUChainControlFlowJob::start()
@@ -40,9 +45,14 @@ void DUChainControlFlowJob::start()
     ThreadWeaver::Weaver::instance()->enqueue(m_internalJob);
 }
 
+bool DUChainControlFlowJob::doKill()
+{
+    // Run controller stops all jobs with Quietly KillVerbosity, but plugins needs emitResult()
+    emitResult();
+    return true;
+}
+
 void DUChainControlFlowJob::done(ThreadWeaver::Job*)
 {
-    delete m_internalJob;
-    m_internalJob = 0;
     emitResult();
 }

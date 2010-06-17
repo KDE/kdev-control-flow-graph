@@ -254,7 +254,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         }
 
         m_graphThreadRunning = true;
-        DUChainControlFlowJob *job = new DUChainControlFlowJob(this);
+        DUChainControlFlowJob *job = new DUChainControlFlowJob(context->scopeIdentifier().toString(), this);
         connect (job, SIGNAL(result(KJob *)), this, SLOT(jobDone (KJob *)));
         ICore::self()->runController()->registerJob(job);
     }
@@ -294,7 +294,7 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 
     if (sender() && dynamic_cast<ControlFlowGraphUsesCollector *>(sender()))
     {
-        sourceContainers.prepend(i18n("Uses of") + ' ' + targetLabel);
+        sourceContainers.prepend(i18n("Uses of %1", targetLabel));
         m_identifierDeclarationMap[sourceContainers.join("") + sourceShortName] = IndexedDeclaration(nodeSource);
     }
 

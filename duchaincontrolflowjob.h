@@ -20,6 +20,8 @@
 #ifndef DUCHAINCONTROLFLOWJOB_H
 #define DUCHAINCONTROLFLOWJOB_H
 
+#include <QPointer>
+
 #include <KJob>
 
 namespace ThreadWeaver
@@ -34,15 +36,16 @@ class DUChainControlFlowJob : public KJob
 {
     Q_OBJECT
 public:
-    DUChainControlFlowJob(DUChainControlFlow *duchainControlFlow);
+    DUChainControlFlowJob(const QString &jobName, DUChainControlFlow *duchainControlFlow);
     virtual ~DUChainControlFlowJob();
     
     virtual void start();
+    virtual bool doKill();
 private Q_SLOTS:
     void done(ThreadWeaver::Job*);
 private:
     DUChainControlFlow *m_duchainControlFlow;
-    DUChainControlFlowInternalJob *m_internalJob;
+    QPointer<DUChainControlFlowInternalJob> m_internalJob;
 };
 
 #endif
