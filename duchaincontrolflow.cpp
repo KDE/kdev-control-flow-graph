@@ -136,7 +136,7 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
                                                                           shortName);
         ++m_currentLevel;
         m_visitedFunctions.insert(idefinition);
-        m_identifierDeclarationMap[shortName] = IndexedDeclaration(nodeDefinition);
+        m_identifierDeclarationMap[containers.join("") + shortName] = IndexedDeclaration(nodeDefinition);
         useDeclarationsFromDefinition(definition, topContext, uppermostExecutableContext);
     }
 
@@ -294,8 +294,8 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 
     if (sender() && dynamic_cast<ControlFlowGraphUsesCollector *>(sender()))
     {
-        m_identifierDeclarationMap[sourceShortName] = IndexedDeclaration(nodeSource);
         sourceContainers.prepend(i18n("Uses of") + ' ' + targetLabel);
+        m_identifierDeclarationMap[sourceContainers.join("") + sourceShortName] = IndexedDeclaration(nodeSource);
     }
 
     IndexedDeclaration ideclaration = IndexedDeclaration(calledFunctionDefinition);
@@ -306,7 +306,7 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     else
     {
         // Store method declaration for navigation
-        m_identifierDeclarationMap[targetShortName] = IndexedDeclaration(nodeTarget);
+        m_identifierDeclarationMap[targetContainers.join("") + targetShortName] = IndexedDeclaration(nodeTarget);
         // Store use for edge inspection
         m_arcUsesMap.insert(sourceLabel + "->" + targetLabel, QPair<Use, IndexedString>(use, source->url()));
         return;
@@ -315,7 +315,7 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     // Store use for edge inspection
     m_arcUsesMap.insert(sourceLabel + "->" + targetLabel, QPair<Use, IndexedString>(use, source->url()));
     // Store method definition for navigation
-    m_identifierDeclarationMap[targetShortName] = IndexedDeclaration(declarationFromControlFlowMode(calledFunctionDefinition));
+    m_identifierDeclarationMap[targetContainers.join("") + targetShortName] = IndexedDeclaration(declarationFromControlFlowMode(calledFunctionDefinition));
 
     if (calledFunctionContext && (m_currentLevel < m_maxLevel || m_maxLevel == 0))
     {
