@@ -49,9 +49,9 @@
 #include <project/projectmodel.h>
 #include <project/interfaces/ibuildsystemmanager.h>
 
+#include "duchaincontrolflowjob.h"
 #include "controlflowgraphusescollector.h"
 #include "controlflowgraphnavigationwidget.h"
-#include "duchaincontrolflowjob.h"
 
 Q_DECLARE_METATYPE(KDevelop::Use)
 
@@ -128,10 +128,10 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
 
     QString shortName = shortNameFromContainers(containers, prependFolderNames(nodeDefinition));
 
-    if (m_maxLevel != 1 && !m_visitedFunctions.contains(idefinition))
+    if (m_maxLevel != 1 && !m_visitedFunctions.contains(idefinition) && nodeDefinition && nodeDefinition->internalContext())
     {
         emit foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace &&
-                                        nodeDefinition->internalContext()->type() != DUContext::Namespace) ? 
+                                        nodeDefinition->internalContext() && nodeDefinition->internalContext()->type() != DUContext::Namespace) ? 
                                                                           globalNamespaceOrFolderNames(nodeDefinition):
                                                                           shortName);
         ++m_currentLevel;
@@ -176,7 +176,7 @@ void DUChainControlFlow::run()
     if (!uppermostExecutableContext)
         return;
 
-    while (uppermostExecutableContext->parentContext()->type() == DUContext::Other)
+    while (uppermostExecutableContext->parentContext() && uppermostExecutableContext->parentContext()->type() == DUContext::Other)
         uppermostExecutableContext = uppermostExecutableContext->parentContext();
 
     // If cursor is in the same function definition
@@ -216,6 +216,9 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         if (!topContext) return;
 
         DUContext *context = topContext->findContext(KDevelop::SimpleCursor(cursor));
+        
+        if (!context)
+            return;
 
         // If cursor is in a method arguments context change it to internal context
         if (context && context->type() == DUContext::Function && context->importers().size() == 1)
@@ -279,13 +282,13 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 
     QString sourceLabel = shortNameFromContainers(sourceContainers,
                           (m_controlFlowMode == ControlFlowNamespace &&
-                           nodeSource->internalContext()->type() != DUContext::Namespace) ?
+                           (nodeSource->internalContext() && nodeSource->internalContext()->type() != DUContext::Namespace)) ?
                                             globalNamespaceOrFolderNames(nodeSource) :
                                             prependFolderNames(nodeSource));
 
     QString targetLabel = shortNameFromContainers(targetContainers,
                           (m_controlFlowMode == ControlFlowNamespace &&
-                           nodeTarget->internalContext()->type() != DUContext::Namespace) ?
+                           (nodeTarget->internalContext() && nodeTarget->internalContext()->type() != DUContext::Namespace)) ?
                                             globalNamespaceOrFolderNames(nodeTarget) :
                                             prependFolderNames(nodeTarget));
 
@@ -489,10 +492,10 @@ Declaration *DUChainControlFlow::declarationFromControlFlowMode(Declaration *def
         if (!nodeDeclaration || !nodeDeclaration->context() || !nodeDeclaration->context()->owner()) return definitionDeclaration;
         while (nodeDeclaration->context() &&
                nodeDeclaration->context()->owner() &&
-               ((m_controlFlowMode == ControlFlowClass && nodeDeclaration->context()->type() == DUContext::Class) ||
+               ((m_controlFlowMode == ControlFlowClass && nodeDeclaration->context() && nodeDeclaration->context()->type() == DUContext::Class) ||
                 (m_controlFlowMode == ControlFlowNamespace && (
-                                                              nodeDeclaration->context()->type() == DUContext::Class ||
-                                                              nodeDeclaration->context()->type() == DUContext::Namespace)
+                                                              nodeDeclaration->context() && nodeDeclaration->context()->type() == DUContext::Class ||
+                                                              nodeDeclaration->context() && nodeDeclaration->context()->type() == DUContext::Namespace)
               )))
             nodeDeclaration = nodeDeclaration->context()->owner();
     }
@@ -514,7 +517,7 @@ void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration*
         m_controlFlowMode = ControlFlowNamespace;
         Declaration *namespaceDefinition = declarationFromControlFlowMode(definition);
 
-        strGlobalNamespaceOrFolderNames = ((namespaceDefinition->internalContext()->type() != DUContext::Namespace) ?
+        strGlobalNamespaceOrFolderNames = ((namespaceDefinition->internalContext() && namespaceDefinition->internalContext()->type() != DUContext::Namespace) ?
                                                               globalNamespaceOrFolderNames(namespaceDefinition):
                                                               shortNameFromContainers(containers, prependFolderNames(namespaceDefinition)));
         foreach(const QString &container, strGlobalNamespaceOrFolderNames.split("::"))
@@ -576,7 +579,8 @@ QString DUChainControlFlow::prependFolderNames(Declaration *declaration)
 
         QString prefix = globalNamespaceOrFolderNames(namespaceDefinition);
         
-        if (namespaceDefinition->internalContext()->type() != DUContext::Namespace &&
+        if (namespaceDefinition && namespaceDefinition->internalContext() &&
+            namespaceDefinition->internalContext()->type() != DUContext::Namespace &&
             prefix != i18n("Global Namespace"))
             prependedQualifiedName.prepend(prefix + "::");
     }

@@ -23,14 +23,28 @@
 
 #include <ThreadWeaver/Weaver>
 
-#include "duchaincontrolflowinternaljob.h"
-
 DUChainControlFlowJob::DUChainControlFlowJob(const QString &jobName, DUChainControlFlow *duchainControlFlow)
  : m_duchainControlFlow(duchainControlFlow),
-   m_internalJob(0)
+   m_plugin(0),
+   m_internalJob(0),
+   m_controlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobInteractive)
+{
+    init(jobName);
+}
+
+DUChainControlFlowJob::DUChainControlFlowJob(const QString &jobName, KDevControlFlowGraphViewPlugin *plugin)
+ : m_duchainControlFlow(0),
+   m_plugin(plugin),
+   m_internalJob(0),
+   m_controlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobInteractive)
+{
+    init(jobName);
+}
+
+void DUChainControlFlowJob::init(const QString &jobName)
 {
     setObjectName(i18n("Control flow graph generation for %1", jobName));
-    setCapabilities(Killable);
+    setCapabilities(Killable);    
 }
 
 DUChainControlFlowJob::~DUChainControlFlowJob()
@@ -38,9 +52,15 @@ DUChainControlFlowJob::~DUChainControlFlowJob()
     delete m_internalJob;
 }
 
+void DUChainControlFlowJob::setControlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobType controlFlowJobType)
+{
+    m_controlFlowJobType = controlFlowJobType;   
+}
+
 void DUChainControlFlowJob::start()
 {
-    m_internalJob = new DUChainControlFlowInternalJob(m_duchainControlFlow);
+    m_internalJob = new DUChainControlFlowInternalJob(m_duchainControlFlow, m_plugin);
+    m_internalJob->setControlFlowJobType(m_controlFlowJobType);
     connect(m_internalJob, SIGNAL(done(ThreadWeaver::Job*)), SLOT(done(ThreadWeaver::Job*)));
     ThreadWeaver::Weaver::instance()->enqueue(m_internalJob);
 }

@@ -23,17 +23,24 @@
 #include <ThreadWeaver/Job>
 
 class DUChainControlFlow;
+class KDevControlFlowGraphViewPlugin;
 
 class DUChainControlFlowInternalJob : public ThreadWeaver::Job
 {
     Q_OBJECT
 public:
-    DUChainControlFlowInternalJob(DUChainControlFlow *duchainControlFlow);
+    DUChainControlFlowInternalJob(DUChainControlFlow *duchainControlFlow, KDevControlFlowGraphViewPlugin *plugin);
     virtual ~DUChainControlFlowInternalJob();
+    
+    enum ControlFlowJobType { ControlFlowJobInteractive, ControlFlowJobBatchForFunction, ControlFlowJobBatchForClass, ControlFlowJobBatchForProject };
+    void setControlFlowJobType (ControlFlowJobType controlFlowJobType);
+
 protected:
     void run();
 private:
     DUChainControlFlow *m_duchainControlFlow;
+    KDevControlFlowGraphViewPlugin *m_plugin;
+    ControlFlowJobType m_controlFlowJobType;
 };
 
 #endif

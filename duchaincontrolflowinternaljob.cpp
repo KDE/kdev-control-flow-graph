@@ -20,9 +20,12 @@
 #include "duchaincontrolflowinternaljob.h"
 
 #include "duchaincontrolflow.h"
+#include "kdevcontrolflowgraphviewplugin.h"
 
-DUChainControlFlowInternalJob::DUChainControlFlowInternalJob(DUChainControlFlow *duchainControlFlow)
- : m_duchainControlFlow(duchainControlFlow)
+DUChainControlFlowInternalJob::DUChainControlFlowInternalJob(DUChainControlFlow *duchainControlFlow, KDevControlFlowGraphViewPlugin *plugin)
+ : m_duchainControlFlow(duchainControlFlow),
+   m_plugin(plugin),
+   m_controlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobInteractive)
 {
 }
 
@@ -30,7 +33,38 @@ DUChainControlFlowInternalJob::~DUChainControlFlowInternalJob()
 {
 }
 
+void DUChainControlFlowInternalJob::setControlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobType controlFlowJobType)
+{
+    m_controlFlowJobType = controlFlowJobType;   
+}
+
 void DUChainControlFlowInternalJob::run()
 {
-    m_duchainControlFlow->run();
+    switch(m_controlFlowJobType)
+    {
+        case ControlFlowJobInteractive:
+        {
+            if (m_duchainControlFlow)
+                m_duchainControlFlow->run();
+            break;
+        }
+        case ControlFlowJobBatchForFunction:
+        {
+            if (m_plugin)
+                m_plugin->generateControlFlowGraph();
+            break;
+        }
+        case ControlFlowJobBatchForClass:
+        {
+            if (m_plugin)
+                m_plugin->generateClassControlFlowGraph();
+            break;
+        }
+        case ControlFlowJobBatchForProject:
+        {
+            if (m_plugin)
+                m_plugin->generateProjectControlFlowGraph();
+            break;
+        }
+    };
 }

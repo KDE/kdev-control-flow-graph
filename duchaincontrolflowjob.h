@@ -24,6 +24,8 @@
 
 #include <KJob>
 
+#include "duchaincontrolflowinternaljob.h"
+
 namespace ThreadWeaver
 {
     class Job;
@@ -31,21 +33,28 @@ namespace ThreadWeaver
 
 class DUChainControlFlow;
 class DUChainControlFlowInternalJob;
+class KDevControlFlowGraphViewPlugin;
 
 class DUChainControlFlowJob : public KJob
 {
     Q_OBJECT
 public:
     DUChainControlFlowJob(const QString &jobName, DUChainControlFlow *duchainControlFlow);
+    DUChainControlFlowJob(const QString &jobName, KDevControlFlowGraphViewPlugin *plugin);
     virtual ~DUChainControlFlowJob();
+    
+    void setControlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobType controlFlowJobType);
     
     virtual void start();
     virtual bool doKill();
 private Q_SLOTS:
     void done(ThreadWeaver::Job*);
 private:
+    void init(const QString &jobName);
     DUChainControlFlow *m_duchainControlFlow;
+    KDevControlFlowGraphViewPlugin *m_plugin;
     QPointer<DUChainControlFlowInternalJob> m_internalJob;
+    DUChainControlFlowInternalJob::ControlFlowJobType m_controlFlowJobType;
 };
 
 #endif

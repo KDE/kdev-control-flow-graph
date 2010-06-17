@@ -20,9 +20,6 @@
 #include "kdevcontrolflowgraphviewplugin.h"
 
 #include <QAction>
-#include <QFuture>
-#include <QFutureWatcher>
-#include <QtConcurrentRun>
 
 #include <KAboutData>
 #include <KMessageBox>
@@ -30,31 +27,35 @@
 #include <KGenericFactory>
 
 #include <interfaces/icore.h>
-#include <interfaces/iuicontroller.h>
-#include <interfaces/iprojectcontroller.h>
+#include <interfaces/context.h>
 #include <interfaces/iproject.h>
+#include <interfaces/idocument.h>
+#include <interfaces/iuicontroller.h>
+#include <interfaces/iruncontroller.h>
+#include <interfaces/iprojectcontroller.h>
 #include <interfaces/ilanguagecontroller.h>
 #include <interfaces/idocumentcontroller.h>
-#include <interfaces/idocument.h>
-#include <interfaces/context.h>
 #include <interfaces/contextmenuextension.h>
-#include <language/duchain/declaration.h>
-#include <language/duchain/classdeclaration.h>
-#include <language/duchain/classfunctiondeclaration.h>
-#include <language/duchain/functiondefinition.h>
-#include <language/duchain/types/functiontype.h>
-#include <language/duchain/persistentsymboltable.h>
-#include <language/interfaces/codecontext.h>
-#include <language/backgroundparser/backgroundparser.h>
-#include <language/backgroundparser/parsejob.h>
+
 #include <language/duchain/codemodel.h>
+#include <language/duchain/declaration.h>
+#include <language/interfaces/codecontext.h>
+#include <language/duchain/classdeclaration.h>
+#include <language/backgroundparser/parsejob.h>
+#include <language/duchain/types/functiontype.h>
+#include <language/duchain/functiondefinition.h>
+#include <language/duchain/persistentsymboltable.h>
+#include <language/duchain/classfunctiondeclaration.h>
+#include <language/backgroundparser/backgroundparser.h>
+
 #include <project/projectmodel.h>
 
 #include <KTextEditor/Document>
 
-#include "controlflowgraphview.h"
 #include "duchaincontrolflow.h"
 #include "dotcontrolflowgraph.h"
+#include "controlflowgraphview.h"
+#include "duchaincontrolflowjob.h"
 
 using namespace KDevelop;
 
@@ -288,10 +289,11 @@ void KDevControlFlowGraphViewPlugin::slotExportControlFlowGraph(bool value)
     }
     if ((m_fileDialog = exportControlFlowGraph()))
     {
-        QFutureWatcher<void> *watcher = new QFutureWatcher<void>();
-        connect(watcher, SIGNAL(finished()), SLOT(generationDone()));
-        QFuture<void> future = QtConcurrent::run(this, &KDevControlFlowGraphViewPlugin::generateControlFlowGraph, IndexedDeclaration(declaration));
-        watcher->setFuture(future);
+        DUChainControlFlowJob *job = new DUChainControlFlowJob(declaration->qualifiedIdentifier().toString(), this);
+        job->setControlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobBatchForFunction);
+        m_ideclaration = IndexedDeclaration(declaration);
+        connect (job, SIGNAL(result(KJob *)), this, SLOT(generationDone(KJob *)));
+        ICore::self()->runController()->registerJob(job);
     }
 }
 
@@ -310,10 +312,11 @@ void KDevControlFlowGraphViewPlugin::slotExportClassControlFlowGraph(bool value)
 
     if ((m_fileDialog = exportControlFlowGraph(ControlFlowGraphFileDialog::ForClassConfigurationButtons)))
     {
-        QFutureWatcher<void> *watcher = new QFutureWatcher<void>();
-        connect(watcher, SIGNAL(finished()), SLOT(generationDone()));
-        QFuture<void> future = QtConcurrent::run(this, &KDevControlFlowGraphViewPlugin::generateClassControlFlowGraph, IndexedDeclaration(declaration));
-        watcher->setFuture(future);
+        DUChainControlFlowJob *job = new DUChainControlFlowJob(declaration->qualifiedIdentifier().toString(), this);
+        job->setControlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobBatchForClass);
+        m_ideclaration = IndexedDeclaration(declaration);
+        connect (job, SIGNAL(result(KJob *)), this, SLOT(generationDone(KJob *)));
+        ICore::self()->runController()->registerJob(job);
     }
 }
 
@@ -335,37 +338,40 @@ void KDevControlFlowGraphViewPlugin::slotExportProjectControlFlowGraph(bool valu
 
     if ((m_fileDialog = exportControlFlowGraph(ControlFlowGraphFileDialog::ForClassConfigurationButtons)))
     {
-        QFutureWatcher<void> *watcher = new QFutureWatcher<void>();
-        connect(watcher, SIGNAL(finished()), SLOT(generationDone()));
-        QFuture<void> future = QtConcurrent::run(this, &KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph, project);
-        watcher->setFuture(future);
+        DUChainControlFlowJob *job = new DUChainControlFlowJob(projectName, this);
+        job->setControlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobBatchForProject);
+        m_project = project;
+        connect (job, SIGNAL(result(KJob *)), this, SLOT(generationDone(KJob *)));
+        ICore::self()->runController()->registerJob(job);
     }
 }
 
-void KDevControlFlowGraphViewPlugin::generateControlFlowGraph(IndexedDeclaration ideclaration)
+void KDevControlFlowGraphViewPlugin::generateControlFlowGraph()
 {
     DUChainReadLocker readLock(DUChain::lock());
 
-    Declaration *declaration = ideclaration.data();
+    Declaration *declaration = m_ideclaration.data();
     if (!declaration)
         return;
 
+    kDebug();
     m_duchainControlFlow = new DUChainControlFlow;
     m_dotControlFlowGraph = new DotControlFlowGraph;
 
     configureDuchainControlFlow(m_duchainControlFlow, m_dotControlFlowGraph, m_fileDialog);
 
-    m_duchainControlFlow->generateControlFlowForDeclaration(ideclaration, IndexedTopDUContext(declaration->topContext()), IndexedDUContext(declaration->internalContext()));
+    m_duchainControlFlow->generateControlFlowForDeclaration(m_ideclaration, IndexedTopDUContext(declaration->topContext()), IndexedDUContext(declaration->internalContext()));
 }
 
-void KDevControlFlowGraphViewPlugin::generateClassControlFlowGraph(IndexedDeclaration ideclaration)
+void KDevControlFlowGraphViewPlugin::generateClassControlFlowGraph()
 {
     DUChainReadLocker readLock(DUChain::lock());
 
-    Declaration *declaration = ideclaration.data();
+    Declaration *declaration = m_ideclaration.data();
     if (!declaration)
         return;
 
+    kDebug();
     m_duchainControlFlow = new DUChainControlFlow;
     m_dotControlFlowGraph = new DotControlFlowGraph;
     
@@ -394,8 +400,12 @@ void KDevControlFlowGraphViewPlugin::generateClassControlFlowGraph(IndexedDeclar
     }
 }
 
-void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph(IProject *project)
+void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph()
 {
+    if (!m_project)
+        return;
+    
+    kDebug();
     m_duchainControlFlow = new DUChainControlFlow;
     m_dotControlFlowGraph = new DotControlFlowGraph;
 
@@ -404,9 +414,9 @@ void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph(IProject *p
     DUChainReadLocker readLock(DUChain::lock());
     
     int i = 0;
-    int max = project->fileSet().size();
+    int max = m_project->fileSet().size();
     // For each source file
-    foreach(const IndexedString &file, project->fileSet())
+    foreach(const IndexedString &file, m_project->fileSet())
     {
         uint codeModelItemCount = 0;
         const CodeModelItem *codeModelItems = 0;
@@ -456,10 +466,9 @@ void KDevControlFlowGraphViewPlugin::setActiveToolView(ControlFlowGraphView *act
     refreshActiveToolView();
 }
 
-void KDevControlFlowGraphViewPlugin::generationDone()
+void KDevControlFlowGraphViewPlugin::generationDone(KJob *job)
 {
-    if (sender())
-        sender()->deleteLater(); // Deleting FutureWatcher
+    job->deleteLater();
 
     m_dotControlFlowGraph->exportGraph(m_fileDialog->selectedFile());
 
