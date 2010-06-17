@@ -34,6 +34,7 @@ class ControlFlowGraphNavigationWidget : public AbstractNavigationWidget
     Q_OBJECT
 public:
     ControlFlowGraphNavigationWidget(const QString &label, const ControlFlowGraphNavigationContext::ArcUses &arcUses);
+    virtual ~ControlFlowGraphNavigationWidget();
 };
 
 #endif

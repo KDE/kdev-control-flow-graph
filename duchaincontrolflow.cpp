@@ -66,14 +66,13 @@ DUChainControlFlow::DUChainControlFlow()
   m_drawIncomingArcs(true),
   m_useFolderName(true),
   m_useShortNames(true),
+  m_ShowUsesOnEdgeHover(true),
   m_controlFlowMode(ControlFlowClass),
   m_clusteringModes(ClusteringNamespace),
   m_graphThreadRunning(false),
   m_collector(0)
 {
     qRegisterMetaType<Use>("Use");
-    connect(this, SIGNAL(updateToolTip(const QString &, const QPoint&, QWidget *)),
-            SLOT(slotUpdateToolTip(const QString &, const QPoint&, QWidget *)));
     ICore::self()->uiController()->registerStatus(this);
 }
 
@@ -332,29 +331,27 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     }
 }
 
-void DUChainControlFlow::slotUpdateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget)
+void DUChainControlFlow::updateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget)
 {
     ControlFlowGraphNavigationWidget *navigationWidget =
                 new ControlFlowGraphNavigationWidget(edge, m_arcUsesMap.values(edge));
     
     KDevelop::NavigationToolTip *usesToolTip = new KDevelop::NavigationToolTip(
                                   partWidget,
-                                  partWidget->mapToGlobal(QPoint(20, 20)) + point,
+                                  point,
                                   navigationWidget);
 
     usesToolTip->resize(navigationWidget->sizeHint() + QSize(10, 10));
     ActiveToolTip::showToolTip(usesToolTip);
 }
 
-void DUChainControlFlow::slotGraphElementSelected(const QList<QString> list, const QPoint& point)
+void DUChainControlFlow::slotGraphElementSelected(QList<QString> list, const QPoint& point)
 {
+    Q_UNUSED(point)
     if (!list.isEmpty())
     {
         QString label = list[0];
         Declaration *declaration = m_identifierDeclarationMap[label].data();
-        
-        if (!declaration)
-            return;
         
         DUChainReadLocker lock(DUChain::lock());
         
@@ -367,12 +364,17 @@ void DUChainControlFlow::slotGraphElementSelected(const QList<QString> list, con
             
             ICore::self()->documentController()->openDocument(url, range.start());
         }
-        else if (label.contains("->")) // Edge click, show uses contained in the edge
-        {
-            KParts::ReadOnlyPart *part = dynamic_cast<KParts::ReadOnlyPart *>(sender());
-            if (!part) return;
-            emit updateToolTip(label, point, part->widget());
-        }
+    }
+}
+
+void DUChainControlFlow::slotEdgeHover(QString label)
+{
+    if (label.contains("->") && m_ShowUsesOnEdgeHover) // Edge click, show uses contained in the edge
+    {
+        KParts::ReadOnlyPart *part = dynamic_cast<KParts::ReadOnlyPart *>(sender());
+        if (!part)
+            return;
+        updateToolTip(label, QCursor::pos(), part->widget());
     }
 }
 
@@ -399,6 +401,11 @@ void DUChainControlFlow::setDrawIncomingArcs(bool drawIncomingArcs)
 void DUChainControlFlow::setMaxLevel(int maxLevel)
 {
     m_maxLevel = maxLevel;
+}
+
+void DUChainControlFlow::setShowUsesOnEdgeHover(bool checked)
+{
+    m_ShowUsesOnEdgeHover = checked;
 }
 
 void DUChainControlFlow::refreshGraph()
@@ -547,8 +554,10 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
         }
         declarationUrl = declarationUrl.remove(0, smallestDirectory.length());
         declarationUrl = declarationUrl.remove(KUrl(declaration->url().str()).fileName());
-        if (declarationUrl.endsWith('/')) declarationUrl.chop(1);
-        if (declarationUrl.startsWith('/')) declarationUrl.remove(0, 1);
+        if (declarationUrl.endsWith('/'))
+            declarationUrl.chop(1);
+        if (declarationUrl.startsWith('/'))
+            declarationUrl.remove(0, 1);
         declarationUrl = declarationUrl.replace('/', "::");
         if (!declarationUrl.isEmpty())
             return declarationUrl;

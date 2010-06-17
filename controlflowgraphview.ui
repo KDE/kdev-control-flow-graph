@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>558</width>
+    <width>611</width>
     <height>196</height>
    </rect>
   </property>
@@ -44,6 +44,22 @@
         <string>...</string>
        </property>
        <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="usesHoverToolButton">
+       <property name="toolTip">
+        <string>Enable/Disable Uses Show on Edge Hover</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
         <bool>true</bool>
        </property>
       </widget>

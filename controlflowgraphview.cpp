@@ -72,6 +72,7 @@ m_graphLocked(false)
             m_duchainControlFlow->setMaxLevel(2);
 
             birdseyeToolButton->setIcon(KIcon("edit-find"));
+            usesHoverToolButton->setIcon(KIcon("input-mouse"));
             zoominToolButton->setIcon(KIcon("zoom-in"));
             zoomoutToolButton->setIcon(KIcon("zoom-out"));
 
@@ -107,7 +108,9 @@ m_graphLocked(false)
             birdseyeToolButton->setDefaultAction(m_part->actionCollection()->action("view_bev_enabled"));
             connect(m_part, SIGNAL(selectionIs(const QList<QString>, const QPoint&)),
                     m_duchainControlFlow, SLOT(slotGraphElementSelected(const QList<QString>,QPoint)));
+            connect(m_part, SIGNAL(hoverEnter(QString)), m_duchainControlFlow, SLOT(slotEdgeHover(QString)));
             connect(exportToolButton, SIGNAL(clicked()), SLOT(exportControlFlowGraph()));
+            connect(usesHoverToolButton, SIGNAL(toggled(bool)), m_duchainControlFlow, SLOT(setShowUsesOnEdgeHover(bool)));
 
             // Make sure we have a graph before we hook up signals to act on it
             m_dotControlFlowGraph->prepareNewGraph();

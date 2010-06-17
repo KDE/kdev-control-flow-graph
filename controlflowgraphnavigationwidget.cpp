@@ -26,7 +26,12 @@ using namespace KDevelop;
 ControlFlowGraphNavigationWidget::ControlFlowGraphNavigationWidget(const QString &label, const ControlFlowGraphNavigationContext::ArcUses &arcUses)
 {
     initBrowser(400);
+    setFocusPolicy(Qt::NoFocus);
     ControlFlowGraphNavigationContext *context = new ControlFlowGraphNavigationContext(label, arcUses, TopDUContextPointer(0));
     setContext(NavigationContextPointer(context));
     connect(m_browser, SIGNAL(anchorClicked(const QUrl &)), context, SLOT(slotAnchorClicked(const QUrl &)));
+}
+
+ControlFlowGraphNavigationWidget::~ControlFlowGraphNavigationWidget()
+{
 }

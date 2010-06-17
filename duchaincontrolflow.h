@@ -84,7 +84,6 @@ Q_SIGNALS:
     void foundFunctionCall(const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target);
     void graphDone();
     void clearGraph();
-    void updateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget);
 
     // Implementations of IStatus signals
     void clearMessage(KDevelop::IStatus*);
@@ -96,14 +95,15 @@ public Q_SLOTS:
     void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
     void processFunctionCall(Declaration *source, Declaration *target, const Use &use);
 
-    void slotUpdateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget);
     void slotGraphElementSelected(const QList<QString> list, const QPoint& point);
+    void slotEdgeHover(QString label);
 
     void setLocked(bool locked);
     void setUseFolderName(bool useFolderName);
     void setUseShortNames(bool useFolderName);
     void setDrawIncomingArcs(bool drawIncomingArcs);
     void setMaxLevel(int maxLevel);
+    void setShowUsesOnEdgeHover(bool checked);
 
     void refreshGraph();
     void newGraph();
@@ -117,6 +117,7 @@ private:
     QString globalNamespaceOrFolderNames(Declaration *declaration);
     QString prependFolderNames(Declaration *declaration);
     QString shortNameFromContainers(const QList<QString> &containers, const QString &qualifiedIdentifier);
+    void updateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget);
 
     IndexedDUContext m_previousUppermostExecutableContext;
 
@@ -138,6 +139,7 @@ private:
     bool m_drawIncomingArcs;
     bool m_useFolderName;
     bool m_useShortNames;
+    bool m_ShowUsesOnEdgeHover;
 
     ControlFlowMode m_controlFlowMode;
     ClusteringModes m_clusteringModes;

@@ -109,6 +109,7 @@ void DotControlFlowGraph::foundRootNode (const QStringList &containers, const QS
     std::sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
     agsafeset(node, STYLE, FILLED, EMPTY);
     agsafeset(node, FILLCOLOR, color, EMPTY);
+    agsafeset(node, LABEL, label.toUtf8().data(), EMPTY);
 }
 
 void DotControlFlowGraph::foundFunctionCall (const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target)
@@ -150,16 +151,21 @@ void DotControlFlowGraph::foundFunctionCall (const QStringList &sourceContainers
 
     char color[8];
     char ID[] = "id";
-    agsafeset(src, SHAPE, BOX, EMPTY);
+
     QColor c = colorFromQualifiedIdentifier(source);
     std::sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
     agsafeset(src, STYLE, FILLED, EMPTY);
     agsafeset(src, FILLCOLOR, color, EMPTY);
-    agsafeset(tgt, SHAPE, BOX, EMPTY);
+    agsafeset(src, SHAPE, BOX, EMPTY);
+    agsafeset(src, LABEL, source.toUtf8().data(), EMPTY);
+
     c = colorFromQualifiedIdentifier(target);
     std::sprintf (color, "#%02x%02x%02x", c.red(), c.green(), c.blue());
     agsafeset(tgt, STYLE, FILLED, EMPTY);
     agsafeset(tgt, FILLCOLOR, color, EMPTY);
+    agsafeset(tgt, SHAPE, BOX, EMPTY);
+    agsafeset(tgt, LABEL, target.toUtf8().data(), EMPTY);
+
     Agedge_t* edge;
     if (sourceGraph == targetGraph)
         edge = agedge(sourceGraph, src, tgt);
