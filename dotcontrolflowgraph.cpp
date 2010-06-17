@@ -102,7 +102,7 @@ void DotControlFlowGraph::foundRootNode (const QStringList &containers, const QS
         agsafeset(graph, LABEL, container.toUtf8().data(), EMPTY);
     }
 
-    Agnode_t *node = agnode(graph, label.toUtf8().data());
+    Agnode_t *node = agnode(graph, (containers.join("") + label).toUtf8().data());
     agsafeset(node, SHAPE, BOX, EMPTY);
     QColor c = colorFromQualifiedIdentifier(label);
     char color[8];
@@ -112,7 +112,7 @@ void DotControlFlowGraph::foundRootNode (const QStringList &containers, const QS
     agsafeset(node, LABEL, label.toUtf8().data(), EMPTY);
 }
 
-void DotControlFlowGraph::foundFunctionCall (const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target)
+void DotControlFlowGraph::foundFunctionCall(const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target)
 {
     if (!m_rootGraph) {
         // This shouldn't happen, as the graph should be generated before this function
@@ -120,7 +120,7 @@ void DotControlFlowGraph::foundFunctionCall (const QStringList &sourceContainers
         Q_ASSERT(false);
         return;
     }
-    Agraph_t *sourceGraph, *targetGraph;
+    Agraph_t *sourceGraph, *targetGraph, *newGraph;
     sourceGraph = targetGraph = m_rootGraph;
     QString absoluteContainer;
 
@@ -128,26 +128,30 @@ void DotControlFlowGraph::foundFunctionCall (const QStringList &sourceContainers
     {
         Agraph_t *previousGraph = sourceGraph;
         absoluteContainer += container;
-        if (!(sourceGraph = m_namedGraphs[absoluteContainer]))
+        if (!m_namedGraphs.contains(absoluteContainer))
         {
-            sourceGraph = m_namedGraphs[absoluteContainer] = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data());
-            agsafeset(sourceGraph, LABEL, container.toUtf8().data(), EMPTY);
+            newGraph = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data());
+            m_namedGraphs.insert(absoluteContainer, newGraph);
+            agsafeset(newGraph, LABEL, container.toUtf8().data(), EMPTY);
         }
+        sourceGraph = m_namedGraphs[absoluteContainer];
     }
     absoluteContainer.clear();
     foreach (const QString& container, targetContainers)
     {
         Agraph_t *previousGraph = targetGraph;
         absoluteContainer += container;
-        if (!(targetGraph = m_namedGraphs[absoluteContainer]))
+        if (!m_namedGraphs.contains(absoluteContainer))
         {
-            targetGraph = m_namedGraphs[absoluteContainer] = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data());
-            agsafeset(targetGraph, LABEL, container.toUtf8().data(), EMPTY);
+            Agraph_t *newGraph = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data());
+            m_namedGraphs.insert(absoluteContainer, newGraph);
+            agsafeset(newGraph, LABEL, container.toUtf8().data(), EMPTY);
         }
+        targetGraph = m_namedGraphs[absoluteContainer];
     }
 
-    Agnode_t* src = agnode(sourceGraph, source.toUtf8().data());
-    Agnode_t* tgt = agnode(targetGraph, target.toUtf8().data());
+    Agnode_t* src = agnode(sourceGraph, (sourceContainers.join("") + source).toUtf8().data());
+    Agnode_t* tgt = agnode(targetGraph, (targetContainers.join("") + target).toUtf8().data());
 
     char color[8];
     char ID[] = "id";

@@ -30,7 +30,8 @@ class ControlFlowGraphUsesCollector : public UsesCollector
 {
     Q_OBJECT
 public:
-    ControlFlowGraphUsesCollector (IndexedDeclaration declaration);
+    ControlFlowGraphUsesCollector(IndexedDeclaration declaration);
+    virtual ~ControlFlowGraphUsesCollector();
 Q_SIGNALS:
     void processFunctionCall(Declaration *source, Declaration *target, const Use &use);
 private:

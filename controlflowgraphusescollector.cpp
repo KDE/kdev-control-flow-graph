@@ -20,6 +20,9 @@
 #include "controlflowgraphusescollector.h"
 
 #include <language/duchain/use.h>
+#include <language/duchain/duchain.h>
+#include <language/duchain/declaration.h>
+#include <language/duchain/duchainlock.h>
 
 using namespace KDevelop;
 
@@ -28,10 +31,15 @@ ControlFlowGraphUsesCollector::ControlFlowGraphUsesCollector(IndexedDeclaration 
 {
 }
 
+ControlFlowGraphUsesCollector::~ControlFlowGraphUsesCollector()
+{
+}
+
 void ControlFlowGraphUsesCollector::processUses(ReferencedTopDUContext topContext)
 {
     if (topContext.data())
     {
+        DUChainReadLocker lock(DUChain::lock());
         CodeRepresentation::Ptr code = createCodeRepresentation(topContext.data()->url());
         processContext(topContext.data(), code);
     }
@@ -39,10 +47,19 @@ void ControlFlowGraphUsesCollector::processUses(ReferencedTopDUContext topContex
 
 void ControlFlowGraphUsesCollector::processContext(DUContext *context, CodeRepresentation::Ptr code)
 {
-    foreach (const IndexedDeclaration &declaration, declarations())
+    foreach (const IndexedDeclaration &ideclaration, declarations())
     {
-        int declarationIndex = context->topContext()->indexForUsedDeclaration(declaration.data(), false);
-        for (int useIndex = 0; useIndex < context->usesCount(); ++useIndex)
+        Declaration *declaration = ideclaration.data();
+        if (!declaration)
+            continue;
+        
+        int declarationIndex = context->topContext()->indexForUsedDeclaration(declaration, false);
+        if (declarationIndex == std::numeric_limits<int>::max())
+            continue;
+        
+        int usesCount = context->usesCount();
+        for (int useIndex = 0; useIndex < usesCount; ++useIndex)
+        {
             if (context->uses()[useIndex].m_declarationIndex == declarationIndex)
             {
                 // Navigate to uppermost executable context
@@ -61,6 +78,7 @@ void ControlFlowGraphUsesCollector::processContext(DUContext *context, CodeRepre
 
                 emit processFunctionCall(definition, m_declaration.data(), context->uses()[useIndex]);
             }
+        }
     }
     foreach (DUContext *child, context->childContexts())
         processContext(child, code);

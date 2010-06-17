@@ -142,15 +142,18 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
 
     if (m_drawIncomingArcs)
     {
-        Declaration *declaration = nodeDefinition;
+        Declaration *declaration = definition;
         if (declaration->isDefinition())
             declaration = DUChainUtils::declarationForDefinition(declaration, topContext);
 
-        delete m_collector;
-        m_collector = new ControlFlowGraphUsesCollector(declaration);
-        m_collector->setProcessDeclarations(true);
-        connect(m_collector, SIGNAL(processFunctionCall(Declaration *, Declaration *, const Use &)), SLOT(processFunctionCall(Declaration *, Declaration *, const Use &)));
-        m_collector->startCollecting();
+        if (declaration)
+        {
+            delete m_collector;
+            m_collector = new ControlFlowGraphUsesCollector(declaration);
+            m_collector->setProcessDeclarations(true);
+            connect(m_collector, SIGNAL(processFunctionCall(Declaration *, Declaration *, const Use &)), SLOT(processFunctionCall(Declaration *, Declaration *, const Use &)));
+            m_collector->startCollecting();
+        }
     }
 
     emit hideProgress(this);
@@ -172,7 +175,7 @@ void DUChainControlFlow::run()
     DUContext *uppermostExecutableContext = m_currentContext.data();
     if (!uppermostExecutableContext)
         return;
-    
+
     while (uppermostExecutableContext->parentContext()->type() == DUContext::Other)
         uppermostExecutableContext = uppermostExecutableContext->parentContext();
 
@@ -286,8 +289,8 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
                                             globalNamespaceOrFolderNames(nodeTarget) :
                                             prependFolderNames(nodeTarget));
 
-    QString targetShortName = shortNameFromContainers(targetContainers, prependFolderNames(nodeTarget));
     QString sourceShortName = shortNameFromContainers(sourceContainers, prependFolderNames(nodeSource));
+    QString targetShortName = shortNameFromContainers(targetContainers, prependFolderNames(nodeTarget));
 
     if (sender() && dynamic_cast<ControlFlowGraphUsesCollector *>(sender()))
     {
@@ -296,11 +299,7 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     }
 
     IndexedDeclaration ideclaration = IndexedDeclaration(calledFunctionDefinition);
-    // If there is a flow (in accordance with control flow mode) emit signal
-    if (targetLabel != sourceLabel ||
-        m_controlFlowMode == ControlFlowFunction ||
-        (calledFunctionDefinition && m_visitedFunctions.contains(ideclaration)))
-        emit foundFunctionCall(sourceContainers, sourceLabel, targetContainers, targetLabel); 
+    emit foundFunctionCall(sourceContainers, sourceLabel, targetContainers, targetLabel); 
 
     if (calledFunctionDefinition)
         calledFunctionContext = calledFunctionDefinition->internalContext();
@@ -342,7 +341,7 @@ void DUChainControlFlow::updateToolTip(const QString &edge, const QPoint& point,
                                   navigationWidget);
 
     usesToolTip->resize(navigationWidget->sizeHint() + QSize(10, 10));
-    ActiveToolTip::showToolTip(usesToolTip);
+    ActiveToolTip::showToolTip(usesToolTip, 100, edge);
 }
 
 void DUChainControlFlow::slotGraphElementSelected(QList<QString> list, const QPoint& point)
