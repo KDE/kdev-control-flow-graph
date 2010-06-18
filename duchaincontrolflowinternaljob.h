@@ -35,6 +35,7 @@ public:
     enum ControlFlowJobType { ControlFlowJobInteractive, ControlFlowJobBatchForFunction, ControlFlowJobBatchForClass, ControlFlowJobBatchForProject };
     void setControlFlowJobType (ControlFlowJobType controlFlowJobType);
 
+    virtual void requestAbort();
 protected:
     void run();
 private:

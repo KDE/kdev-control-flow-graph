@@ -73,6 +73,7 @@ public:
     void generateControlFlowGraph();
     void generateClassControlFlowGraph();
     void generateProjectControlFlowGraph();
+    void requestAbort();
 public Q_SLOTS:
     void projectOpened(KDevelop::IProject* project);
     void projectClosed(KDevelop::IProject* project);
@@ -89,6 +90,7 @@ public Q_SLOTS:
     void slotExportProjectControlFlowGraph(bool value);
     void setActiveToolView(ControlFlowGraphView *activeToolView);
     void generationDone(KJob *job);
+    void exportGraph();
 Q_SIGNALS:
     // Implementations of IStatus signals
     void clearMessage(KDevelop::IStatus*);
@@ -110,10 +112,12 @@ private:
     IndexedDeclaration m_ideclaration;
     IProject *m_project;
     
-    DUChainControlFlow *m_duchainControlFlow;
-    DotControlFlowGraph *m_dotControlFlowGraph;
+    QPointer<DUChainControlFlow> m_duchainControlFlow;
+    QPointer<DotControlFlowGraph> m_dotControlFlowGraph;
 
     ControlFlowGraphFileDialog *m_fileDialog;
+
+    bool m_abort;
 };
 
 #endif

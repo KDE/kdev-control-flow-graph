@@ -53,16 +53,16 @@ QString ControlFlowGraphNavigationContext::html(bool shorten)
 
     modifyHtml() += importantHighlight(i18n("Uses of") + " ") + nodes[1] + importantHighlight(" " + i18n("from") + " ") + nodes[0] + "<hr>";
     unsigned int i = m_arcUses.size()-1;
-    QPair<Use, IndexedString> pair;
-    QListIterator< QPair<Use, IndexedString> > iterator(m_arcUses);
+    QPair<SimpleRange, IndexedString> pair;
+    QListIterator< QPair<SimpleRange, IndexedString> > iterator(m_arcUses);
     iterator.toBack();
 
     DUChainReadLocker lock(DUChain::lock());
     while (iterator.hasPrevious())
     {
         pair = iterator.previous();
-              CodeRepresentation::Ptr code = createCodeRepresentation(pair.second);
-        modifyHtml() += "<a href='" + QString::number(i--) + "'>" + pair.second.toUrl().fileName() + " (" + QString::number(pair.first.m_range.start.line+1) + ")</a>: " + Qt::escape(code->line(pair.first.m_range.start.line).trimmed()) + "<br>";
+        CodeRepresentation::Ptr code = createCodeRepresentation(pair.second);
+        modifyHtml() += "<a href='" + QString::number(i--) + "'>" + pair.second.toUrl().fileName() + " (" + QString::number(pair.first.start.line+1) + ")</a>: " + Qt::escape(code->line(pair.first.start.line).trimmed()) + "<br>";
     }
 
     modifyHtml() += "</small></small></p></body></html>";
@@ -73,10 +73,10 @@ QString ControlFlowGraphNavigationContext::html(bool shorten)
 void ControlFlowGraphNavigationContext::slotAnchorClicked(const QUrl &link)
 {
     int position = link.toString().toInt();
-    QPair<Use, IndexedString> pair = m_arcUses[position];
+    QPair<SimpleRange, IndexedString> pair = m_arcUses[position];
     DUChainReadLocker lock(DUChain::lock());
     KUrl url(pair.second.toUrl());
-    KTextEditor::Cursor cursor = pair.first.m_range.start.textCursor();
+    KTextEditor::Cursor cursor = pair.first.start.textCursor();
     lock.unlock();
     ICore::self()->documentController()->openDocument(url, cursor);
 }

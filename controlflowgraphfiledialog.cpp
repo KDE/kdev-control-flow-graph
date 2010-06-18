@@ -54,12 +54,6 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(const KUrl& startDir, con
         m_configurationWidget->useFolderNameCheckBox->setIcon(KIcon("folder-favorites"));
         m_configurationWidget->useShortNamesCheckBox->setIcon(KIcon("application-x-arc"));
 
-        if (mode == ForClassConfigurationButtons)
-        {
-            m_configurationWidget->drawIncomingArcsCheckBox->setChecked(false);
-            m_configurationWidget->drawIncomingArcsCheckBox->setEnabled(false);
-        }
-
         connect(m_configurationWidget->controlFlowFunctionRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
         connect(m_configurationWidget->controlFlowClassRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
         connect(m_configurationWidget->controlFlowNamespaceRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));

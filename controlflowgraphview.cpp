@@ -293,5 +293,3 @@ void ControlFlowGraphView::hideEvent(QHideEvent *event)
     Q_UNUSED(event);
     m_plugin->setActiveToolView(0);
 }
-
-#include "controlflowgraphview.moc"

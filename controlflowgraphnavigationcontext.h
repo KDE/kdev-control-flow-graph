@@ -31,7 +31,7 @@ class ControlFlowGraphNavigationContext : public QObject, public AbstractNavigat
 {
     Q_OBJECT
 public:
-    typedef QList< QPair<Use, IndexedString> > ArcUses;
+    typedef QList< QPair<SimpleRange, IndexedString> > ArcUses;
 
     ControlFlowGraphNavigationContext(const QString &label, const ArcUses &arcUses, TopDUContextPointer topContext, AbstractNavigationContext *previousContext = 0);
 
@@ -41,7 +41,7 @@ public Q_SLOTS:
     void slotAnchorClicked(const QUrl &link);
 private:
     const QString &m_label;
-    QList< QPair<Use, IndexedString> > m_arcUses;
+    QList< QPair<SimpleRange, IndexedString> > m_arcUses;
 };
 
 #endif

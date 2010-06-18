@@ -23,6 +23,10 @@
 
 #include <ThreadWeaver/Weaver>
 
+#include <interfaces/icore.h>
+#include <interfaces/iuicontroller.h>
+#include <interfaces/iruncontroller.h>
+
 DUChainControlFlowJob::DUChainControlFlowJob(const QString &jobName, DUChainControlFlow *duchainControlFlow)
  : m_duchainControlFlow(duchainControlFlow),
    m_plugin(0),
@@ -45,11 +49,19 @@ void DUChainControlFlowJob::init(const QString &jobName)
 {
     setObjectName(i18n("Control flow graph generation for %1", jobName));
     setCapabilities(Killable);    
+    ICore::self()->uiController()->registerStatus(this);
 }
 
 DUChainControlFlowJob::~DUChainControlFlowJob()
 {
-    delete m_internalJob;
+    ThreadWeaver::Weaver::instance()->dequeue(m_internalJob);
+    m_internalJob->requestAbort();
+    m_internalJob->deleteLater();
+}
+
+QString DUChainControlFlowJob::statusName() const
+{
+    return i18n("Control Flow Graph");
 }
 
 void DUChainControlFlowJob::setControlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobType controlFlowJobType)
@@ -59,20 +71,26 @@ void DUChainControlFlowJob::setControlFlowJobType(DUChainControlFlowInternalJob:
 
 void DUChainControlFlowJob::start()
 {
+    emit showProgress(this, 0, 0, 0);
+    emit showMessage(this, objectName());
+
     m_internalJob = new DUChainControlFlowInternalJob(m_duchainControlFlow, m_plugin);
     m_internalJob->setControlFlowJobType(m_controlFlowJobType);
-    connect(m_internalJob, SIGNAL(done(ThreadWeaver::Job*)), SLOT(done(ThreadWeaver::Job*)));
+    connect(m_internalJob, SIGNAL(done(ThreadWeaver::Job *)), SLOT(done(ThreadWeaver::Job *)));
     ThreadWeaver::Weaver::instance()->enqueue(m_internalJob);
 }
 
 bool DUChainControlFlowJob::doKill()
 {
-    // Run controller stops all jobs with Quietly KillVerbosity, but plugins needs emitResult()
-    emitResult();
+    emit hideProgress(this);
+    emit clearMessage(this);
     return true;
 }
 
-void DUChainControlFlowJob::done(ThreadWeaver::Job*)
+void DUChainControlFlowJob::done(ThreadWeaver::Job *)
 {
+    emit hideProgress(this);
+    emit clearMessage(this);
+
     emitResult();
 }

@@ -24,6 +24,8 @@
 
 #include <KJob>
 
+#include <interfaces/istatus.h>
+
 #include "duchaincontrolflowinternaljob.h"
 
 namespace ThreadWeaver
@@ -35,20 +37,32 @@ class DUChainControlFlow;
 class DUChainControlFlowInternalJob;
 class KDevControlFlowGraphViewPlugin;
 
-class DUChainControlFlowJob : public KJob
+using namespace KDevelop;
+
+class DUChainControlFlowJob : public KJob, public IStatus
 {
     Q_OBJECT
+    Q_INTERFACES(KDevelop::IStatus)
 public:
     DUChainControlFlowJob(const QString &jobName, DUChainControlFlow *duchainControlFlow);
     DUChainControlFlowJob(const QString &jobName, KDevControlFlowGraphViewPlugin *plugin);
     virtual ~DUChainControlFlowJob();
-    
+
+    virtual QString statusName() const;
+
     void setControlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobType controlFlowJobType);
     
     virtual void start();
     virtual bool doKill();
+Q_SIGNALS:
+    // Implementations of IStatus signals
+    void clearMessage(KDevelop::IStatus *);
+    void showMessage(KDevelop::IStatus *, const QString &message, int timeout = 0);
+    void hideProgress(KDevelop::IStatus *);
+    void showProgress(KDevelop::IStatus *, int minimum, int maximum, int value);
+    void showErrorMessage(const QString &, int);
 private Q_SLOTS:
-    void done(ThreadWeaver::Job*);
+    void done(ThreadWeaver::Job *);
 private:
     void init(const QString &jobName);
     DUChainControlFlow *m_duchainControlFlow;

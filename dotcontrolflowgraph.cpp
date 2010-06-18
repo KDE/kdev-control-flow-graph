@@ -185,4 +185,3 @@ const QColor& DotControlFlowGraph::colorFromQualifiedIdentifier(const QString &l
     else
         return m_colorMap[label.split("::")[0]] = QColor::fromHsv(qrand() % 256, 255, 190);
 }
-

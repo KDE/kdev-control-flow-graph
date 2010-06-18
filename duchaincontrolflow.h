@@ -25,8 +25,6 @@
 #include <QPair>
 #include <QPointer>
 
-#include <interfaces/istatus.h>
-
 #include <language/duchain/indexeditems.h>
 #include <language/duchain/ducontext.h>
 
@@ -51,15 +49,12 @@ class ControlFlowGraphUsesCollector;
 
 using namespace KDevelop;
 
-class DUChainControlFlow : public QObject, public IStatus
+class DUChainControlFlow : public QObject
 {
     Q_OBJECT
-    Q_INTERFACES(KDevelop::IStatus)
 public:
     DUChainControlFlow();
     virtual ~DUChainControlFlow();
-
-    virtual QString statusName() const;
 
     enum ControlFlowMode { ControlFlowFunction, ControlFlowClass, ControlFlowNamespace };
     void setControlFlowMode(ControlFlowMode controlFlowMode);
@@ -85,12 +80,6 @@ Q_SIGNALS:
     void graphDone();
     void clearGraph();
 
-    // Implementations of IStatus signals
-    void clearMessage(KDevelop::IStatus*);
-    void showMessage(KDevelop::IStatus*, const QString &message, int timeout = 0);
-    void hideProgress(KDevelop::IStatus*);
-    void showProgress(KDevelop::IStatus*, int minimum, int maximum, int value);
-    void showErrorMessage(const QString&, int);
 public Q_SLOTS:
     void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
     void processFunctionCall(Declaration *source, Declaration *target, const Use &use);
@@ -130,7 +119,7 @@ private:
     
     QSet<IndexedDeclaration> m_visitedFunctions;
     QHash<QString, IndexedDeclaration> m_identifierDeclarationMap;
-    QMultiHash<QString, QPair<Use, IndexedString> > m_arcUsesMap;
+    QMultiHash<QString, QPair<SimpleRange, IndexedString> > m_arcUsesMap;
     QPointer<KDevelop::IProject> m_currentProject;
     
     int  m_currentLevel;
@@ -146,7 +135,7 @@ private:
     
     bool m_graphThreadRunning;
     
-    ControlFlowGraphUsesCollector *m_collector;
+    QPointer<ControlFlowGraphUsesCollector> m_collector;
     KUrl::List m_includeDirectories;
 };
 

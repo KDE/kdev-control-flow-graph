@@ -28,8 +28,6 @@
 
 #include <interfaces/icore.h>
 #include <interfaces/iproject.h>
-#include <interfaces/iuicontroller.h>
-#include <interfaces/iruncontroller.h>
 #include <interfaces/iprojectcontroller.h>
 #include <interfaces/ilanguagecontroller.h>
 #include <interfaces/idocumentcontroller.h>
@@ -73,17 +71,12 @@ DUChainControlFlow::DUChainControlFlow()
   m_collector(0)
 {
     qRegisterMetaType<Use>("Use");
-    ICore::self()->uiController()->registerStatus(this);
 }
 
 DUChainControlFlow::~DUChainControlFlow()
 {
+    KDevelop::ICore::self()->languageController()->backgroundParser()->revertAllRequests(this);
     delete m_collector;
-}
-
-QString DUChainControlFlow::statusName() const
-{
-    return i18n("Control Flow Graph");
 }
 
 void DUChainControlFlow::setControlFlowMode(ControlFlowMode controlFlowMode)
@@ -116,9 +109,6 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
     DUContext *uppermostExecutableContext = iuppermostExecutableContext.data();
     if (!uppermostExecutableContext)
         return;
-
-    emit showProgress(this, 0, 0, 0);
-    emit showMessage(this, i18n("Generating graph for function %1", definition->identifier().toString()));
 
     // Convert to a declaration in accordance with control flow mode (function, class or namespace)
     Declaration *nodeDefinition = declarationFromControlFlowMode(definition);
@@ -156,8 +146,6 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
         }
     }
 
-    emit hideProgress(this);
-    emit clearMessage(this);
     emit graphDone();
     m_currentLevel = 1;
 }
@@ -170,35 +158,6 @@ bool DUChainControlFlow::isLocked()
 void DUChainControlFlow::run()
 {
     DUChainReadLocker lock(DUChain::lock());
-
-    // Navigate to uppermost executable context
-    DUContext *uppermostExecutableContext = m_currentContext.data();
-    if (!uppermostExecutableContext)
-        return;
-
-    while (uppermostExecutableContext->parentContext() && uppermostExecutableContext->parentContext()->type() == DUContext::Other)
-        uppermostExecutableContext = uppermostExecutableContext->parentContext();
-
-    // If cursor is in the same function definition
-    if (IndexedDUContext(uppermostExecutableContext) == m_previousUppermostExecutableContext)
-        return;
-
-    m_previousUppermostExecutableContext = IndexedDUContext(uppermostExecutableContext);
-
-    // Get the definition
-    Declaration* definition = 0;
-    if (!uppermostExecutableContext || !uppermostExecutableContext->owner())
-        return;
-    else
-        definition = uppermostExecutableContext->owner();
-
-    if (!definition) return;
-
-    newGraph();
-    emit prepareNewGraph();
-
-    m_definition = IndexedDeclaration(definition);
-    m_uppermostExecutableContext = IndexedDUContext(uppermostExecutableContext);
 
     generateControlFlowForDeclaration(m_definition, m_topContext, m_uppermostExecutableContext);
 }
@@ -256,10 +215,39 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
                 m_includeDirectories = buildSystemManager->includeDirectories(project_item);
         }
 
+        // Navigate to uppermost executable context
+        DUContext *uppermostExecutableContext = m_currentContext.data();
+        if (!uppermostExecutableContext)
+            return;
+
+        while (uppermostExecutableContext->parentContext() && uppermostExecutableContext->parentContext()->type() == DUContext::Other)
+            uppermostExecutableContext = uppermostExecutableContext->parentContext();
+
+        // If cursor is in the same function definition
+        if (IndexedDUContext(uppermostExecutableContext) == m_previousUppermostExecutableContext)
+            return;
+
+        m_previousUppermostExecutableContext = IndexedDUContext(uppermostExecutableContext);
+
+        // Get the definition
+        Declaration* definition = 0;
+        if (!uppermostExecutableContext || !uppermostExecutableContext->owner())
+            return;
+        else
+            definition = uppermostExecutableContext->owner();
+
+        if (!definition) return;
+
+        newGraph();
+        emit prepareNewGraph();
+
+        m_definition = IndexedDeclaration(definition);
+        m_uppermostExecutableContext = IndexedDUContext(uppermostExecutableContext);
+
         m_graphThreadRunning = true;
         DUChainControlFlowJob *job = new DUChainControlFlowJob(context->scopeIdentifier().toString(), this);
         connect (job, SIGNAL(result(KJob *)), this, SLOT(jobDone (KJob *)));
-        ICore::self()->runController()->registerJob(job);
+        job->start();
     }
 }
 
@@ -311,12 +299,16 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
         // Store method declaration for navigation
         m_identifierDeclarationMap[targetContainers.join("") + targetShortName] = IndexedDeclaration(nodeTarget);
         // Store use for edge inspection
-        m_arcUsesMap.insert(sourceLabel + "->" + targetLabel, QPair<Use, IndexedString>(use, source->url()));
+        QPair<SimpleRange, IndexedString> pair(use.m_range, source->url());
+        if (!m_arcUsesMap.values(sourceLabel + "->" + targetLabel).contains(pair))
+            m_arcUsesMap.insertMulti(sourceLabel + "->" + targetLabel, pair);
         return;
     }
 
     // Store use for edge inspection
-    m_arcUsesMap.insert(sourceLabel + "->" + targetLabel, QPair<Use, IndexedString>(use, source->url()));
+    QPair<SimpleRange, IndexedString> pair(use.m_range, source->url());
+    if (!m_arcUsesMap.values(sourceLabel + "->" + targetLabel).contains(pair))
+        m_arcUsesMap.insertMulti(sourceLabel + "->" + targetLabel, pair);
     // Store method definition for navigation
     m_identifierDeclarationMap[targetContainers.join("") + targetShortName] = IndexedDeclaration(declarationFromControlFlowMode(calledFunctionDefinition));
 
@@ -494,8 +486,8 @@ Declaration *DUChainControlFlow::declarationFromControlFlowMode(Declaration *def
                nodeDeclaration->context()->owner() &&
                ((m_controlFlowMode == ControlFlowClass && nodeDeclaration->context() && nodeDeclaration->context()->type() == DUContext::Class) ||
                 (m_controlFlowMode == ControlFlowNamespace && (
-                                                              nodeDeclaration->context() && nodeDeclaration->context()->type() == DUContext::Class ||
-                                                              nodeDeclaration->context() && nodeDeclaration->context()->type() == DUContext::Namespace)
+                                                              (nodeDeclaration->context() && nodeDeclaration->context()->type() == DUContext::Class) ||
+                                                              (nodeDeclaration->context() && nodeDeclaration->context()->type() == DUContext::Namespace))
               )))
             nodeDeclaration = nodeDeclaration->context()->owner();
     }
