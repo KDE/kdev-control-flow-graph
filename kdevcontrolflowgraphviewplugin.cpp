@@ -278,6 +278,13 @@ void KDevControlFlowGraphViewPlugin::slotExportControlFlowGraph(bool value)
 {
     // Export graph for a given function
     Q_UNUSED(value);
+    
+    if (m_duchainControlFlow || m_dotControlFlowGraph)
+    {
+        KMessageBox::error((QWidget *) core()->uiController()->activeMainWindow(), i18n("There is a graph being currently exported. Please stop it before requiring a new one"));
+        return;
+    }
+    
     Q_ASSERT(qobject_cast<QAction *>(sender()));
     QAction *action = static_cast<QAction *>(sender());
     Q_ASSERT(action->data().canConvert<DUChainBasePointer>());
@@ -316,6 +323,13 @@ void KDevControlFlowGraphViewPlugin::slotExportClassControlFlowGraph(bool value)
 {
     // Export graph for all functions of a given class - individual per-function graphs will be merged
     Q_UNUSED(value);
+
+    if (m_duchainControlFlow || m_dotControlFlowGraph)
+    {
+        KMessageBox::error((QWidget *) core()->uiController()->activeMainWindow(), i18n("There is a graph being currently exported. Please stop it before requiring a new one"));
+        return;
+    }
+
     Q_ASSERT(qobject_cast<QAction *>(sender()));
     QAction *action = static_cast<QAction *>(sender());
     Q_ASSERT(action->data().canConvert<DUChainBasePointer>());
@@ -345,6 +359,13 @@ void KDevControlFlowGraphViewPlugin::slotExportProjectControlFlowGraph(bool valu
 {
     // Export graph for all classes of a given project - individual per-class graphs will be merged
     Q_UNUSED(value);
+
+    if (m_duchainControlFlow || m_dotControlFlowGraph)
+    {
+        KMessageBox::error((QWidget *) core()->uiController()->activeMainWindow(), i18n("There is a graph being currently exported. Please stop it before requiring a new one"));
+        return;
+    }
+
     Q_ASSERT(qobject_cast<QAction *>(sender()));
     QAction *action = static_cast<QAction *>(sender());
     Q_ASSERT(action->data().canConvert<QString>());
@@ -416,28 +437,31 @@ void KDevControlFlowGraphViewPlugin::generateClassControlFlowGraph()
             if (m_abort)
                 break;
 
+            emit showProgress(this, 0, max-1, i);
+            emit showMessage(this, i18n("Generating graph for function %1", decl->identifier().toString()));
+            ++i;
             if ((functionDeclaration = dynamic_cast<ClassFunctionDeclaration *>(decl)))
             {
                 Declaration *functionDefinition = FunctionDefinition::definition(functionDeclaration);
                 if (functionDefinition)
                     m_duchainControlFlow->generateControlFlowForDeclaration(IndexedDeclaration(functionDefinition), IndexedTopDUContext(functionDefinition->topContext()), IndexedDUContext(functionDefinition->internalContext()));
             }
-            emit showProgress(this, 0, max-1, i);
-            emit showMessage(this, i18n("Generating graph for function %1", decl->identifier().toString()));
-            ++i;
         }
+    }
+    if (!m_abort)
+    {
+        emit showMessage(this, i18n("Saving file %1", m_fileDialog->selectedFile()));
+        exportGraph();
     }
     emit hideProgress(this);
     emit clearMessage(this);
-    if (!m_abort)
-        exportGraph();
 }
 
 void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph()
 {
     if (!m_project)
         return;
-    
+
     m_abort = false;
     m_duchainControlFlow = new DUChainControlFlow;
     m_dotControlFlowGraph = new DotControlFlowGraph;
@@ -445,12 +469,15 @@ void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph()
     configureDuchainControlFlow(m_duchainControlFlow, m_dotControlFlowGraph, m_fileDialog);
 
     DUChainReadLocker readLock(DUChain::lock());
-    
+
     int i = 0;
     int max = m_project->fileSet().size();
     // For each source file
     foreach(const IndexedString &file, m_project->fileSet())
     {
+        emit showProgress(this, 0, max-1, i);
+        ++i;
+
         uint codeModelItemCount = 0;
         const CodeModelItem *codeModelItems = 0;
         CodeModel::self().items(file, codeModelItemCount, codeModelItems);
@@ -474,6 +501,7 @@ void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph()
                         ClassFunctionDeclaration *functionDeclaration;
                         foreach (Declaration *decl, declaration->internalContext()->localDeclarations())
                         {
+                            emit showMessage(this, i18n("Generating graph for %1 - %2", file.str(), decl->qualifiedIdentifier().toString()));
                             if ((functionDeclaration = dynamic_cast<ClassFunctionDeclaration *>(decl)))
                             {
                                 if (m_abort)
@@ -494,15 +522,15 @@ void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph()
         }
         if (m_abort)
             break;
-        emit showProgress(this, 0, max-1, i);
-        emit showMessage(this, i18n("Generating graph for file %1", file.str()));
-        ++i;
     }
+    if (!m_abort)
+    {
+        emit showMessage(this, i18n("Saving file %1", m_fileDialog->selectedFile()));
+        exportGraph();
+    }
+    m_project = 0;
     emit hideProgress(this);
     emit clearMessage(this);
-    m_project = 0;
-    if (!m_abort)
-        exportGraph();
 }
 
 void KDevControlFlowGraphViewPlugin::requestAbort()
@@ -520,8 +548,8 @@ void KDevControlFlowGraphViewPlugin::generationDone(KJob *job)
 {
     job->deleteLater();
 
-    m_dotControlFlowGraph->deleteLater();
-    m_duchainControlFlow->deleteLater();
+    delete m_dotControlFlowGraph;
+    delete m_duchainControlFlow;
 
     if (!m_abort)
         KMessageBox::information((QWidget *) (core()->uiController()->activeMainWindow()),
@@ -531,7 +559,7 @@ void KDevControlFlowGraphViewPlugin::generationDone(KJob *job)
 
 void KDevControlFlowGraphViewPlugin::exportGraph()
 {
-    m_dotControlFlowGraph->exportGraph(m_fileDialog->selectedFile());    
+    m_dotControlFlowGraph->exportGraph(m_fileDialog->selectedFile());
 }
 
 void KDevControlFlowGraphViewPlugin::configureDuchainControlFlow(DUChainControlFlow *duchainControlFlow, DotControlFlowGraph *dotControlFlowGraph, ControlFlowGraphFileDialog *fileDialog)
