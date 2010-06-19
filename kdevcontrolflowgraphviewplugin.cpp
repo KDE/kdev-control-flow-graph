@@ -86,8 +86,8 @@ KDevControlFlowGraphViewPlugin::KDevControlFlowGraphViewPlugin (QObject *parent,
 KDevelop::IPlugin (ControlFlowGraphViewFactory::componentData(), parent),
 m_toolViewFactory(new KDevControlFlowGraphViewFactory(this)),
 m_activeToolView(0),
-m_abort(false),
-m_project(0)
+m_project(0),
+m_abort(false)
 {
     kDebug();
     core()->uiController()->addToolView(i18n("Control Flow Graph"), m_toolViewFactory);
@@ -403,6 +403,7 @@ void KDevControlFlowGraphViewPlugin::generateControlFlowGraph()
     if (!declaration)
         return;
 
+    m_abort = false;
     m_duchainControlFlow = new DUChainControlFlow;
     m_dotControlFlowGraph = new DotControlFlowGraph;
 
@@ -559,7 +560,9 @@ void KDevControlFlowGraphViewPlugin::generationDone(KJob *job)
 
 void KDevControlFlowGraphViewPlugin::exportGraph()
 {
+    DotControlFlowGraph::mutex.lock();
     m_dotControlFlowGraph->exportGraph(m_fileDialog->selectedFile());
+    DotControlFlowGraph::mutex.unlock();
 }
 
 void KDevControlFlowGraphViewPlugin::configureDuchainControlFlow(DUChainControlFlow *duchainControlFlow, DotControlFlowGraph *dotControlFlowGraph, ControlFlowGraphFileDialog *fileDialog)

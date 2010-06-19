@@ -36,6 +36,8 @@ namespace {
     static char BOX[] = "box";
 }
 
+QMutex DotControlFlowGraph::mutex;
+
 DotControlFlowGraph::DotControlFlowGraph() : m_rootGraph(0)
 {
     kDebug();
@@ -52,9 +54,13 @@ void DotControlFlowGraph::graphDone()
 {
     if (m_rootGraph)
     {
-        gvLayout(m_gvc, m_rootGraph, SUFFIX);
-        gvFreeLayout(m_gvc, m_rootGraph);
-        emit loadLibrary(m_rootGraph);
+        if (mutex.tryLock())
+        {
+            gvLayout(m_gvc, m_rootGraph, SUFFIX);
+            gvFreeLayout(m_gvc, m_rootGraph);
+            mutex.unlock();
+            emit loadLibrary(m_rootGraph);
+        }
     }
 }
 

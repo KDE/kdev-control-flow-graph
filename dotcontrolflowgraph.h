@@ -20,10 +20,11 @@
 #ifndef DOTCONTROLFLOWGRAPH_H
 #define DOTCONTROLFLOWGRAPH_H
 
-#include <QObject>
 #include <QMap>
 #include <QHash>
 #include <QColor>
+#include <QMutex>
+#include <QObject>
 
 #include <graphviz/gvc.h>
 
@@ -39,6 +40,7 @@ class DotControlFlowGraph : public QObject
 public:
     DotControlFlowGraph();
     virtual ~DotControlFlowGraph();
+    static QMutex mutex;
 Q_SIGNALS:
     bool loadLibrary(graph_t *rootGraph);
 public Q_SLOTS:
