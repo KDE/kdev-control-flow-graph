@@ -62,7 +62,7 @@ Q_SIGNALS:
     void showProgress(KDevelop::IStatus *, int minimum, int maximum, int value);
     void showErrorMessage(const QString &, int);
 private Q_SLOTS:
-    void done(ThreadWeaver::Job *);
+    void done(ThreadWeaver::Job *job);
 private:
     void init(const QString &jobName);
     DUChainControlFlow *m_duchainControlFlow;

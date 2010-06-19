@@ -27,10 +27,12 @@ DUChainControlFlowInternalJob::DUChainControlFlowInternalJob(DUChainControlFlow 
    m_plugin(plugin),
    m_controlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobInteractive)
 {
+    kDebug();
 }
 
 DUChainControlFlowInternalJob::~DUChainControlFlowInternalJob()
 {
+    kDebug();
 }
 
 void DUChainControlFlowInternalJob::setControlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobType controlFlowJobType)
@@ -46,7 +48,6 @@ void DUChainControlFlowInternalJob::requestAbort()
 
 void DUChainControlFlowInternalJob::run()
 {
-    kDebug() << "Starting";
     switch(m_controlFlowJobType)
     {
         case ControlFlowJobInteractive:
@@ -74,5 +75,4 @@ void DUChainControlFlowInternalJob::run()
             break;
         }
     };
-    kDebug() << "Finishing";
 }

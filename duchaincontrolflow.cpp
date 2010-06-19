@@ -70,11 +70,13 @@ DUChainControlFlow::DUChainControlFlow()
   m_graphThreadRunning(false),
   m_collector(0)
 {
+    kDebug();
     qRegisterMetaType<Use>("Use");
 }
 
 DUChainControlFlow::~DUChainControlFlow()
 {
+    kDebug();
     KDevelop::ICore::self()->languageController()->backgroundParser()->revertAllRequests(this);
     delete m_collector;
 }

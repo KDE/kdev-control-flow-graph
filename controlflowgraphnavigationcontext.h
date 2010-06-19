@@ -34,6 +34,7 @@ public:
     typedef QList< QPair<SimpleRange, IndexedString> > ArcUses;
 
     ControlFlowGraphNavigationContext(const QString &label, const ArcUses &arcUses, TopDUContextPointer topContext, AbstractNavigationContext *previousContext = 0);
+    virtual ~ControlFlowGraphNavigationContext();
 
     virtual QString name() const;
     virtual QString html(bool shorten = false);

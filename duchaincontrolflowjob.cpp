@@ -27,12 +27,15 @@
 #include <interfaces/iuicontroller.h>
 #include <interfaces/iruncontroller.h>
 
+#include <KDebug>
+
 DUChainControlFlowJob::DUChainControlFlowJob(const QString &jobName, DUChainControlFlow *duchainControlFlow)
  : m_duchainControlFlow(duchainControlFlow),
    m_plugin(0),
    m_internalJob(0),
    m_controlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobInteractive)
 {
+    kDebug();
     init(jobName);
 }
 
@@ -42,21 +45,21 @@ DUChainControlFlowJob::DUChainControlFlowJob(const QString &jobName, KDevControl
    m_internalJob(0),
    m_controlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobInteractive)
 {
+    kDebug();
     init(jobName);
 }
 
 void DUChainControlFlowJob::init(const QString &jobName)
 {
-    setObjectName(i18n("Control flow graph generation for %1", jobName));
+    setObjectName(i18n("Generating control flow graph for %1", jobName));
     setCapabilities(Killable);    
+    setAutoDelete(false);
     ICore::self()->uiController()->registerStatus(this);
 }
 
 DUChainControlFlowJob::~DUChainControlFlowJob()
 {
-    ThreadWeaver::Weaver::instance()->dequeue(m_internalJob);
-    m_internalJob->requestAbort();
-    m_internalJob->deleteLater();
+    kDebug();
 }
 
 QString DUChainControlFlowJob::statusName() const
@@ -82,13 +85,13 @@ void DUChainControlFlowJob::start()
 
 bool DUChainControlFlowJob::doKill()
 {
-    emit hideProgress(this);
-    emit clearMessage(this);
-    return true;
+    m_internalJob->requestAbort();
+    return false;
 }
 
-void DUChainControlFlowJob::done(ThreadWeaver::Job *)
+void DUChainControlFlowJob::done(ThreadWeaver::Job *job)
 {
+    job->deleteLater();
     emit hideProgress(this);
     emit clearMessage(this);
 

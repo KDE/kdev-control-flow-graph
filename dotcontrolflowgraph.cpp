@@ -38,11 +38,13 @@ namespace {
 
 DotControlFlowGraph::DotControlFlowGraph() : m_rootGraph(0)
 {
+    kDebug();
     m_gvc = gvContext();
 }
 
 DotControlFlowGraph::~DotControlFlowGraph()
 {
+    kDebug();
     gvFreeContext(m_gvc);
 }
 

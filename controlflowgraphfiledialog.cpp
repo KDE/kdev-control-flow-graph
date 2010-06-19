@@ -32,6 +32,8 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(const KUrl& startDir, con
                                                        QWidget *parent, const QString & caption, OpeningMode mode)
 : KFileDialog(startDir, filter, parent), m_configurationWidget(0)
 {
+    kDebug();
+
     setCaption(caption);
     setOperationMode(KFileDialog::Saving);
     setConfirmOverwrite(true);
@@ -76,6 +78,7 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(const KUrl& startDir, con
 
 ControlFlowGraphFileDialog::~ControlFlowGraphFileDialog()
 {
+    kDebug();
     delete m_configurationWidget;
 }
 

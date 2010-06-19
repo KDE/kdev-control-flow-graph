@@ -48,6 +48,7 @@ m_duchainControlFlow(new DUChainControlFlow),
 m_dotControlFlowGraph(new DotControlFlowGraph),
 m_graphLocked(false)
 {
+    kDebug();
     setupUi(this);
     KLibFactory *factory = KLibLoader::self()->factory("kgraphviewerpart");
     if (factory)
@@ -136,6 +137,7 @@ m_graphLocked(false)
 
 ControlFlowGraphView::~ControlFlowGraphView()
 {
+    kDebug();
     m_plugin->unRegisterToolView(this);
     delete m_duchainControlFlow;
     delete m_dotControlFlowGraph;
