@@ -21,9 +21,9 @@
 
 #include <QAction>
 
+#include <KLocale>
 #include <KAboutData>
 #include <KMessageBox>
-#include <KLocale>
 #include <KGenericFactory>
 
 #include <interfaces/icore.h>
@@ -39,13 +39,15 @@
 
 #include <language/duchain/codemodel.h>
 #include <language/duchain/declaration.h>
-#include <language/interfaces/codecontext.h>
 #include <language/duchain/classdeclaration.h>
-#include <language/backgroundparser/parsejob.h>
 #include <language/duchain/types/functiontype.h>
 #include <language/duchain/functiondefinition.h>
 #include <language/duchain/persistentsymboltable.h>
 #include <language/duchain/classfunctiondeclaration.h>
+
+#include <language/interfaces/codecontext.h>
+
+#include <language/backgroundparser/parsejob.h>
 #include <language/backgroundparser/backgroundparser.h>
 
 #include <project/projectmodel.h>
@@ -93,13 +95,13 @@ m_abort(false)
     core()->uiController()->addToolView(i18n("Control Flow Graph"), m_toolViewFactory);
 
     QObject::connect(core()->documentController(), SIGNAL(textDocumentCreated(KDevelop::IDocument *)),
-                     this, SLOT(textDocumentCreated(KDevelop::IDocument *)));
+                     SLOT(textDocumentCreated(KDevelop::IDocument *)));
     QObject::connect(core()->projectController(), SIGNAL(projectOpened(KDevelop::IProject*)),
-                     this, SLOT(projectOpened(KDevelop::IProject*)));
+                     SLOT(projectOpened(KDevelop::IProject*)));
     QObject::connect(core()->projectController(), SIGNAL(projectClosed(KDevelop::IProject*)),
-                     this, SLOT(projectClosed(KDevelop::IProject*)));
+                     SLOT(projectClosed(KDevelop::IProject*)));
     QObject::connect(core()->languageController()->backgroundParser(), SIGNAL(parseJobFinished(KDevelop::ParseJob*)),
-                     this, SLOT(parseJobFinished(KDevelop::ParseJob*)));
+                     SLOT(parseJobFinished(KDevelop::ParseJob*)));
                      
     m_exportControlFlowGraph = new QAction(i18n("Export Control Flow Graph"), this);
     disconnect(m_exportControlFlowGraph, SIGNAL(triggered(bool)), this, SLOT(slotExportControlFlowGraph(bool)));
@@ -237,16 +239,16 @@ void KDevControlFlowGraphViewPlugin::parseJobFinished(KDevelop::ParseJob* parseJ
 void KDevControlFlowGraphViewPlugin::textDocumentCreated(KDevelop::IDocument *document)
 {
     connect(document->textDocument(), SIGNAL(viewCreated(KTextEditor::Document *, KTextEditor::View *)),
-            this, SLOT(viewCreated(KTextEditor::Document *, KTextEditor::View *)));
+            SLOT(viewCreated(KTextEditor::Document *, KTextEditor::View *)));
 }
 
 void KDevControlFlowGraphViewPlugin::viewCreated(KTextEditor::Document *document, KTextEditor::View *view)
 {
     Q_UNUSED(document);
     connect(view, SIGNAL(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)),
-            this, SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
-    connect(view, SIGNAL(destroyed(QObject *)), this, SLOT(viewDestroyed(QObject *)));
-    connect(view, SIGNAL(focusIn(KTextEditor::View *)), this, SLOT(focusIn(KTextEditor::View *)));
+            SLOT(cursorPositionChanged(KTextEditor::View *, const KTextEditor::Cursor &)));
+    connect(view, SIGNAL(destroyed(QObject *)), SLOT(viewDestroyed(QObject *)));
+    connect(view, SIGNAL(focusIn(KTextEditor::View *)), SLOT(focusIn(KTextEditor::View *)));
 }
 
 void KDevControlFlowGraphViewPlugin::viewDestroyed(QObject *object)
@@ -278,20 +280,20 @@ void KDevControlFlowGraphViewPlugin::slotExportControlFlowGraph(bool value)
 {
     // Export graph for a given function
     Q_UNUSED(value);
-    
+
     if (m_duchainControlFlow || m_dotControlFlowGraph)
     {
         KMessageBox::error((QWidget *) core()->uiController()->activeMainWindow(), i18n("There is a graph being currently exported. Please stop it before requiring a new one"));
         return;
     }
-    
+
+    DUChainReadLocker lock(DUChain::lock());
+
     Q_ASSERT(qobject_cast<QAction *>(sender()));
     QAction *action = static_cast<QAction *>(sender());
     Q_ASSERT(action->data().canConvert<DUChainBasePointer>());
     DeclarationPointer declarationPointer = qvariant_cast<DUChainBasePointer>(action->data()).dynamicCast<Declaration>();
 
-    DUChainReadLocker lock(DUChain::lock());
-    
     Declaration *declaration = declarationPointer.data();
     if (!declaration)
     {
@@ -330,12 +332,12 @@ void KDevControlFlowGraphViewPlugin::slotExportClassControlFlowGraph(bool value)
         return;
     }
 
+    DUChainReadLocker lock(DUChain::lock());
+
     Q_ASSERT(qobject_cast<QAction *>(sender()));
     QAction *action = static_cast<QAction *>(sender());
     Q_ASSERT(action->data().canConvert<DUChainBasePointer>());
     DeclarationPointer declarationPointer = qvariant_cast<DUChainBasePointer>(action->data()).dynamicCast<Declaration>();
-
-    DUChainReadLocker lock(DUChain::lock());
 
     Declaration *declaration = declarationPointer.data();
     if (!declaration)
@@ -370,6 +372,7 @@ void KDevControlFlowGraphViewPlugin::slotExportProjectControlFlowGraph(bool valu
     QAction *action = static_cast<QAction *>(sender());
     Q_ASSERT(action->data().canConvert<QString>());
     QString projectName = qvariant_cast<QString>(action->data());
+
     if (projectName.isEmpty())
     {
         KMessageBox::error((QWidget *) core()->uiController()->activeMainWindow(), i18n("Could not generate project control flow graph - project name empty"));

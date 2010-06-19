@@ -25,6 +25,7 @@
 
 #include <interfaces/icore.h>
 #include <interfaces/idocumentcontroller.h>
+
 #include <language/duchain/duchain.h>
 #include <language/duchain/duchainlock.h>
 #include <language/codegen/coderepresentation.h>

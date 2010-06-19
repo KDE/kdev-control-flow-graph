@@ -25,17 +25,17 @@
 
 #include <KLibLoader>
 #include <KMessageBox>
-#include <KActionCollection>
 #include <KParts/Part>
+#include <KActionCollection>
 
 #include <interfaces/icore.h>
-#include <interfaces/iprojectcontroller.h>
 #include <interfaces/iuicontroller.h>
+#include <interfaces/iprojectcontroller.h>
 
-#include "kdevcontrolflowgraphviewplugin.h"
 #include "duchaincontrolflow.h"
 #include "dotcontrolflowgraph.h"
 #include "controlflowgraphfiledialog.h"
+#include "kdevcontrolflowgraphviewplugin.h"
 
 using namespace KDevelop;
 

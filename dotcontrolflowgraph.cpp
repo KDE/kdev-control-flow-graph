@@ -19,8 +19,9 @@
 
 #include "dotcontrolflowgraph.h"
 
-#include <language/duchain/declaration.h>
 #include <cstdio>
+
+#include <language/duchain/declaration.h>
 
 namespace {
     // C interface takes char*, so to avoid deprecated cast and/or undefined behaviour,

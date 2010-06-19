@@ -21,10 +21,11 @@
 
 #include <limits>
 
+#include <KLocale>
+
 #include <KTextEditor/View>
 #include <KTextEditor/Document>
 #include <KTextEditor/Cursor>
-#include <KLocale>
 
 #include <interfaces/icore.h>
 #include <interfaces/iproject.h>
@@ -39,9 +40,9 @@
 #include <language/duchain/duchainlock.h>
 #include <language/duchain/duchainutils.h>
 #include <language/duchain/indexedstring.h>
+#include <language/util/navigationtooltip.h>
 #include <language/duchain/functiondefinition.h>
 #include <language/duchain/types/functiontype.h>
-#include <language/util/navigationtooltip.h>
 #include <language/backgroundparser/backgroundparser.h>
 
 #include <project/projectmodel.h>
@@ -248,7 +249,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
 
         m_graphThreadRunning = true;
         DUChainControlFlowJob *job = new DUChainControlFlowJob(context->scopeIdentifier().toString(), this);
-        connect (job, SIGNAL(result(KJob *)), this, SLOT(jobDone (KJob *)));
+        connect (job, SIGNAL(result(KJob *)), SLOT(jobDone (KJob *)));
         job->start();
     }
 }
@@ -257,6 +258,8 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
 {
     FunctionDefinition *calledFunctionDefinition;
     DUContext *calledFunctionContext;
+
+    DUChainReadLocker lock(DUChain::lock());
 
     // Convert to a declaration in accordance with control flow mode (function, class or namespace)
     Declaration *nodeSource = declarationFromControlFlowMode(source);
@@ -412,7 +415,10 @@ void DUChainControlFlow::refreshGraph()
            ICore::self()->documentController()->activeDocument()->textDocument() &&
            ICore::self()->documentController()->activeDocument()->textDocument()->activeView())
         {
-            m_previousUppermostExecutableContext = IndexedDUContext();
+            {
+                DUChainReadLocker lock(DUChain::lock());
+                m_previousUppermostExecutableContext = IndexedDUContext();
+            }
             KTextEditor::View *view = ICore::self()->documentController()->activeDocument()->textDocument()->activeView();
             cursorPositionChanged(view, view->cursorPosition());
         }
