@@ -21,6 +21,7 @@ Name[sv]=Kdevelop kontrollflödesgrafer
 Name[uk]=Потокові графи керування KDevelop
 Name[x-test]=xxKDevelop Control Flow Graphsxx
 GenericName=KDevelop Control Flow Graphs
+GenericName[uk]=Потокові графи керування KDevelop
 GenericName[x-test]=xxKDevelop Control Flow Graphsxx
 ServiceTypes=KDevelop/Plugin
 X-KDE-Library=kdevcontrolflowgraphview
