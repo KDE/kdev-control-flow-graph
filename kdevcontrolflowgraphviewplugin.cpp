@@ -196,7 +196,7 @@ KDevControlFlowGraphViewPlugin::contextMenuExtension(KDevelop::Context* context)
             foreach(ProjectBaseItem *item, items)
             {
                 ProjectFolderItem *folder = item->folder();
-                if (folder && folder->isProjectRoot())
+                if (folder && !folder->parent())
                 {
                     m_exportProjectControlFlowGraph->setData(QVariant::fromValue(folder->project()->name()));
                     extension.addAction(KDevelop::ContextMenuExtension::ExtensionGroup, m_exportProjectControlFlowGraph);
