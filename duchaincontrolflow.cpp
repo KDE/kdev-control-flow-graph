@@ -178,9 +178,13 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         if (!topContext) return;
 
         DUContext *context = topContext->findContext(KDevelop::SimpleCursor(cursor));
-        
+
         if (!context)
+        {
+            newGraph();
+            m_previousUppermostExecutableContext = IndexedDUContext();
             return;
+        }
 
         // If cursor is in a method arguments context change it to internal context
         if (context && context->type() == DUContext::Function && context->importers().size() == 1)
