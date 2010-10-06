@@ -177,7 +177,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         TopDUContext *topContext = DUChainUtils::standardContextForUrl(view->document()->url());
         if (!topContext) return;
 
-        DUContext *context = topContext->findContext(KDevelop::SimpleCursor(cursor));
+        DUContext *context = topContext->findContextAt(topContext->transformToLocalRevision(KDevelop::SimpleCursor(cursor)));
 
         if (!context)
         {
@@ -308,14 +308,14 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
         // Store method declaration for navigation
         m_identifierDeclarationMap[targetContainers.join("") + targetShortName] = IndexedDeclaration(nodeTarget);
         // Store use for edge inspection
-        QPair<SimpleRange, IndexedString> pair(use.m_range, source->url());
+        QPair<RangeInRevision, IndexedString> pair(use.m_range, source->url());
         if (!m_arcUsesMap.values(sourceLabel + "->" + targetLabel).contains(pair))
             m_arcUsesMap.insertMulti(sourceLabel + "->" + targetLabel, pair);
         return;
     }
 
     // Store use for edge inspection
-    QPair<SimpleRange, IndexedString> pair(use.m_range, source->url());
+    QPair<RangeInRevision, IndexedString> pair(use.m_range, source->url());
     if (!m_arcUsesMap.values(sourceLabel + "->" + targetLabel).contains(pair))
         m_arcUsesMap.insertMulti(sourceLabel + "->" + targetLabel, pair);
     // Store method definition for navigation
@@ -361,11 +361,11 @@ void DUChainControlFlow::slotGraphElementSelected(QList<QString> list, const QPo
         if (declaration) // Node click, jump to definition/declaration
         {
             KUrl url(declaration->url().str());
-            KTextEditor::Range range = declaration->range().textRange();
+            int line = declaration->range().start.line;
             
             lock.unlock();
             
-            ICore::self()->documentController()->openDocument(url, range.start());
+            ICore::self()->documentController()->openDocument(url, KTextEditor::Cursor(line, 0));
         }
     }
 }

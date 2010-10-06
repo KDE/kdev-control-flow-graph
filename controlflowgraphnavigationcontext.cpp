@@ -60,8 +60,8 @@ QString ControlFlowGraphNavigationContext::html(bool shorten)
 
     modifyHtml() += importantHighlight(i18n("Uses of") + " ") + nodes[1] + importantHighlight(" " + i18n("from") + " ") + nodes[0] + "<hr>";
     unsigned int i = m_arcUses.size()-1;
-    QPair<SimpleRange, IndexedString> pair;
-    QListIterator< QPair<SimpleRange, IndexedString> > iterator(m_arcUses);
+    QPair<RangeInRevision, IndexedString> pair;
+    QListIterator< QPair<RangeInRevision, IndexedString> > iterator(m_arcUses);
     iterator.toBack();
 
     DUChainReadLocker lock(DUChain::lock());
@@ -80,10 +80,10 @@ QString ControlFlowGraphNavigationContext::html(bool shorten)
 void ControlFlowGraphNavigationContext::slotAnchorClicked(const QUrl &link)
 {
     int position = link.toString().toInt();
-    QPair<SimpleRange, IndexedString> pair = m_arcUses[position];
+    QPair<RangeInRevision, IndexedString> pair = m_arcUses[position];
     DUChainReadLocker lock(DUChain::lock());
     KUrl url(pair.second.toUrl());
-    KTextEditor::Cursor cursor = pair.first.start.textCursor();
+    int line = pair.first.start.line;
     lock.unlock();
-    ICore::self()->documentController()->openDocument(url, cursor);
+    ICore::self()->documentController()->openDocument(url, KTextEditor::Cursor(line, 0));
 }

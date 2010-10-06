@@ -25,6 +25,8 @@
 #include <QPair>
 #include <QPointer>
 
+#include <KUrl>
+
 #include <language/duchain/indexeditems.h>
 #include <language/duchain/ducontext.h>
 
@@ -119,7 +121,7 @@ private:
     
     QSet<IndexedDeclaration> m_visitedFunctions;
     QHash<QString, IndexedDeclaration> m_identifierDeclarationMap;
-    QMultiHash<QString, QPair<SimpleRange, IndexedString> > m_arcUsesMap;
+    QMultiHash<QString, QPair<RangeInRevision, IndexedString> > m_arcUsesMap;
     QPointer<KDevelop::IProject> m_currentProject;
     
     int  m_currentLevel;
