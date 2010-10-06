@@ -361,11 +361,13 @@ void DUChainControlFlow::slotGraphElementSelected(QList<QString> list, const QPo
         if (declaration) // Node click, jump to definition/declaration
         {
             KUrl url(declaration->url().str());
-            int line = declaration->range().start.line;
+            CursorInRevision cursor = declaration->range().start;
+            int line = cursor.line;
+            int column = cursor.column;
             
             lock.unlock();
             
-            ICore::self()->documentController()->openDocument(url, KTextEditor::Cursor(line, 0));
+            ICore::self()->documentController()->openDocument(url, KTextEditor::Cursor(line, column));
         }
     }
 }
