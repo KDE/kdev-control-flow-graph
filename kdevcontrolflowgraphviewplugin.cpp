@@ -104,16 +104,13 @@ m_abort(false)
                      SLOT(parseJobFinished(KDevelop::ParseJob*)));
                      
     m_exportControlFlowGraph = new QAction(i18n("Export Control Flow Graph"), this);
-    disconnect(m_exportControlFlowGraph, SIGNAL(triggered(bool)), this, SLOT(slotExportControlFlowGraph(bool)));
-    connect(m_exportControlFlowGraph, SIGNAL(triggered(bool)), SLOT(slotExportControlFlowGraph(bool)));
+    connect(m_exportControlFlowGraph, SIGNAL(triggered(bool)), SLOT(slotExportControlFlowGraph(bool)), Qt::UniqueConnection);
 
     m_exportClassControlFlowGraph = new QAction(i18n("Export Class Control Flow Graph"), this);
-    disconnect(m_exportClassControlFlowGraph, SIGNAL(triggered(bool)), this, SLOT(slotExportClassControlFlowGraph(bool)));
-    connect(m_exportClassControlFlowGraph, SIGNAL(triggered(bool)), SLOT(slotExportClassControlFlowGraph(bool)));
+    connect(m_exportClassControlFlowGraph, SIGNAL(triggered(bool)), SLOT(slotExportClassControlFlowGraph(bool)), Qt::UniqueConnection);
 
     m_exportProjectControlFlowGraph = new QAction(i18n("Export Project Control Flow Graph"), this);
-    disconnect(m_exportProjectControlFlowGraph, SIGNAL(triggered(bool)), this, SLOT(slotExportProjectControlFlowGraph(bool)));
-    connect(m_exportProjectControlFlowGraph, SIGNAL(triggered(bool)), SLOT(slotExportProjectControlFlowGraph(bool)));
+    connect(m_exportProjectControlFlowGraph, SIGNAL(triggered(bool)), SLOT(slotExportProjectControlFlowGraph(bool)), Qt::UniqueConnection);
 }
 
 KDevControlFlowGraphViewPlugin::~KDevControlFlowGraphViewPlugin()
