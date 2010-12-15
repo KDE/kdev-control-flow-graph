@@ -29,6 +29,7 @@
 
 #include <interfaces/icore.h>
 #include <interfaces/iproject.h>
+#include <interfaces/iruncontroller.h>
 #include <interfaces/iprojectcontroller.h>
 #include <interfaces/ilanguagecontroller.h>
 #include <interfaces/idocumentcontroller.h>
@@ -62,6 +63,7 @@ DUChainControlFlow::DUChainControlFlow()
   m_currentLevel(1),
   m_maxLevel(2),
   m_locked(false),
+  m_abort(false),
   m_drawIncomingArcs(true),
   m_useFolderName(true),
   m_useShortNames(true),
@@ -133,6 +135,9 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
         useDeclarationsFromDefinition(definition, topContext, uppermostExecutableContext);
     }
 
+    if (m_abort)
+        return;
+
     if (m_drawIncomingArcs)
     {
         Declaration *declaration = definition;
@@ -162,11 +167,13 @@ void DUChainControlFlow::run()
 {
     DUChainReadLocker lock(DUChain::lock());
 
+    m_abort = false;
     generateControlFlowForDeclaration(m_definition, m_topContext, m_uppermostExecutableContext);
 }
 
 void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
 {
+    kDebug();
     if (!m_graphThreadRunning)
     {
         if (m_locked) return;
@@ -254,7 +261,8 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         m_graphThreadRunning = true;
         DUChainControlFlowJob *job = new DUChainControlFlowJob(context->scopeIdentifier().toString(), this);
         connect (job, SIGNAL(result(KJob *)), SLOT(jobDone (KJob *)));
-        job->start();
+	ICore::self()->runController()->registerJob(job);
+        //job->start();
     }
 }
 
@@ -459,6 +467,9 @@ void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition,
     Declaration *declaration;
     for (unsigned int i = 0; i < usesCount; ++i)
     {
+        if (m_abort)
+            return;
+
         declaration = topContext->usedDeclarationForIndex(uses[i].m_declarationIndex);
         if (declaration && declaration->type<KDevelop::FunctionType>())
         {

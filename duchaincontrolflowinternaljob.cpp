@@ -42,8 +42,12 @@ void DUChainControlFlowInternalJob::setControlFlowJobType(DUChainControlFlowInte
 
 void DUChainControlFlowInternalJob::requestAbort()
 {
+    kDebug();
     if (m_plugin)
+    {
+        kDebug() << "Requesting abort";
         m_plugin->requestAbort();
+    }
 }
 
 void DUChainControlFlowInternalJob::run()

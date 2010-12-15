@@ -136,6 +136,7 @@ private:
     ClusteringModes m_clusteringModes;
     
     bool m_graphThreadRunning;
+    bool m_abort;
     
     QPointer<ControlFlowGraphUsesCollector> m_collector;
     KUrl::List m_includeDirectories;
