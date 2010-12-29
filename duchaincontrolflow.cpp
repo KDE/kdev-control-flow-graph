@@ -61,6 +61,7 @@ using namespace KDevelop;
 DUChainControlFlow::DUChainControlFlow(DotControlFlowGraph* dotControlFlowGraph)
 : m_dotControlFlowGraph(dotControlFlowGraph),
   m_previousUppermostExecutableContext(IndexedDUContext()),
+  m_currentView(0),
   m_currentProject(0),
   m_currentLevel(1),
   m_maxLevel(2),
@@ -488,7 +489,7 @@ void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition,
                 {
                     // Recursive call for sub-contexts
                     useDeclarationsFromDefinition(definition, topContext, *subContextsIterator);
-                    subContextsIterator++;
+                    ++subContextsIterator;
                     --i;
                 }
             }
@@ -501,7 +502,7 @@ void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition,
         {
             // Recursive call for remaining sub-contexts
             useDeclarationsFromDefinition(definition, topContext, *subContextsIterator);
-            subContextsIterator++;
+            ++subContextsIterator;
         }
 }
 
