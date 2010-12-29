@@ -35,12 +35,10 @@ using namespace KDevelop;
 ControlFlowGraphNavigationContext::ControlFlowGraphNavigationContext(const QString &label, const ArcUses &arcUses, TopDUContextPointer topContext, AbstractNavigationContext *previousContext)
  : AbstractNavigationContext(topContext, previousContext), m_label(label), m_arcUses (arcUses)
 {
-    kDebug();
 }
 
 ControlFlowGraphNavigationContext::~ControlFlowGraphNavigationContext()
 {
-    kDebug();    
 }
 
 QString ControlFlowGraphNavigationContext::name() const

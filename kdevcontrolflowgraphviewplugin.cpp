@@ -91,7 +91,6 @@ m_activeToolView(0),
 m_project(0),
 m_abort(false)
 {
-    kDebug();
     core()->uiController()->addToolView(i18n("Control Flow Graph"), m_toolViewFactory);
 
     QObject::connect(core()->documentController(), SIGNAL(textDocumentCreated(KDevelop::IDocument *)),
@@ -115,7 +114,6 @@ m_abort(false)
 
 KDevControlFlowGraphViewPlugin::~KDevControlFlowGraphViewPlugin()
 {
-    kDebug();
 }
 
 QString KDevControlFlowGraphViewPlugin::statusName() const
@@ -263,7 +261,6 @@ void KDevControlFlowGraphViewPlugin::focusIn(KTextEditor::View *view)
 
 void KDevControlFlowGraphViewPlugin::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
 {
-    kDebug();
     if (m_activeToolView)
         m_activeToolView->cursorPositionChanged(view, cursor);
 }

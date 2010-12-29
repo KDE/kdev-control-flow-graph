@@ -25,7 +25,6 @@ using namespace KDevelop;
 
 ControlFlowGraphNavigationWidget::ControlFlowGraphNavigationWidget(const QString &label, const ControlFlowGraphNavigationContext::ArcUses &arcUses)
 {
-    kDebug();
     initBrowser(400);
     setFocusPolicy(Qt::NoFocus);
     ControlFlowGraphNavigationContext *context = new ControlFlowGraphNavigationContext(label, arcUses, TopDUContextPointer(0));
@@ -35,5 +34,4 @@ ControlFlowGraphNavigationWidget::ControlFlowGraphNavigationWidget(const QString
 
 ControlFlowGraphNavigationWidget::~ControlFlowGraphNavigationWidget()
 {
-    kDebug();
 }

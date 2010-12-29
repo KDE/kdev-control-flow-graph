@@ -76,13 +76,11 @@ DUChainControlFlow::DUChainControlFlow(DotControlFlowGraph* dotControlFlowGraph)
   m_abort(false),
   m_collector(0)
 {
-    kDebug();
     qRegisterMetaType<Use>("Use");
 }
 
 DUChainControlFlow::~DUChainControlFlow()
 {
-    kDebug();
     KDevelop::ICore::self()->languageController()->backgroundParser()->revertAllRequests(this);
     delete m_collector;
 }
@@ -176,7 +174,6 @@ void DUChainControlFlow::run()
 
 void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
 {
-    kDebug();
     if (!m_graphThreadRunning)
     {
         if (m_locked) return;
@@ -264,7 +261,6 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         m_graphThreadRunning = true;
         DUChainControlFlowJob *job = new DUChainControlFlowJob(context->scopeIdentifier().toString(), this);
         connect (job, SIGNAL(result(KJob *)), SLOT(jobDone (KJob *)));
-	kDebug() << "Starting thread";
 	emit startingJob();
 	ICore::self()->runController()->registerJob(job);
     }
@@ -458,7 +454,6 @@ void DUChainControlFlow::jobDone (KJob* job)
 {
     m_graphThreadRunning = false;
     job->deleteLater();
-    kDebug() << "Emiting jobDone";
     emit jobDone();
 }
 

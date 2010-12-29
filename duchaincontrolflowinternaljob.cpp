@@ -27,12 +27,10 @@ DUChainControlFlowInternalJob::DUChainControlFlowInternalJob(DUChainControlFlow 
    m_plugin(plugin),
    m_controlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobInteractive)
 {
-    kDebug();
 }
 
 DUChainControlFlowInternalJob::~DUChainControlFlowInternalJob()
 {
-    kDebug();
 }
 
 void DUChainControlFlowInternalJob::setControlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobType controlFlowJobType)
@@ -42,7 +40,6 @@ void DUChainControlFlowInternalJob::setControlFlowJobType(DUChainControlFlowInte
 
 void DUChainControlFlowInternalJob::requestAbort()
 {
-    kDebug();
     if (m_plugin)
     {
         kDebug() << "Requesting abort";

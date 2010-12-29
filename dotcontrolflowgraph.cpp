@@ -41,13 +41,11 @@ QMutex DotControlFlowGraph::mutex;
 
 DotControlFlowGraph::DotControlFlowGraph() : m_rootGraph(0)
 {
-    kDebug();
     m_gvc = gvContext();
 }
 
 DotControlFlowGraph::~DotControlFlowGraph()
 {
-    kDebug();
     gvFreeContext(m_gvc);
 }
 
@@ -63,7 +61,6 @@ void DotControlFlowGraph::graphDone()
             emit loadLibrary(m_rootGraph);
         }
     }
-    kDebug() << "Leaving ...";
 }
 
 void DotControlFlowGraph::clearGraph()

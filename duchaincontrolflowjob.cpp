@@ -35,7 +35,6 @@ DUChainControlFlowJob::DUChainControlFlowJob(const QString &jobName, DUChainCont
    m_internalJob(0),
    m_controlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobInteractive)
 {
-    kDebug();
     init(jobName);
 }
 
@@ -45,7 +44,6 @@ DUChainControlFlowJob::DUChainControlFlowJob(const QString &jobName, KDevControl
    m_internalJob(0),
    m_controlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobInteractive)
 {
-    kDebug();
     init(jobName);
 }
 
@@ -59,7 +57,6 @@ void DUChainControlFlowJob::init(const QString &jobName)
 
 DUChainControlFlowJob::~DUChainControlFlowJob()
 {
-    kDebug();
 }
 
 QString DUChainControlFlowJob::statusName() const

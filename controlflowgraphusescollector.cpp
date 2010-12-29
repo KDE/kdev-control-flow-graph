@@ -29,12 +29,10 @@ using namespace KDevelop;
 ControlFlowGraphUsesCollector::ControlFlowGraphUsesCollector(IndexedDeclaration declaration)
  : UsesCollector(declaration), m_declaration(declaration)
 {
-    kDebug();
 }
 
 ControlFlowGraphUsesCollector::~ControlFlowGraphUsesCollector()
 {
-    kDebug();
 }
 
 void ControlFlowGraphUsesCollector::processUses(ReferencedTopDUContext topContext)
