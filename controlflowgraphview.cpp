@@ -44,8 +44,8 @@ ControlFlowGraphView::ControlFlowGraphView(KDevControlFlowGraphViewPlugin *plugi
 QWidget(parent),
 m_plugin(plugin),
 m_part(0),
-m_duchainControlFlow(new DUChainControlFlow),
 m_dotControlFlowGraph(new DotControlFlowGraph),
+m_duchainControlFlow(new DUChainControlFlow(m_dotControlFlowGraph)),
 m_graphLocked(false)
 {
     kDebug();
@@ -117,14 +117,9 @@ m_graphLocked(false)
             m_dotControlFlowGraph->prepareNewGraph();
 
             // Graph generation signals
-            connect(m_duchainControlFlow,  SIGNAL(prepareNewGraph()), SLOT  (prepareNewGraph()));
-            connect(m_duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
-                    m_dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
-            connect(m_duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
-                    m_dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
-            connect(m_duchainControlFlow,  SIGNAL(clearGraph()), m_dotControlFlowGraph, SLOT(clearGraph()));
-            connect(m_duchainControlFlow,  SIGNAL(graphDone()), SLOT(graphDone()));
             connect(m_dotControlFlowGraph, SIGNAL(loadLibrary(graph_t *)), m_part, SLOT(slotLoadLibrary(graph_t *)));
+            connect(m_duchainControlFlow, SIGNAL(startingJob()), SLOT(startingJob()));
+            connect(m_duchainControlFlow, SIGNAL(jobDone()), SLOT(graphDone()));
 
             m_plugin->registerToolView(this);
         }
@@ -154,18 +149,6 @@ void ControlFlowGraphView::newGraph()
     m_duchainControlFlow->newGraph();
 }
 
-void ControlFlowGraphView::prepareNewGraph()
-{
-    setEnabled(false);
-    m_dotControlFlowGraph->prepareNewGraph();
-}
-
-void ControlFlowGraphView::graphDone()
-{
-    setEnabled(true);
-    m_dotControlFlowGraph->graphDone();
-}
-
 void ControlFlowGraphView::setProjectButtonsEnabled(bool enabled)
 {
     useFolderNameToolButton->setEnabled(enabled);
@@ -175,6 +158,18 @@ void ControlFlowGraphView::setProjectButtonsEnabled(bool enabled)
 void ControlFlowGraphView::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
 {
     m_duchainControlFlow->cursorPositionChanged(view, cursor);
+}
+
+void ControlFlowGraphView::startingJob()
+{
+    kDebug();
+    setEnabled(false);
+}
+
+void ControlFlowGraphView::graphDone()
+{
+    kDebug();
+    setEnabled(true);
 }
 
 void ControlFlowGraphView::exportControlFlowGraph()
@@ -233,22 +228,25 @@ void ControlFlowGraphView::setControlFlowNamespace(bool checked)
     }
 }
 
-void ControlFlowGraphView::setClusteringClass(bool /* checked */)
+void ControlFlowGraphView::setClusteringClass(bool checked)
 {
+    Q_UNUSED(checked);
     m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringClass);
     m_duchainControlFlow->refreshGraph();
     useShortNamesToolButton->setEnabled(m_duchainControlFlow->clusteringModes() ? true:false);
 }
 
-void ControlFlowGraphView::setClusteringProject(bool /* checked */)
+void ControlFlowGraphView::setClusteringProject(bool checked)
 {
+    Q_UNUSED(checked);
     m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringProject);
     m_duchainControlFlow->refreshGraph();
     useShortNamesToolButton->setEnabled(m_duchainControlFlow->clusteringModes() ? true:false);
 }
 
-void ControlFlowGraphView::setClusteringNamespace(bool /* checked */)
+void ControlFlowGraphView::setClusteringNamespace(bool checked)
 {
+    Q_UNUSED(checked);
     m_duchainControlFlow->setClusteringModes(m_duchainControlFlow->clusteringModes() ^ DUChainControlFlow::ClusteringNamespace);
     m_duchainControlFlow->refreshGraph();
     useShortNamesToolButton->setEnabled(m_duchainControlFlow->clusteringModes() ? true:false);

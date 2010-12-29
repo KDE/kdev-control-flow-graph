@@ -49,6 +49,7 @@
 #include <project/projectmodel.h>
 #include <project/interfaces/ibuildsystemmanager.h>
 
+#include "dotcontrolflowgraph.h"
 #include "duchaincontrolflowjob.h"
 #include "controlflowgraphusescollector.h"
 #include "controlflowgraphnavigationwidget.h"
@@ -57,13 +58,13 @@ Q_DECLARE_METATYPE(KDevelop::Use)
 
 using namespace KDevelop;
 
-DUChainControlFlow::DUChainControlFlow()
-: m_previousUppermostExecutableContext(IndexedDUContext()),
+DUChainControlFlow::DUChainControlFlow(DotControlFlowGraph* dotControlFlowGraph)
+: m_dotControlFlowGraph(dotControlFlowGraph),
+  m_previousUppermostExecutableContext(IndexedDUContext()),
   m_currentProject(0),
   m_currentLevel(1),
   m_maxLevel(2),
   m_locked(false),
-  m_abort(false),
   m_drawIncomingArcs(true),
   m_useFolderName(true),
   m_useShortNames(true),
@@ -71,6 +72,7 @@ DUChainControlFlow::DUChainControlFlow()
   m_controlFlowMode(ControlFlowClass),
   m_clusteringModes(ClusteringNamespace),
   m_graphThreadRunning(false),
+  m_abort(false),
   m_collector(0)
 {
     kDebug();
@@ -125,7 +127,7 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
 
     if (m_maxLevel != 1 && !m_visitedFunctions.contains(idefinition) && nodeDefinition && nodeDefinition->internalContext())
     {
-        emit foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace &&
+        m_dotControlFlowGraph->foundRootNode(containers, (m_controlFlowMode == ControlFlowNamespace &&
                                         nodeDefinition->internalContext() && nodeDefinition->internalContext()->type() != DUContext::Namespace) ? 
                                                                           globalNamespaceOrFolderNames(nodeDefinition):
                                                                           shortName);
@@ -154,7 +156,7 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
         }
     }
 
-    emit graphDone();
+    m_dotControlFlowGraph->graphDone();
     m_currentLevel = 1;
 }
 
@@ -253,7 +255,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         if (!definition) return;
 
         newGraph();
-        emit prepareNewGraph();
+        m_dotControlFlowGraph->prepareNewGraph();
 
         m_definition = IndexedDeclaration(definition);
         m_uppermostExecutableContext = IndexedDUContext(uppermostExecutableContext);
@@ -261,9 +263,12 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         m_graphThreadRunning = true;
         DUChainControlFlowJob *job = new DUChainControlFlowJob(context->scopeIdentifier().toString(), this);
         connect (job, SIGNAL(result(KJob *)), SLOT(jobDone (KJob *)));
+	kDebug() << "Starting thread";
+	emit startingJob();
 	ICore::self()->runController()->registerJob(job);
-        //job->start();
     }
+    else
+        kDebug() << "Control flow thread already running";
 }
 
 void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *target, const Use &use)
@@ -307,7 +312,7 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     }
 
     IndexedDeclaration ideclaration = IndexedDeclaration(calledFunctionDefinition);
-    emit foundFunctionCall(sourceContainers, sourceLabel, targetContainers, targetLabel); 
+    m_dotControlFlowGraph->foundFunctionCall(sourceContainers, sourceLabel, targetContainers, targetLabel); 
 
     if (calledFunctionDefinition)
         calledFunctionContext = calledFunctionDefinition->internalContext();
@@ -445,13 +450,15 @@ void DUChainControlFlow::newGraph()
     m_identifierDeclarationMap.clear();
     m_arcUsesMap.clear();
     m_currentProject = 0;
-    emit clearGraph();
+    m_dotControlFlowGraph->clearGraph();
 }
 
 void DUChainControlFlow::jobDone (KJob* job)
 {
     m_graphThreadRunning = false;
     job->deleteLater();
+    kDebug() << "Emiting jobDone";
+    emit jobDone();
 }
 
 void DUChainControlFlow::useDeclarationsFromDefinition (Declaration *definition, TopDUContext *topContext, DUContext *context)

@@ -49,8 +49,6 @@ public:
     void refreshGraph();
     void newGraph();
 public Q_SLOTS:
-    void prepareNewGraph();
-    void graphDone();
     void setProjectButtonsEnabled(bool enabled);
     void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
 
@@ -69,14 +67,18 @@ public Q_SLOTS:
     void setUseFolderName(bool checked);
     void setUseShortNames(bool checked);
 
+private Q_SLOTS:
+    void startingJob();
+    void graphDone();
+
 protected:
     void showEvent(QShowEvent *event);
     void hideEvent(QHideEvent *event);
 private:
     KDevControlFlowGraphViewPlugin *m_plugin;
     QPointer<KParts::ReadOnlyPart>  m_part;
-    QPointer<DUChainControlFlow>    m_duchainControlFlow;
     QPointer<DotControlFlowGraph>   m_dotControlFlowGraph;
+    QPointer<DUChainControlFlow>    m_duchainControlFlow;
     bool                            m_graphLocked;
 };
 

@@ -47,6 +47,7 @@ namespace KDevelop {
 
 class KJob;
 
+class DotControlFlowGraph;
 class ControlFlowGraphUsesCollector;
 
 using namespace KDevelop;
@@ -55,7 +56,7 @@ class DUChainControlFlow : public QObject
 {
     Q_OBJECT
 public:
-    DUChainControlFlow();
+    DUChainControlFlow(DotControlFlowGraph *dotControlFlowGraph);
     virtual ~DUChainControlFlow();
 
     enum ControlFlowMode { ControlFlowFunction, ControlFlowClass, ControlFlowNamespace };
@@ -75,12 +76,6 @@ public:
     void generateControlFlowForDeclaration(IndexedDeclaration idefinition, IndexedTopDUContext itopContext, IndexedDUContext iuppermostExecutableContext);
     bool isLocked();
     void run();
-Q_SIGNALS:
-    void prepareNewGraph();
-    void foundRootNode(const QStringList &containers, const QString &label);
-    void foundFunctionCall(const QStringList &sourceContainers, const QString &source, const QStringList &targetContainers, const QString &target);
-    void graphDone();
-    void clearGraph();
 
 public Q_SLOTS:
     void cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor);
@@ -101,6 +96,11 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void jobDone (KJob* job);
+
+Q_SIGNALS:
+    void startingJob();
+    void jobDone();
+
 private:
     void useDeclarationsFromDefinition(Declaration *definition, TopDUContext *topContext, DUContext *context);
     Declaration *declarationFromControlFlowMode(Declaration *definitionDeclaration);
@@ -110,6 +110,7 @@ private:
     QString shortNameFromContainers(const QList<QString> &containers, const QString &qualifiedIdentifier);
     void updateToolTip(const QString &edge, const QPoint& point, QWidget *partWidget);
 
+    QPointer<DotControlFlowGraph> m_dotControlFlowGraph;
     IndexedDUContext m_previousUppermostExecutableContext;
 
     KTextEditor::View *m_currentView;

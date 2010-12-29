@@ -263,6 +263,7 @@ void KDevControlFlowGraphViewPlugin::focusIn(KTextEditor::View *view)
 
 void KDevControlFlowGraphViewPlugin::cursorPositionChanged(KTextEditor::View *view, const KTextEditor::Cursor &cursor)
 {
+    kDebug();
     if (m_activeToolView)
         m_activeToolView->cursorPositionChanged(view, cursor);
 }
@@ -404,8 +405,8 @@ void KDevControlFlowGraphViewPlugin::generateControlFlowGraph()
         return;
 
     m_abort = false;
-    m_duchainControlFlow = new DUChainControlFlow;
     m_dotControlFlowGraph = new DotControlFlowGraph;
+    m_duchainControlFlow = new DUChainControlFlow(m_dotControlFlowGraph);
 
     configureDuchainControlFlow(m_duchainControlFlow, m_dotControlFlowGraph, m_fileDialog);
 
@@ -422,8 +423,8 @@ void KDevControlFlowGraphViewPlugin::generateClassControlFlowGraph()
         return;
 
     m_abort = false;
-    m_duchainControlFlow = new DUChainControlFlow;
     m_dotControlFlowGraph = new DotControlFlowGraph;
+    m_duchainControlFlow = new DUChainControlFlow(m_dotControlFlowGraph);
     
     configureDuchainControlFlow(m_duchainControlFlow, m_dotControlFlowGraph, m_fileDialog);
 
@@ -464,8 +465,8 @@ void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph()
         return;
 
     m_abort = false;
-    m_duchainControlFlow = new DUChainControlFlow;
     m_dotControlFlowGraph = new DotControlFlowGraph;
+    m_duchainControlFlow = new DUChainControlFlow(m_dotControlFlowGraph);
 
     configureDuchainControlFlow(m_duchainControlFlow, m_dotControlFlowGraph, m_fileDialog);
 
@@ -575,10 +576,4 @@ void KDevControlFlowGraphViewPlugin::configureDuchainControlFlow(DUChainControlF
     duchainControlFlow->setDrawIncomingArcs(fileDialog->drawIncomingArcs());
 
     dotControlFlowGraph->prepareNewGraph();
-
-    connect(duchainControlFlow,  SIGNAL(foundRootNode(const QStringList &, const QString &)),
-            dotControlFlowGraph, SLOT  (foundRootNode(const QStringList &, const QString &)));
-    connect(duchainControlFlow,  SIGNAL(foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)),
-            dotControlFlowGraph, SLOT  (foundFunctionCall(const QStringList &, const QString &, const QStringList &, const QString &)));
-    connect(duchainControlFlow,  SIGNAL(clearGraph()), dotControlFlowGraph, SLOT(clearGraph()));
 }

@@ -63,6 +63,7 @@ void DotControlFlowGraph::graphDone()
             emit loadLibrary(m_rootGraph);
         }
     }
+    kDebug() << "Leaving ...";
 }
 
 void DotControlFlowGraph::clearGraph()
@@ -94,7 +95,7 @@ void DotControlFlowGraph::prepareNewGraph()
     clearGraph();
 }
 
-void DotControlFlowGraph::foundRootNode (const QStringList &containers, const QString &label)
+void DotControlFlowGraph::foundRootNode(const QStringList &containers, const QString &label)
 {
     Agraph_t *graph = m_rootGraph;
     if (!m_rootGraph) {
