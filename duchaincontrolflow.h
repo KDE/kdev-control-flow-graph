@@ -27,7 +27,6 @@
 
 #include <KUrl>
 
-#include <language/duchain/indexeditems.h>
 #include <language/duchain/ducontext.h>
 
 class QPoint;

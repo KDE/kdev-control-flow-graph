@@ -25,7 +25,6 @@
 
 #include <interfaces/iplugin.h>
 #include <interfaces/istatus.h>
-#include <language/duchain/indexeditems.h>
 
 #include "controlflowgraphfiledialog.h"
 
