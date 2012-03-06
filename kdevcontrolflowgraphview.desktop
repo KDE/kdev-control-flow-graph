@@ -71,6 +71,6 @@ GenericName[zh_TW]=KDevelop 控制流程圖
 ServiceTypes=KDevelop/Plugin
 X-KDE-Library=kdevcontrolflowgraphview
 X-KDE-PluginInfo-Name=kdevcontrolflowgraphview
-X-KDevelop-Version=12
+X-KDevelop-Version=14
 X-KDevelop-Category=Global
 X-KDevelop-Mode=GUI
