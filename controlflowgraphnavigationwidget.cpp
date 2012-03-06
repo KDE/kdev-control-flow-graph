@@ -29,7 +29,7 @@ ControlFlowGraphNavigationWidget::ControlFlowGraphNavigationWidget(const QString
     setFocusPolicy(Qt::NoFocus);
     ControlFlowGraphNavigationContext *context = new ControlFlowGraphNavigationContext(label, arcUses, TopDUContextPointer(0));
     setContext(NavigationContextPointer(context));
-    connect(m_browser, SIGNAL(anchorClicked(const QUrl &)), context, SLOT(slotAnchorClicked(const QUrl &)));
+    connect(m_browser, SIGNAL(anchorClicked(QUrl)), context, SLOT(slotAnchorClicked(QUrl)));
 }
 
 ControlFlowGraphNavigationWidget::~ControlFlowGraphNavigationWidget()

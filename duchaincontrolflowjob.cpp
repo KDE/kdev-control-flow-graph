@@ -76,7 +76,7 @@ void DUChainControlFlowJob::start()
 
     m_internalJob = new DUChainControlFlowInternalJob(m_duchainControlFlow, m_plugin);
     m_internalJob->setControlFlowJobType(m_controlFlowJobType);
-    connect(m_internalJob, SIGNAL(done(ThreadWeaver::Job *)), SLOT(done(ThreadWeaver::Job *)));
+    connect(m_internalJob, SIGNAL(done(ThreadWeaver::Job*)), SLOT(done(ThreadWeaver::Job*)));
     ThreadWeaver::Weaver::instance()->enqueue(m_internalJob);
 }
 

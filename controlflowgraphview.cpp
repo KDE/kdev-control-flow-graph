@@ -106,8 +106,8 @@ m_graphLocked(false)
             m_part->actionCollection()->action("view_bev_enabled")->setIcon(KIcon("edit-find.png"));
             m_part->actionCollection()->action("view_bev_enabled")->setChecked(false);
             birdseyeToolButton->setDefaultAction(m_part->actionCollection()->action("view_bev_enabled"));
-            connect(m_part, SIGNAL(selectionIs(const QList<QString>, const QPoint&)),
-                    m_duchainControlFlow, SLOT(slotGraphElementSelected(const QList<QString>,QPoint)));
+            connect(m_part, SIGNAL(selectionIs(QList<QString>, QPoint&)),
+                    m_duchainControlFlow, SLOT(slotGraphElementSelected(QList<QString>,QPoint)));
             connect(m_part, SIGNAL(hoverEnter(QString)), m_duchainControlFlow, SLOT(slotEdgeHover(QString)));
             connect(exportToolButton, SIGNAL(clicked()), SLOT(exportControlFlowGraph()));
             connect(usesHoverToolButton, SIGNAL(toggled(bool)), m_duchainControlFlow, SLOT(setShowUsesOnEdgeHover(bool)));
@@ -116,7 +116,7 @@ m_graphLocked(false)
             m_dotControlFlowGraph->prepareNewGraph();
 
             // Graph generation signals
-            connect(m_dotControlFlowGraph, SIGNAL(loadLibrary(graph_t *)), m_part, SLOT(slotLoadLibrary(graph_t *)));
+            connect(m_dotControlFlowGraph, SIGNAL(loadLibrary(graph_t*)), m_part, SLOT(slotLoadLibrary(graph_t*)));
             connect(m_duchainControlFlow, SIGNAL(startingJob()), SLOT(startingJob()));
             connect(m_duchainControlFlow, SIGNAL(jobDone()), SLOT(graphDone()));
 
