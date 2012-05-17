@@ -56,7 +56,7 @@ QString ControlFlowGraphNavigationContext::html(bool shorten)
     if (nodes.size() < 2)
         return "";
 
-    modifyHtml() += importantHighlight(i18n("Uses of") + " ") + nodes[1] + importantHighlight(" " + i18n("from") + " ") + nodes[0] + "<hr>";
+    modifyHtml() += importantHighlight(i18n("Uses of %1 from %2", nodes[1], nodes[0])) + "<hr>";
     unsigned int i = m_arcUses.size()-1;
     QPair<RangeInRevision, IndexedString> pair;
     QListIterator< QPair<RangeInRevision, IndexedString> > iterator(m_arcUses);
