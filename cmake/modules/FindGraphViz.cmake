@@ -1,25 +1,21 @@
-# This cmake file comes from MOAB:
-# MOAB, a Mesh-Oriented datABase, is a software component for creating,
-# storing and accessing finite element mesh data.
-# 
-# Copyright 2004 Sandia Corporation.  Under the terms of Contract
-# DE-AC04-94AL85000 with Sandia Coroporation, the U.S. Government
-# retains certain rights in this software.
-# 
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
-# 
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.  A copy of the full
-# GNU Lesser General Public License can be found at
-# http://www.gnu.org/copyleft/lesser.html.
-# 
-# For more information, contact the authors of this software at
-# moab@sandia.gov.
+/***************************************************************************
+ *   Copyright 2009 Sandro Andrade <sandroandrade@kde.org>                 *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
+ ***************************************************************************/
 
 if (NOT WIN32)
   find_package(PkgConfig)
