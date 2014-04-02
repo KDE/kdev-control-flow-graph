@@ -19,7 +19,7 @@
 
 if (NOT WIN32)
   find_package(PkgConfig)
-  pkg_check_modules(graphviz ${REQUIRED} libgvc libcdt libgraph libpathplan)
+  pkg_check_modules(graphviz ${REQUIRED} libgvc libcdt libcgraph libpathplan)
   if (GraphViz_FOUND)
     set (GraphViz_INCLUDE_DIRECTORIES ${GraphViz_INCLUDE_DIRS})
   endif (GraphViz_FOUND)
@@ -46,7 +46,7 @@ find_library(GraphViz_CDT_LIBRARY
 )
 
 find_library(GraphViz_GRAPH_LIBRARY
-  NAMES graph
+  NAMES cgraph
   PATHS
   ${GraphViz_LIBRARY_DIRS}
 )

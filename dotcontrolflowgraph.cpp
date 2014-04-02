@@ -73,7 +73,7 @@ void DotControlFlowGraph::clearGraph()
     }
 
     m_namedGraphs.clear();
-    m_rootGraph = agopen(GRAPH_NAME, AGDIGRAPHSTRICT);
+    m_rootGraph = agopen(GRAPH_NAME, Agdirected, NULL);
     graphDone();
 }
 
@@ -105,11 +105,11 @@ void DotControlFlowGraph::foundRootNode(const QStringList &containers, const QSt
     foreach (const QString& container, containers)
     {
         absoluteContainer += container;
-        graph = m_namedGraphs[absoluteContainer] = agsubg(graph, ("cluster_" + absoluteContainer).toUtf8().data());
+        graph = m_namedGraphs[absoluteContainer] = agsubg(graph, ("cluster_" + absoluteContainer).toUtf8().data(), 1);
         agsafeset(graph, LABEL, container.toUtf8().data(), EMPTY);
     }
 
-    Agnode_t *node = agnode(graph, (containers.join("") + label).toUtf8().data());
+    Agnode_t *node = agnode(graph, (containers.join("") + label).toUtf8().data(), 1);
     agsafeset(node, SHAPE, BOX, EMPTY);
     QColor c = colorFromQualifiedIdentifier(label);
     char color[8];
@@ -137,7 +137,7 @@ void DotControlFlowGraph::foundFunctionCall(const QStringList &sourceContainers,
         absoluteContainer += container;
         if (!m_namedGraphs.contains(absoluteContainer))
         {
-            newGraph = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data());
+            newGraph = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data(), 1);
             m_namedGraphs.insert(absoluteContainer, newGraph);
             agsafeset(newGraph, LABEL, container.toUtf8().data(), EMPTY);
         }
@@ -150,15 +150,15 @@ void DotControlFlowGraph::foundFunctionCall(const QStringList &sourceContainers,
         absoluteContainer += container;
         if (!m_namedGraphs.contains(absoluteContainer))
         {
-            Agraph_t *newGraph = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data());
+            Agraph_t *newGraph = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data(), 1);
             m_namedGraphs.insert(absoluteContainer, newGraph);
             agsafeset(newGraph, LABEL, container.toUtf8().data(), EMPTY);
         }
         targetGraph = m_namedGraphs[absoluteContainer];
     }
 
-    Agnode_t* src = agnode(sourceGraph, (sourceContainers.join("") + source).toUtf8().data());
-    Agnode_t* tgt = agnode(targetGraph, (targetContainers.join("") + target).toUtf8().data());
+    Agnode_t* src = agnode(sourceGraph, (sourceContainers.join("") + source).toUtf8().data(), 1);
+    Agnode_t* tgt = agnode(targetGraph, (targetContainers.join("") + target).toUtf8().data(), 1);
 
     char color[8];
     char ID[] = "id";
@@ -179,9 +179,9 @@ void DotControlFlowGraph::foundFunctionCall(const QStringList &sourceContainers,
 
     Agedge_t* edge;
     if (sourceGraph == targetGraph)
-        edge = agedge(sourceGraph, src, tgt);
+        edge = agedge(sourceGraph, src, tgt, NULL, 1);
     else
-        edge = agedge(m_rootGraph, src, tgt);
+        edge = agedge(m_rootGraph, src, tgt, NULL, 1);
     agsafeset(edge, ID, (source + "->" + target).toUtf8().data(), EMPTY);
 }
 
