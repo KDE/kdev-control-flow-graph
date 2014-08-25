@@ -52,7 +52,7 @@ m_graphLocked(false)
     KLibFactory *factory = KLibLoader::self()->factory("kgraphviewerpart");
     if (factory)
     {
-        m_part = factory->create<KParts::ReadOnlyPart>(this);
+        m_part = factory->create<KParts::ReadOnlyPart>("kgraphviewerpart", this);
         if (m_part)
         {
             QMetaObject::invokeMethod(m_part, "setReadWrite");
@@ -126,7 +126,7 @@ m_graphLocked(false)
             KMessageBox::error((QWidget *) m_plugin->core()->uiController()->activeMainWindow(), i18n("Could not load the KGraphViewer kpart"));
     }
     else
-        KMessageBox::error((QWidget *) m_plugin->core()->uiController()->activeMainWindow(), i18n("Could not find the KGraphViewer factory"));
+        KMessageBox::error((QWidget *) m_plugin->core()->uiController()->activeMainWindow(), i18n("Could not find the KGraphViewer factory") + ": " + KLibLoader::self()->lastErrorMessage());
 }
 
 ControlFlowGraphView::~ControlFlowGraphView()
