@@ -27,7 +27,7 @@
 
 using namespace KDevelop;
 
-class ControlFlowGraphNavigationContext : public QObject, public AbstractNavigationContext
+class ControlFlowGraphNavigationContext : public AbstractNavigationContext
 {
     Q_OBJECT
 public:
