@@ -565,7 +565,7 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
 
         QString folderName, smallestDirectory, declarationUrl = declaration->url().str();
 
-        foreach (const KUrl &url, m_includeDirectories)
+        foreach (const Path &url, m_includeDirectories)
         {
             QString urlString = url.toLocalFile();
             if (urlString.length() <= minLength && declarationUrl.startsWith(urlString))

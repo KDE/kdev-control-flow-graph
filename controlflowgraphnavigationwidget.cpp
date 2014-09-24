@@ -19,6 +19,8 @@
 
 #include "controlflowgraphnavigationwidget.h"
 
+#include <QTextBrowser>
+
 #include <language/duchain/topducontext.h>
 
 using namespace KDevelop;

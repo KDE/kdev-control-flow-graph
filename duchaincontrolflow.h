@@ -28,6 +28,7 @@
 #include <KUrl>
 
 #include <language/duchain/ducontext.h>
+#include <util/path.h>
 
 class QPoint;
 
@@ -139,7 +140,7 @@ private:
     bool m_abort;
     
     QPointer<ControlFlowGraphUsesCollector> m_collector;
-    KUrl::List m_includeDirectories;
+    KDevelop::Path::List m_includeDirectories;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(DUChainControlFlow::ClusteringModes)

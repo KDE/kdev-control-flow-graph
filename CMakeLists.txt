@@ -9,6 +9,8 @@ find_package(KDE4 REQUIRED)
 find_package(KDevPlatform REQUIRED)
 find_package(GraphViz REQUIRED)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
 include_directories(
     ${KDE4_INCLUDES}
     ${KDEVPLATFORM_INCLUDE_DIR}
@@ -44,4 +46,5 @@ target_link_libraries(kdevcontrolflowgraphview ${KDE4_KDEUI_LIBS} ${KDE4_KPARTS_
 
 install(TARGETS kdevcontrolflowgraphview DESTINATION ${PLUGIN_INSTALL_DIR})
 
-install(FILES kdevcontrolflowgraphview.desktop DESTINATION ${SERVICES_INSTALL_DIR})
+configure_file(kdevcontrolflowgraphview.desktop.cmake ${CMAKE_CURRENT_BINARY_DIR}/kdevcontrolflowgraphview.desktop)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/kdevcontrolflowgraphview.desktop DESTINATION ${SERVICES_INSTALL_DIR})
