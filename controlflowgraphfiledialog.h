@@ -20,7 +20,7 @@
 #ifndef CONTROLFLOWGRAPHFILEDIALOG_H
 #define CONTROLFLOWGRAPHFILEDIALOG_H
 
-#include <KFileDialog>
+#include <QFileDialog>
 
 #include "duchaincontrolflow.h"
 
@@ -29,13 +29,12 @@ namespace Ui
     class ControlFlowGraphExportConfiguration;
 }
 
-class ControlFlowGraphFileDialog : public KFileDialog
+class ControlFlowGraphFileDialog : public QFileDialog
 {
     Q_OBJECT
 public:
     enum OpeningMode { ConfigurationButtons, NoConfigurationButtons, ForClassConfigurationButtons };
-    ControlFlowGraphFileDialog(const KUrl& startDir, const QString& filter,
-                               QWidget *parent, const QString & caption, OpeningMode mode = ConfigurationButtons);
+    ControlFlowGraphFileDialog(QWidget* parent, ControlFlowGraphFileDialog::OpeningMode mode = ConfigurationButtons);
     ~ControlFlowGraphFileDialog();
     
     DUChainControlFlow::ControlFlowMode controlFlowMode() const;

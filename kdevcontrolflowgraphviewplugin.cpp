@@ -21,10 +21,9 @@
 
 #include <QAction>
 
-#include <KLocale>
 #include <KAboutData>
 #include <KMessageBox>
-#include <KGenericFactory>
+#include <KPluginFactory>
 
 #include <interfaces/icore.h>
 #include <interfaces/context.h>
@@ -53,6 +52,7 @@
 #include <project/projectmodel.h>
 
 #include <KTextEditor/Document>
+#include <KTextEditor/View>
 
 #include "duchaincontrolflow.h"
 #include "dotcontrolflowgraph.h"
@@ -61,8 +61,7 @@
 
 using namespace KDevelop;
 
-K_PLUGIN_FACTORY(ControlFlowGraphViewFactory, registerPlugin<KDevControlFlowGraphViewPlugin>();)
-K_EXPORT_PLUGIN(ControlFlowGraphViewFactory(KAboutData("kdevcontrolflowgraphview","kdevcontrolflowgraph", ki18n("Control Flow Graph"), "0.1", ki18n("Control flow graph support in KDevelop"), KAboutData::License_GPL)))
+K_PLUGIN_FACTORY_WITH_JSON(ControlFlowGraphViewFactory, "kdevcontrolflowgraphview.json", registerPlugin<KDevControlFlowGraphViewPlugin>();)
 
 class KDevControlFlowGraphViewFactory: public KDevelop::IToolViewFactory{
 public:
@@ -85,7 +84,7 @@ private:
 
 KDevControlFlowGraphViewPlugin::KDevControlFlowGraphViewPlugin (QObject *parent, const QVariantList &)
 :
-KDevelop::IPlugin (ControlFlowGraphViewFactory::componentData(), parent),
+KDevelop::IPlugin (QStringLiteral("kdevcontrolflowgraphview"), parent),
 m_toolViewFactory(new KDevControlFlowGraphViewFactory(this)),
 m_activeToolView(0),
 m_project(0),
@@ -139,12 +138,12 @@ void KDevControlFlowGraphViewPlugin::unRegisterToolView(ControlFlowGraphView *vi
 
 QPointer<ControlFlowGraphFileDialog> KDevControlFlowGraphViewPlugin::exportControlFlowGraph(ControlFlowGraphFileDialog::OpeningMode mode)
 {
-    QPointer<ControlFlowGraphFileDialog> fileDialog = new ControlFlowGraphFileDialog(KUrl(), "*.png|PNG (Portable Network Graphics)\n*.jpg *.jpeg|JPG \\/ JPEG (Joint Photographic Expert Group)\n*.gif|GIF (Graphics Interchange Format)\n*.svg *.svgz|SVG (Scalable Vector Graphics)\n*.dia|DIA (Dia Structured Diagrams)\n*.fig|FIG\n*.pdf|PDF (Portable Document Format)\n*.dot|DOT (Graph Description Language)", (QWidget *) ICore::self()->uiController()->activeMainWindow(), i18n("Export Control Flow Graph"), mode);
+    QPointer<ControlFlowGraphFileDialog> fileDialog = new ControlFlowGraphFileDialog((QWidget *) ICore::self()->uiController()->activeMainWindow(), mode);
     if (fileDialog->exec() == QDialog::Accepted)
     {
-        if (fileDialog)
+        if (fileDialog && !fileDialog->selectedFiles().isEmpty())
         {
-            QString fileName = fileDialog->selectedFile();
+            QString fileName = fileDialog->selectedFiles()[0];
             if (!fileName.isEmpty())
                 return fileDialog;
         }
@@ -447,9 +446,9 @@ void KDevControlFlowGraphViewPlugin::generateClassControlFlowGraph()
             }
         }
     }
-    if (!m_abort)
+    if (!m_abort && !m_fileDialog->selectedFiles().isEmpty())
     {
-        emit showMessage(this, i18n("Saving file %1", m_fileDialog->selectedFile()));
+        emit showMessage(this, i18n("Saving file %1", m_fileDialog->selectedFiles()[0]));
         exportGraph();
     }
     emit hideProgress(this);
@@ -522,9 +521,9 @@ void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph()
         if (m_abort)
             break;
     }
-    if (!m_abort)
+    if (!m_abort && !m_fileDialog->selectedFiles().isEmpty())
     {
-        emit showMessage(this, i18n("Saving file %1", m_fileDialog->selectedFile()));
+        emit showMessage(this, i18n("Saving file %1", m_fileDialog->selectedFiles()[0]));
         exportGraph();
     }
     m_project = 0;
@@ -559,7 +558,9 @@ void KDevControlFlowGraphViewPlugin::generationDone(KJob *job)
 void KDevControlFlowGraphViewPlugin::exportGraph()
 {
     DotControlFlowGraph::mutex.lock();
-    m_dotControlFlowGraph->exportGraph(m_fileDialog->selectedFile());
+    if (!m_fileDialog->selectedFiles().isEmpty()) {
+        m_dotControlFlowGraph->exportGraph(m_fileDialog->selectedFiles()[0]);
+    }
     DotControlFlowGraph::mutex.unlock();
 }
 
@@ -574,3 +575,5 @@ void KDevControlFlowGraphViewPlugin::configureDuchainControlFlow(DUChainControlF
 
     dotControlFlowGraph->prepareNewGraph();
 }
+
+#include "kdevcontrolflowgraphviewplugin.moc"

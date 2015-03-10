@@ -25,13 +25,8 @@
 #include <KJob>
 
 #include <interfaces/istatus.h>
-
+#include <ThreadWeaver/QObjectDecorator>
 #include "duchaincontrolflowinternaljob.h"
-
-namespace ThreadWeaver
-{
-    class Job;
-}
 
 class DUChainControlFlow;
 class DUChainControlFlowInternalJob;
@@ -62,7 +57,7 @@ Q_SIGNALS:
     void showProgress(KDevelop::IStatus *, int minimum, int maximum, int value);
     void showErrorMessage(const QString &, int);
 private Q_SLOTS:
-    void done(ThreadWeaver::Job *job);
+    void done();
 private:
     void init(const QString &jobName);
     DUChainControlFlow *m_duchainControlFlow;

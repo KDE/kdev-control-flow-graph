@@ -25,8 +25,6 @@
 #include <QPair>
 #include <QPointer>
 
-#include <KUrl>
-
 #include <language/duchain/ducontext.h>
 #include <util/path.h>
 

@@ -1,21 +1,35 @@
 project(controlflowgraph)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-                      ${controlflowgraph_SOURCE_DIR}/cmake/modules
+find_package(ECM REQUIRED NO_MODULE)
+set(CMAKE_MODULE_PATH
+    ${ECM_MODULE_PATH}
+    ${ECM_KDE_MODULE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules
 )
 
-find_package(KDE4 REQUIRED)
+include(KDEInstallDirs)
+include(KDECompilerSettings)
+include(KDECMakeSettings)
+include(FeatureSummary)
+
 find_package(KDevPlatform REQUIRED)
 find_package(GraphViz REQUIRED)
+
+find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED Core Widgets)
+find_package(KF5 "5.6.0" REQUIRED COMPONENTS
+    I18n
+    TextEditor
+    ThreadWeaver
+    ConfigWidgets
+    ItemModels
+)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
 
 include_directories(
-    ${KDE4_INCLUDES}
-    ${KDEVPLATFORM_INCLUDE_DIR}
     ${GraphViz_INCLUDE_DIRECTORIES}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -42,11 +56,16 @@ set(kdevcontrolflowgraphview_PART_UI
     controlflowgraphexportconfiguration.ui
 )
 
-kde4_add_ui_files(kdevcontrolflowgraphview_PART_SRCS ${kdevcontrolflowgraphview_PART_UI})
-kde4_add_plugin(kdevcontrolflowgraphview ${kdevcontrolflowgraphview_PART_SRCS})
-target_link_libraries(kdevcontrolflowgraphview ${KDE4_KDEUI_LIBS} ${KDE4_KPARTS_LIBS} ${KDE4_KTEXTEDITOR_LIBS} ${KDE4_THREADWEAVER_LIBRARIES} ${KDEVPLATFORM_INTERFACES_LIBRARIES} ${KDEVPLATFORM_LANGUAGE_LIBRARIES} ${KDEVPLATFORM_PROJECT_LIBRARIES} ${KDEVPLATFORM_UTIL_LIBRARIES} gvc cgraph cdt)
+ki18n_wrap_ui(kdevcontrolflowgraphview_PART_SRCS ${kdevcontrolflowgraphview_PART_UI})
 
-install(TARGETS kdevcontrolflowgraphview DESTINATION ${PLUGIN_INSTALL_DIR})
+kdevplatform_add_plugin(kdevcontrolflowgraphview JSON kdevcontrolflowgraphview.json SOURCES ${kdevcontrolflowgraphview_PART_SRCS})
+target_link_libraries(kdevcontrolflowgraphview
+    KF5::Parts
+    KF5::TextEditor
+    KF5::ThreadWeaver
+    KDev::Interfaces
+    KDev::Language
+    KDev::Project
+    KDev::Util
+    gvc cgraph cdt)
 
-configure_file(kdevcontrolflowgraphview.desktop.cmake ${CMAKE_CURRENT_BINARY_DIR}/kdevcontrolflowgraphview.desktop)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/kdevcontrolflowgraphview.desktop DESTINATION ${SERVICES_INSTALL_DIR})

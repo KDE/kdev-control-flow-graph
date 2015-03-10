@@ -21,8 +21,6 @@
 
 #include <limits>
 
-#include <KLocale>
-
 #include <KTextEditor/View>
 #include <KTextEditor/Document>
 #include <KTextEditor/Cursor>
@@ -36,11 +34,11 @@
 
 #include <language/duchain/use.h>
 #include <language/duchain/duchain.h>
+#include <language/duchain/duchainbase.h>
 #include <language/duchain/ducontext.h>
 #include <language/duchain/declaration.h>
 #include <language/duchain/duchainlock.h>
 #include <language/duchain/duchainutils.h>
-#include <language/duchain/indexedstring.h>
 #include <language/util/navigationtooltip.h>
 #include <language/duchain/functiondefinition.h>
 #include <language/duchain/types/functiontype.h>
@@ -184,7 +182,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         TopDUContext *topContext = DUChainUtils::standardContextForUrl(view->document()->url());
         if (!topContext) return;
 
-        DUContext *context = topContext->findContextAt(topContext->transformToLocalRevision(KDevelop::SimpleCursor(cursor)));
+        DUContext *context = topContext->findContextAt(topContext->transformToLocalRevision(cursor));
 
         if (!context)
         {
@@ -197,7 +195,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         if (context && context->type() == DUContext::Function && context->importers().size() == 1)
             context = context->importers()[0];
 
-        Declaration *declarationUnderCursor = DUChainUtils::itemUnderCursor(view->document()->url(), KDevelop::SimpleCursor(cursor));
+        Declaration *declarationUnderCursor = DUChainUtils::itemUnderCursor(view->document()->url(), cursor);
         if (declarationUnderCursor && (!context || context->type() != DUContext::Other) && declarationUnderCursor->internalContext())
             context = declarationUnderCursor->internalContext();
 
@@ -264,8 +262,9 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
 	emit startingJob();
 	ICore::self()->runController()->registerJob(job);
     }
-    else
-        kDebug() << "Control flow thread already running";
+    else {
+        qDebug() << "Control flow thread already running";
+    }
 }
 
 void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *target, const Use &use)
@@ -370,7 +369,7 @@ void DUChainControlFlow::slotGraphElementSelected(QList<QString> list, const QPo
         
         if (declaration) // Node click, jump to definition/declaration
         {
-            KUrl url(declaration->url().str());
+            QUrl url = declaration->url().toUrl();
             CursorInRevision cursor = declaration->range().start;
             int line = cursor.line;
             int column = cursor.column;
@@ -428,14 +427,13 @@ void DUChainControlFlow::refreshGraph()
     if (!m_locked)
     {
         if(ICore::self()->documentController()->activeDocument() &&
-           ICore::self()->documentController()->activeDocument()->textDocument() &&
-           ICore::self()->documentController()->activeDocument()->textDocument()->activeView())
+           ICore::self()->documentController()->activeDocument()->textDocument())
         {
             {
                 DUChainReadLocker lock(DUChain::lock());
                 m_previousUppermostExecutableContext = IndexedDUContext();
             }
-            KTextEditor::View *view = ICore::self()->documentController()->activeDocument()->textDocument()->activeView();
+            KTextEditor::View *view = ICore::self()->documentController()->activeDocument()->activeTextView();
             cursorPositionChanged(view, view->cursorPosition());
         }
     }
@@ -575,7 +573,7 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
             }
         }
         declarationUrl = declarationUrl.remove(0, smallestDirectory.length());
-        declarationUrl = declarationUrl.remove(KUrl(declaration->url().str()).fileName());
+        declarationUrl = declarationUrl.remove(declaration->url().str());
         if (declarationUrl.endsWith('/'))
             declarationUrl.chop(1);
         if (declarationUrl.startsWith('/'))

@@ -28,14 +28,24 @@
 
 using namespace KDevelop;
 
-ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(const KUrl& startDir, const QString& filter,
-                                                       QWidget *parent, const QString & caption, OpeningMode mode)
-: KFileDialog(startDir, filter, parent), m_configurationWidget(0)
+ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(QWidget *parent, OpeningMode mode) :
+    QFileDialog(parent, i18n("Export Control Flow Graph")),
+    m_configurationWidget(0)
 {
-    setCaption(caption);
-    setOperationMode(KFileDialog::Saving);
+    QStringList mimeTypes;
+    mimeTypes << "image/png"
+              << "image/jpeg"
+              << "image/gif"
+              << "image/svg+xml"
+              << "image/svg+xml-compressed"
+              << "application/x-dia-diagram"
+              << "image/x-xfig"
+              << "application/pdf"
+              << "text/vnd.graphviz";
+    setMimeTypeFilters(mimeTypes);
+    setAcceptMode(QFileDialog::AcceptSave);
     setConfirmOverwrite(true);
-    setMode(KFile::File);
+    setFileMode(QFileDialog::AnyFile);
 
     if (mode != NoConfigurationButtons)
     {
@@ -43,16 +53,16 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(const KUrl& startDir, con
         QWidget *widget = new QWidget;
         m_configurationWidget->setupUi(widget);
 
-        m_configurationWidget->controlFlowFunctionRadioButton->setIcon(KIcon("flag-blue"));
-        m_configurationWidget->controlFlowClassRadioButton->setIcon(KIcon("flag-green"));
-        m_configurationWidget->controlFlowNamespaceRadioButton->setIcon(KIcon("flag-red"));
-        m_configurationWidget->clusteringClassCheckBox->setIcon(KIcon("code-class"));
-        m_configurationWidget->clusteringNamespaceCheckBox->setIcon(KIcon("namespace"));
-        m_configurationWidget->clusteringProjectCheckBox->setIcon(KIcon("folder-development"));
-        m_configurationWidget->limitMaxLevelCheckBox->setIcon(KIcon("zoom-fit-height"));
-        m_configurationWidget->drawIncomingArcsCheckBox->setIcon(KIcon("draw-arrow-down"));
-        m_configurationWidget->useFolderNameCheckBox->setIcon(KIcon("folder-favorites"));
-        m_configurationWidget->useShortNamesCheckBox->setIcon(KIcon("application-x-arc"));
+        m_configurationWidget->controlFlowFunctionRadioButton->setIcon(QIcon::fromTheme("flag-blue"));
+        m_configurationWidget->controlFlowClassRadioButton->setIcon(QIcon::fromTheme("flag-green"));
+        m_configurationWidget->controlFlowNamespaceRadioButton->setIcon(QIcon::fromTheme("flag-red"));
+        m_configurationWidget->clusteringClassCheckBox->setIcon(QIcon::fromTheme("code-class"));
+        m_configurationWidget->clusteringNamespaceCheckBox->setIcon(QIcon::fromTheme("namespace"));
+        m_configurationWidget->clusteringProjectCheckBox->setIcon(QIcon::fromTheme("folder-development"));
+        m_configurationWidget->limitMaxLevelCheckBox->setIcon(QIcon::fromTheme("zoom-fit-height"));
+        m_configurationWidget->drawIncomingArcsCheckBox->setIcon(QIcon::fromTheme("draw-arrow-down"));
+        m_configurationWidget->useFolderNameCheckBox->setIcon(QIcon::fromTheme("folder-favorites"));
+        m_configurationWidget->useShortNamesCheckBox->setIcon(QIcon::fromTheme("application-x-arc"));
 
         connect(m_configurationWidget->controlFlowFunctionRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
         connect(m_configurationWidget->controlFlowClassRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
@@ -70,7 +80,7 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(const KUrl& startDir, con
             m_configurationWidget->useFolderNameCheckBox->setEnabled(true);
         }
 
-        (dynamic_cast<QBoxLayout *>(mainWidget()->layout()))->insertWidget(1, widget);
+        layout()->addWidget(widget);
     }
 }
 

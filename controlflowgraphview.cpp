@@ -22,12 +22,14 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QFontMetricsF>
+#include <QMessageBox>
 
-#include <KLibLoader>
 #include <KMessageBox>
 #include <KParts/Part>
+#include <KParts/ReadOnlyPart>
 #include <KActionCollection>
-
+#include <KService>
+#include <KPluginFactory>
 #include <interfaces/icore.h>
 #include <interfaces/iuicontroller.h>
 #include <interfaces/iprojectcontroller.h>
@@ -49,84 +51,89 @@ m_duchainControlFlow(new DUChainControlFlow(m_dotControlFlowGraph)),
 m_graphLocked(false)
 {
     setupUi(this);
-    KLibFactory *factory = KLibLoader::self()->factory("kgraphviewerpart");
-    if (factory)
-    {
-        m_part = factory->create<KParts::ReadOnlyPart>("kgraphviewerpart", this);
-        if (m_part)
-        {
-            QMetaObject::invokeMethod(m_part, "setReadWrite");
-
-            verticalLayout->addWidget(m_part->widget());
-
-            modeFunctionToolButton->setIcon(KIcon("code-function"));
-            modeClassToolButton->setIcon(KIcon("code-class"));
-            modeNamespaceToolButton->setIcon(KIcon("namespace"));
-            clusteringClassToolButton->setIcon(KIcon("code-class"));
-            clusteringNamespaceToolButton->setIcon(KIcon("namespace"));
-            clusteringProjectToolButton->setIcon(KIcon("folder-development"));
-            useFolderNameToolButton->setIcon(KIcon("folder-favorites"));
-            drawIncomingArcsToolButton->setIcon(KIcon("draw-arrow-down"));
-            maxLevelToolButton->setIcon(KIcon("zoom-fit-height"));
-            exportToolButton->setIcon(KIcon("document-export"));
-            m_duchainControlFlow->setMaxLevel(2);
-
-            birdseyeToolButton->setIcon(KIcon("edit-find"));
-            usesHoverToolButton->setIcon(KIcon("input-mouse"));
-            zoominToolButton->setIcon(KIcon("zoom-in"));
-            zoomoutToolButton->setIcon(KIcon("zoom-out"));
-
-            if (ICore::self()->projectController()->projectCount() > 0)
-                setProjectButtonsEnabled(true);
-
-            useShortNamesToolButton->setIcon(KIcon("application-x-arc"));
-            updateLockIcon(lockControlFlowGraphToolButton->isChecked());
-
-            // Control flow mode buttons signals
-            connect(modeFunctionToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowFunction(bool)));
-            connect(modeClassToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowClass(bool)));
-            connect(modeNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowNamespace(bool)));
-
-            // Clustering buttons signals
-            connect(clusteringClassToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringClass(bool)));
-            connect(clusteringNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringNamespace(bool)));
-            connect(clusteringProjectToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringProject(bool)));
-
-            // Configuration buttons signals
-            connect(maxLevelSpinBox, SIGNAL(valueChanged(int)), SLOT(setMaxLevel(int)));
-            connect(maxLevelToolButton, SIGNAL(toggled(bool)), SLOT(setUseMaxLevel(bool)));
-            connect(drawIncomingArcsToolButton, SIGNAL(toggled(bool)), SLOT(setDrawIncomingArcs(bool)));
-            connect(useFolderNameToolButton, SIGNAL(toggled(bool)), SLOT(setUseFolderName(bool)));
-            connect(useShortNamesToolButton, SIGNAL(toggled(bool)), SLOT(setUseShortNames(bool)));
-            connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)), SLOT(updateLockIcon(bool)));
-
-            // Left buttons signals
-            connect(zoomoutToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_out"), SIGNAL(triggered()));
-            connect(zoominToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_in"), SIGNAL(triggered()));
-            m_part->actionCollection()->action("view_bev_enabled")->setIcon(KIcon("edit-find.png"));
-            m_part->actionCollection()->action("view_bev_enabled")->setChecked(false);
-            birdseyeToolButton->setDefaultAction(m_part->actionCollection()->action("view_bev_enabled"));
-            connect(m_part, SIGNAL(selectionIs(QList<QString>, QPoint&)),
-                    m_duchainControlFlow, SLOT(slotGraphElementSelected(QList<QString>,QPoint)));
-            connect(m_part, SIGNAL(hoverEnter(QString)), m_duchainControlFlow, SLOT(slotEdgeHover(QString)));
-            connect(exportToolButton, SIGNAL(clicked()), SLOT(exportControlFlowGraph()));
-            connect(usesHoverToolButton, SIGNAL(toggled(bool)), m_duchainControlFlow, SLOT(setShowUsesOnEdgeHover(bool)));
-
-            // Make sure we have a graph before we hook up signals to act on it
-            m_dotControlFlowGraph->prepareNewGraph();
-
-            // Graph generation signals
-            connect(m_dotControlFlowGraph, SIGNAL(loadLibrary(graph_t*)), m_part, SLOT(slotLoadLibrary(graph_t*)));
-            connect(m_duchainControlFlow, SIGNAL(startingJob()), SLOT(startingJob()));
-            connect(m_duchainControlFlow, SIGNAL(jobDone()), SLOT(graphDone()));
-
-            m_plugin->registerToolView(this);
-        }
-        else
-            KMessageBox::error((QWidget *) m_plugin->core()->uiController()->activeMainWindow(), i18n("Could not load the KGraphViewer kpart"));
+    KPluginFactory *factory = KPluginLoader("kgraphviewerpart").factory();
+    if (!factory) {
+        QMessageBox::critical((QWidget *) m_plugin->core()->uiController()->activeMainWindow(), 
+                              i18n("Could not load the KGraphViewer KPart"),
+                              i18n("Unable to load KGraphViewer, please verify that a compatible version is installed."));
+        return;
     }
-    else
-        KMessageBox::error((QWidget *) m_plugin->core()->uiController()->activeMainWindow(), i18n("Could not find the KGraphViewer factory") + ": " + KLibLoader::self()->lastErrorMessage());
+    
+    m_part = factory->create<KParts::ReadOnlyPart>("kgraphviewerpart", this);
+    if (!m_part) {
+        QMessageBox::critical((QWidget *) m_plugin->core()->uiController()->activeMainWindow(), 
+                              i18n("Could not load the KGraphViewer KPart"),
+                              i18n("Unable to create a KGraphViewer instance, please verify that a compatible version is installed."));
+        return;
+    }
+    
+    QMetaObject::invokeMethod(m_part, "setReadWrite");
+
+    verticalLayout->addWidget(m_part->widget());
+
+    modeFunctionToolButton->setIcon(QIcon::fromTheme("code-function"));
+    modeClassToolButton->setIcon(QIcon::fromTheme("code-class"));
+    modeNamespaceToolButton->setIcon(QIcon::fromTheme("namespace"));
+    clusteringClassToolButton->setIcon(QIcon::fromTheme("code-class"));
+    clusteringNamespaceToolButton->setIcon(QIcon::fromTheme("namespace"));
+    clusteringProjectToolButton->setIcon(QIcon::fromTheme("folder-development"));
+    useFolderNameToolButton->setIcon(QIcon::fromTheme("folder-favorites"));
+    drawIncomingArcsToolButton->setIcon(QIcon::fromTheme("draw-arrow-down"));
+    maxLevelToolButton->setIcon(QIcon::fromTheme("zoom-fit-height"));
+    exportToolButton->setIcon(QIcon::fromTheme("document-export"));
+    m_duchainControlFlow->setMaxLevel(2);
+
+    birdseyeToolButton->setIcon(QIcon::fromTheme("edit-find"));
+    usesHoverToolButton->setIcon(QIcon::fromTheme("input-mouse"));
+    zoominToolButton->setIcon(QIcon::fromTheme("zoom-in"));
+    zoomoutToolButton->setIcon(QIcon::fromTheme("zoom-out"));
+
+    if (ICore::self()->projectController()->projectCount() > 0)
+        setProjectButtonsEnabled(true);
+
+    useShortNamesToolButton->setIcon(QIcon::fromTheme("application-x-arc"));
+    updateLockIcon(lockControlFlowGraphToolButton->isChecked());
+
+    // Control flow mode buttons signals
+    connect(modeFunctionToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowFunction(bool)));
+    connect(modeClassToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowClass(bool)));
+    connect(modeNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowNamespace(bool)));
+
+    // Clustering buttons signals
+    connect(clusteringClassToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringClass(bool)));
+    connect(clusteringNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringNamespace(bool)));
+    connect(clusteringProjectToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringProject(bool)));
+
+    // Configuration buttons signals
+    connect(maxLevelSpinBox, SIGNAL(valueChanged(int)), SLOT(setMaxLevel(int)));
+    connect(maxLevelToolButton, SIGNAL(toggled(bool)), SLOT(setUseMaxLevel(bool)));
+    connect(drawIncomingArcsToolButton, SIGNAL(toggled(bool)), SLOT(setDrawIncomingArcs(bool)));
+    connect(useFolderNameToolButton, SIGNAL(toggled(bool)), SLOT(setUseFolderName(bool)));
+    connect(useShortNamesToolButton, SIGNAL(toggled(bool)), SLOT(setUseShortNames(bool)));
+    connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)), SLOT(updateLockIcon(bool)));
+
+    // Left buttons signals
+    connect(zoomoutToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_out"), SIGNAL(triggered()));
+    connect(zoominToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_in"), SIGNAL(triggered()));
+    m_part->actionCollection()->action("view_bev_enabled")->setIcon(QIcon::fromTheme("edit-find"));
+    m_part->actionCollection()->action("view_bev_enabled")->setChecked(false);
+    birdseyeToolButton->setDefaultAction(m_part->actionCollection()->action("view_bev_enabled"));
+    connect(m_part, SIGNAL(selectionIs(const QList<QString>, const QPoint&)),
+            m_duchainControlFlow, SLOT(slotGraphElementSelected(QList<QString>,QPoint)));
+    connect(m_part, SIGNAL(hoverEnter(QString)), m_duchainControlFlow, SLOT(slotEdgeHover(QString)));
+    connect(exportToolButton, SIGNAL(clicked()), SLOT(exportControlFlowGraph()));
+    connect(usesHoverToolButton, SIGNAL(toggled(bool)), m_duchainControlFlow, SLOT(setShowUsesOnEdgeHover(bool)));
+
+    // Make sure we have a graph before we hook up signals to act on it
+    m_dotControlFlowGraph->prepareNewGraph();
+
+    // Graph generation signals
+    connect(m_dotControlFlowGraph, SIGNAL(loadLibrary(graph_t*)), m_part, SLOT(slotLoadLibrary(graph_t*)));
+    connect(m_duchainControlFlow, SIGNAL(startingJob()), SLOT(startingJob()));
+    connect(m_duchainControlFlow, SIGNAL(jobDone()), SLOT(graphDone()));
+
+    m_plugin->registerToolView(this);
+            
 }
 
 ControlFlowGraphView::~ControlFlowGraphView()
@@ -171,16 +178,16 @@ void ControlFlowGraphView::graphDone()
 void ControlFlowGraphView::exportControlFlowGraph()
 {
     QPointer<ControlFlowGraphFileDialog> fileDialog;
-    if ((fileDialog = m_plugin->exportControlFlowGraph(ControlFlowGraphFileDialog::NoConfigurationButtons)))
+    if ((fileDialog = m_plugin->exportControlFlowGraph(ControlFlowGraphFileDialog::NoConfigurationButtons)) && !fileDialog->selectedFiles().isEmpty())
     {
-        m_dotControlFlowGraph->exportGraph(fileDialog->selectedFile());
+        m_dotControlFlowGraph->exportGraph(fileDialog->selectedFiles()[0]);
         KMessageBox::information(this, i18n("Control flow graph exported"), i18n("Export Control Flow Graph"));
     }
 }
 
 void ControlFlowGraphView::updateLockIcon(bool checked)
 {
-    lockControlFlowGraphToolButton->setIcon(KIcon(checked ? "document-encrypt":"document-decrypt"));
+    lockControlFlowGraphToolButton->setIcon(QIcon::fromTheme(checked ? "document-encrypt":"document-decrypt"));
     lockControlFlowGraphToolButton->setToolTip(checked ? i18n("Unlock control flow graph"):i18n("Lock control flow graph"));
     m_duchainControlFlow->setLocked(checked);
     m_graphLocked = checked;

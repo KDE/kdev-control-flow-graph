@@ -21,8 +21,6 @@
 
 #include <QTextDocument>
 
-#include <KLocale>
-
 #include <interfaces/icore.h>
 #include <interfaces/idocumentcontroller.h>
 
@@ -67,7 +65,7 @@ QString ControlFlowGraphNavigationContext::html(bool shorten)
     {
         pair = iterator.previous();
         CodeRepresentation::Ptr code = createCodeRepresentation(pair.second);
-        modifyHtml() += "<a href='" + QString::number(i--) + "'>" + pair.second.toUrl().fileName() + " (" + QString::number(pair.first.start.line+1) + ")</a>: " + Qt::escape(code->line(pair.first.start.line).trimmed()) + "<br>";
+        modifyHtml() += "<a href='" + QString::number(i--) + "'>" + pair.second.toUrl().fileName() + " (" + QString::number(pair.first.start.line+1) + ")</a>: " + code->line(pair.first.start.line).trimmed().toHtmlEscaped() + "<br>";
     }
 
     modifyHtml() += "</small></small></p></body></html>";
@@ -80,7 +78,7 @@ void ControlFlowGraphNavigationContext::slotAnchorClicked(const QUrl &link)
     int position = link.toString().toInt();
     QPair<RangeInRevision, IndexedString> pair = m_arcUses[position];
     DUChainReadLocker lock(DUChain::lock());
-    KUrl url(pair.second.toUrl());
+    QUrl url(pair.second.toUrl());
     CursorInRevision cursor = pair.first.start;
     int line = cursor.line;
     int column = cursor.column;

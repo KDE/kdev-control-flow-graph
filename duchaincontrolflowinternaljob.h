@@ -21,23 +21,30 @@
 #define DUCHAINCONTROLFLOWINTERNALJOB_H
 
 #include <ThreadWeaver/Job>
+#include <QObject>
 
 class DUChainControlFlow;
 class KDevControlFlowGraphViewPlugin;
 
-class DUChainControlFlowInternalJob : public ThreadWeaver::Job
+class DUChainControlFlowInternalJob : public QObject, public ThreadWeaver::Job
 {
     Q_OBJECT
+
 public:
     DUChainControlFlowInternalJob(DUChainControlFlow *duchainControlFlow, KDevControlFlowGraphViewPlugin *plugin);
     virtual ~DUChainControlFlowInternalJob();
-    
+
     enum ControlFlowJobType { ControlFlowJobInteractive, ControlFlowJobBatchForFunction, ControlFlowJobBatchForClass, ControlFlowJobBatchForProject };
     void setControlFlowJobType (ControlFlowJobType controlFlowJobType);
 
-    virtual void requestAbort();
+    virtual void requestAbort() override;
+
+signals:
+    void done();
+
 protected:
-    void run();
+    void run(ThreadWeaver::JobPointer self, ThreadWeaver::Thread *thread) override;
+
 private:
     DUChainControlFlow *m_duchainControlFlow;
     KDevControlFlowGraphViewPlugin *m_plugin;
