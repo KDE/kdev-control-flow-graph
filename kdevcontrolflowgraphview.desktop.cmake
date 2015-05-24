@@ -70,6 +70,7 @@ GenericName[es]=Gráficos de control de flujo de KDevelop
 GenericName[et]=KDevelopi juhtimisvoo graafikud
 GenericName[fi]=KDevelopin vuokaaviot
 GenericName[fr]=Graphes de flux de contrôle de KDevelop
+GenericName[gl]=Gráficos de fluxo de control en KDevelop
 GenericName[hu]=KDevelop vezérlőfolyamat grafikonok
 GenericName[it]=Grafici flusso di controllo per KDevelop
 GenericName[km]=ក្រាហ្វ​លំហូរ​នៃ​ការ​ត្រួត​ពិនិត្យ​វត្ថុ​បញ្ជា ​KDevelop
