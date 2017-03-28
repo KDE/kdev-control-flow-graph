@@ -43,7 +43,7 @@ class ControlFlowGraphView : public QWidget, public Ui::ControlFlowGraphView
 {
     Q_OBJECT
 public:
-    explicit ControlFlowGraphView (KDevControlFlowGraphViewPlugin *plugin, QWidget *parent = 0);
+    explicit ControlFlowGraphView (KDevControlFlowGraphViewPlugin *plugin, QWidget *parent = nullptr);
     virtual ~ControlFlowGraphView ();
 
     void refreshGraph();

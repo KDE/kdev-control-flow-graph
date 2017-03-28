@@ -29,17 +29,17 @@
 #include <QDebug>
 DUChainControlFlowJob::DUChainControlFlowJob(const QString &jobName, DUChainControlFlow *duchainControlFlow)
  : m_duchainControlFlow(duchainControlFlow),
-   m_plugin(0),
-   m_internalJob(0),
+   m_plugin(nullptr),
+   m_internalJob(nullptr),
    m_controlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobInteractive)
 {
     init(jobName);
 }
 
 DUChainControlFlowJob::DUChainControlFlowJob(const QString &jobName, KDevControlFlowGraphViewPlugin *plugin)
- : m_duchainControlFlow(0),
+ : m_duchainControlFlow(nullptr),
    m_plugin(plugin),
-   m_internalJob(0),
+   m_internalJob(nullptr),
    m_controlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobInteractive)
 {
     init(jobName);

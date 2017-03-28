@@ -45,7 +45,7 @@ ControlFlowGraphView::ControlFlowGraphView(KDevControlFlowGraphViewPlugin *plugi
 :
 QWidget(parent),
 m_plugin(plugin),
-m_part(0),
+m_part(nullptr),
 m_dotControlFlowGraph(new DotControlFlowGraph),
 m_duchainControlFlow(new DUChainControlFlow(m_dotControlFlowGraph)),
 m_graphLocked(false)
@@ -317,5 +317,5 @@ void ControlFlowGraphView::showEvent(QShowEvent *event)
 void ControlFlowGraphView::hideEvent(QHideEvent *event)
 {
     Q_UNUSED(event);
-    m_plugin->setActiveToolView(0);
+    m_plugin->setActiveToolView(nullptr);
 }

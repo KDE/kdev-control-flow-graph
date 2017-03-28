@@ -39,7 +39,8 @@ namespace {
 
 QMutex DotControlFlowGraph::mutex;
 
-DotControlFlowGraph::DotControlFlowGraph() : m_rootGraph(0)
+DotControlFlowGraph::DotControlFlowGraph()
+    : m_rootGraph(nullptr)
 {
     m_gvc = gvContext();
 }
@@ -69,11 +70,11 @@ void DotControlFlowGraph::clearGraph()
     {
         gvFreeLayout(m_gvc, m_rootGraph);
         agclose(m_rootGraph);
-        m_rootGraph = 0;
+        m_rootGraph = nullptr;
     }
 
     m_namedGraphs.clear();
-    m_rootGraph = agopen(GRAPH_NAME, Agdirected, NULL);
+    m_rootGraph = agopen(GRAPH_NAME, Agdirected, nullptr);
     graphDone();
 }
 
@@ -179,9 +180,9 @@ void DotControlFlowGraph::foundFunctionCall(const QStringList &sourceContainers,
 
     Agedge_t* edge;
     if (sourceGraph == targetGraph)
-        edge = agedge(sourceGraph, src, tgt, NULL, 1);
+        edge = agedge(sourceGraph, src, tgt, nullptr, 1);
     else
-        edge = agedge(m_rootGraph, src, tgt, NULL, 1);
+        edge = agedge(m_rootGraph, src, tgt, nullptr, 1);
     agsafeset(edge, ID, (source + "->" + target).toUtf8().data(), EMPTY);
 }
 

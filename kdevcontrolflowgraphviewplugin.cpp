@@ -66,7 +66,7 @@ K_PLUGIN_FACTORY_WITH_JSON(ControlFlowGraphViewFactory, "kdevcontrolflowgraphvie
 class KDevControlFlowGraphViewFactory: public KDevelop::IToolViewFactory{
 public:
     KDevControlFlowGraphViewFactory(KDevControlFlowGraphViewPlugin *plugin) : m_plugin(plugin) {}
-    virtual QWidget* create(QWidget *parent = 0)
+    virtual QWidget* create(QWidget *parent = nullptr)
     {
         return new ControlFlowGraphView(m_plugin, parent);
     }
@@ -86,8 +86,8 @@ KDevControlFlowGraphViewPlugin::KDevControlFlowGraphViewPlugin (QObject *parent,
 :
 KDevelop::IPlugin (QStringLiteral("kdevcontrolflowgraphview"), parent),
 m_toolViewFactory(new KDevControlFlowGraphViewFactory(this)),
-m_activeToolView(0),
-m_project(0),
+m_activeToolView(nullptr),
+m_project(nullptr),
 m_abort(false)
 {
     core()->uiController()->addToolView(i18n("Control Flow Graph"), m_toolViewFactory);
@@ -151,7 +151,7 @@ QPointer<ControlFlowGraphFileDialog> KDevControlFlowGraphViewPlugin::exportContr
                 return fileDialog;
         }
     }
-    return 0;
+    return nullptr;
 }
 
 KDevelop::ContextMenuExtension
@@ -485,7 +485,7 @@ void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph()
         ++i;
 
         uint codeModelItemCount = 0;
-        const CodeModelItem *codeModelItems = 0;
+        const CodeModelItem *codeModelItems = nullptr;
         CodeModel::self().items(file, codeModelItemCount, codeModelItems);
         
         for (uint codeModelItemIndex = 0; codeModelItemIndex < codeModelItemCount; ++codeModelItemIndex)
@@ -495,7 +495,7 @@ void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph()
             if ((item.kind & CodeModelItem::Class) && !item.id.identifier().last().toString().isEmpty())
             {
                 uint declarationCount = 0;
-                const IndexedDeclaration *declarations = 0;
+                const IndexedDeclaration *declarations = nullptr;
                 PersistentSymbolTable::self().declarations(item.id.identifier(), declarationCount, declarations);
                 // For each class declaration
                 for (uint j = 0; j < declarationCount; ++j)
@@ -534,7 +534,7 @@ void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph()
         emit showMessage(this, i18n("Saving file %1", m_fileDialog->selectedFiles()[0]));
         exportGraph();
     }
-    m_project = 0;
+    m_project = nullptr;
     emit hideProgress(this);
     emit clearMessage(this);
 }

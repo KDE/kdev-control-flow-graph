@@ -30,7 +30,7 @@ using namespace KDevelop;
 
 ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(QWidget *parent, OpeningMode mode) :
     QFileDialog(parent, i18n("Export Control Flow Graph")),
-    m_configurationWidget(0)
+    m_configurationWidget(nullptr)
 {
     QStringList mimeTypes;
     mimeTypes << "image/png"

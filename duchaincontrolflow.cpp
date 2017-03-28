@@ -59,8 +59,8 @@ using namespace KDevelop;
 DUChainControlFlow::DUChainControlFlow(DotControlFlowGraph* dotControlFlowGraph)
 : m_dotControlFlowGraph(dotControlFlowGraph),
   m_previousUppermostExecutableContext(IndexedDUContext()),
-  m_currentView(0),
-  m_currentProject(0),
+  m_currentView(nullptr),
+  m_currentProject(nullptr),
   m_currentLevel(1),
   m_maxLevel(2),
   m_locked(false),
@@ -72,7 +72,7 @@ DUChainControlFlow::DUChainControlFlow(DotControlFlowGraph* dotControlFlowGraph)
   m_clusteringModes(ClusteringNamespace),
   m_graphThreadRunning(false),
   m_abort(false),
-  m_collector(0)
+  m_collector(nullptr)
 {
     qRegisterMetaType<Use>("Use");
 }
@@ -223,7 +223,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         if (m_currentProject)
         {
             KDevelop::ProjectBaseItem *project_item = m_currentProject->projectItem();
-            IBuildSystemManager *buildSystemManager = 0;
+            IBuildSystemManager *buildSystemManager = nullptr;
             if (project_item && (buildSystemManager = m_currentProject->buildSystemManager()))
                 m_includeDirectories = buildSystemManager->includeDirectories(project_item);
         }
@@ -243,7 +243,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         m_previousUppermostExecutableContext = IndexedDUContext(uppermostExecutableContext);
 
         // Get the definition
-        Declaration* definition = 0;
+        Declaration* definition = nullptr;
         if (!uppermostExecutableContext || !uppermostExecutableContext->owner())
             return;
         else
@@ -446,7 +446,7 @@ void DUChainControlFlow::newGraph()
     m_visitedFunctions.clear();
     m_identifierDeclarationMap.clear();
     m_arcUsesMap.clear();
-    m_currentProject = 0;
+    m_currentProject = nullptr;
     m_dotControlFlowGraph->clearGraph();
 }
 

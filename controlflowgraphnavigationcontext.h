@@ -33,7 +33,7 @@ class ControlFlowGraphNavigationContext : public AbstractNavigationContext
 public:
     typedef QList< QPair<RangeInRevision, IndexedString> > ArcUses;
 
-    ControlFlowGraphNavigationContext(const QString &label, const ArcUses &arcUses, TopDUContextPointer topContext, AbstractNavigationContext *previousContext = 0);
+    ControlFlowGraphNavigationContext(const QString &label, const ArcUses &arcUses, TopDUContextPointer topContext, AbstractNavigationContext *previousContext = nullptr);
     virtual ~ControlFlowGraphNavigationContext();
 
     virtual QString name() const;

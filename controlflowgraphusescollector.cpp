@@ -68,7 +68,7 @@ void ControlFlowGraphUsesCollector::processContext(DUContext *context, CodeRepre
                     uppermostExecutableContext = uppermostExecutableContext->parentContext();
 
                 // Get the definition
-                Declaration* definition = 0;
+                Declaration* definition = nullptr;
                 if (!uppermostExecutableContext || !uppermostExecutableContext->owner())
                     continue;
                 else
