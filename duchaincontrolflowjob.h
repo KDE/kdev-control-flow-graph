@@ -41,21 +41,23 @@ class DUChainControlFlowJob : public KJob, public IStatus
 public:
     DUChainControlFlowJob(const QString &jobName, DUChainControlFlow *duchainControlFlow);
     DUChainControlFlowJob(const QString &jobName, KDevControlFlowGraphViewPlugin *plugin);
-    virtual ~DUChainControlFlowJob();
+    ~DUChainControlFlowJob() override;
 
-    virtual QString statusName() const;
+    QString statusName() const override;
 
     void setControlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobType controlFlowJobType);
-    
-    virtual void start();
-    virtual bool doKill();
+
+    void start() override;
+    bool doKill() override;
+
 Q_SIGNALS:
     // Implementations of IStatus signals
-    void clearMessage(KDevelop::IStatus *);
-    void showMessage(KDevelop::IStatus *, const QString &message, int timeout = 0);
-    void hideProgress(KDevelop::IStatus *);
-    void showProgress(KDevelop::IStatus *, int minimum, int maximum, int value);
-    void showErrorMessage(const QString &, int);
+    void clearMessage(KDevelop::IStatus*) override;
+    void showMessage(KDevelop::IStatus*, const QString& message, int timeout = 0) override;
+    void hideProgress(KDevelop::IStatus*) override;
+    void showProgress(KDevelop::IStatus*, int minimum, int maximum, int value) override;
+    void showErrorMessage(const QString&, int) override;
+
 private Q_SLOTS:
     void done();
 private:

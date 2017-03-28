@@ -34,10 +34,11 @@ public:
     typedef QList< QPair<RangeInRevision, IndexedString> > ArcUses;
 
     ControlFlowGraphNavigationContext(const QString &label, const ArcUses &arcUses, TopDUContextPointer topContext, AbstractNavigationContext *previousContext = nullptr);
-    virtual ~ControlFlowGraphNavigationContext();
+    ~ControlFlowGraphNavigationContext() override;
 
-    virtual QString name() const;
-    virtual QString html(bool shorten = false);
+    QString name() const override;
+    QString html(bool shorten = false) override;
+
 public Q_SLOTS:
     void slotAnchorClicked(const QUrl &link);
 private:

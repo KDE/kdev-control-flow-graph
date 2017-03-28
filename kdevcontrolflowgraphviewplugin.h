@@ -59,16 +59,16 @@ class KDevControlFlowGraphViewPlugin : public KDevelop::IPlugin, public KDevelop
     Q_INTERFACES(KDevelop::IStatus)
 public:
     explicit KDevControlFlowGraphViewPlugin(QObject *, const QVariantList & = QVariantList());
-    virtual ~KDevControlFlowGraphViewPlugin();
+    ~KDevControlFlowGraphViewPlugin() override;
 
-    virtual QString statusName() const;
-    virtual void unload();
+    QString statusName() const override;
+    void unload() override;
 
     void registerToolView(ControlFlowGraphView *view);
     void unRegisterToolView(ControlFlowGraphView *view);
     QPointer<ControlFlowGraphFileDialog> exportControlFlowGraph(ControlFlowGraphFileDialog::OpeningMode mode = ControlFlowGraphFileDialog::ConfigurationButtons);
 
-    KDevelop::ContextMenuExtension contextMenuExtension(KDevelop::Context* context);
+    KDevelop::ContextMenuExtension contextMenuExtension(KDevelop::Context* context) override;
     void generateControlFlowGraph();
     void generateClassControlFlowGraph();
     void generateProjectControlFlowGraph();
@@ -92,11 +92,11 @@ public Q_SLOTS:
     void exportGraph();
 Q_SIGNALS:
     // Implementations of IStatus signals
-    void clearMessage(KDevelop::IStatus*);
-    void showMessage(KDevelop::IStatus*, const QString &message, int timeout = 0);
-    void hideProgress(KDevelop::IStatus*);
-    void showProgress(KDevelop::IStatus*, int minimum, int maximum, int value);
-    void showErrorMessage(const QString&, int);
+    void clearMessage(KDevelop::IStatus*) override;
+    void showMessage(KDevelop::IStatus*, const QString& message, int timeout = 0) override;
+    void hideProgress(KDevelop::IStatus*) override;
+    void showProgress(KDevelop::IStatus*, int minimum, int maximum, int value) override;
+    void showErrorMessage(const QString&, int) override;
 private:
     void configureDuchainControlFlow(DUChainControlFlow *duchainControlFlow, DotControlFlowGraph *dotControlFlowGraph, ControlFlowGraphFileDialog *fileDialog);
 

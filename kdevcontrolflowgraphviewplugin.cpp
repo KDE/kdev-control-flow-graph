@@ -66,15 +66,15 @@ K_PLUGIN_FACTORY_WITH_JSON(ControlFlowGraphViewFactory, "kdevcontrolflowgraphvie
 class KDevControlFlowGraphViewFactory: public KDevelop::IToolViewFactory{
 public:
     KDevControlFlowGraphViewFactory(KDevControlFlowGraphViewPlugin *plugin) : m_plugin(plugin) {}
-    virtual QWidget* create(QWidget *parent = nullptr)
+    QWidget* create(QWidget* parent = nullptr) override
     {
         return new ControlFlowGraphView(m_plugin, parent);
     }
-    virtual Qt::DockWidgetArea defaultPosition()
+    Qt::DockWidgetArea defaultPosition() override
     {
         return Qt::BottomDockWidgetArea;
     }
-    virtual QString id() const
+    QString id() const override
     {
         return "org.kdevelop.ControlFlowGraphView";
     }

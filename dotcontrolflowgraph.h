@@ -39,7 +39,7 @@ class DotControlFlowGraph : public QObject
     Q_OBJECT
 public:
     DotControlFlowGraph();
-    virtual ~DotControlFlowGraph();
+    ~DotControlFlowGraph() override;
     static QMutex mutex;
 Q_SIGNALS:
     bool loadLibrary(graph_t *rootGraph);

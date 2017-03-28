@@ -55,7 +55,7 @@ class DUChainControlFlow : public QObject
     Q_OBJECT
 public:
     explicit DUChainControlFlow(DotControlFlowGraph *dotControlFlowGraph);
-    virtual ~DUChainControlFlow();
+    ~DUChainControlFlow() override;
 
     enum ControlFlowMode { ControlFlowFunction, ControlFlowClass, ControlFlowNamespace };
     void setControlFlowMode(ControlFlowMode controlFlowMode);

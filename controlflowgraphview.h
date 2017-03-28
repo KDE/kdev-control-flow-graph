@@ -44,7 +44,7 @@ class ControlFlowGraphView : public QWidget, public Ui::ControlFlowGraphView
     Q_OBJECT
 public:
     explicit ControlFlowGraphView (KDevControlFlowGraphViewPlugin *plugin, QWidget *parent = nullptr);
-    virtual ~ControlFlowGraphView ();
+     ~ControlFlowGraphView() override;
 
     void refreshGraph();
     void newGraph();
@@ -72,8 +72,9 @@ private Q_SLOTS:
     void graphDone();
 
 protected:
-    void showEvent(QShowEvent *event);
-    void hideEvent(QHideEvent *event);
+    void showEvent(QShowEvent* event) override;
+    void hideEvent(QHideEvent* event) override;
+
 private:
     KDevControlFlowGraphViewPlugin *m_plugin;
     QPointer<KParts::ReadOnlyPart>  m_part;
