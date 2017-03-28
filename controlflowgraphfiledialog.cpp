@@ -79,8 +79,12 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(QWidget *parent, OpeningM
             m_configurationWidget->clusteringProjectCheckBox->setEnabled(true);
             m_configurationWidget->useFolderNameCheckBox->setEnabled(true);
         }
-
-        layout()->addWidget(widget);
+        // TODO: care about native non-Qt filedialog
+        if (layout()) {
+            layout()->addWidget(widget);
+        } else {
+            qWarning() << "No access to layout of QFileDialog, cannot add custom widget";
+        }
     }
 }
 
