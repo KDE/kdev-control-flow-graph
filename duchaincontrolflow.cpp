@@ -195,7 +195,7 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
         if (context && context->type() == DUContext::Function && context->importers().size() == 1)
             context = context->importers()[0];
 
-        Declaration *declarationUnderCursor = DUChainUtils::itemUnderCursor(view->document()->url(), cursor);
+        Declaration *declarationUnderCursor = DUChainUtils::itemUnderCursor(view->document()->url(), cursor).declaration;
         if (declarationUnderCursor && (!context || context->type() != DUContext::Other) && declarationUnderCursor->internalContext())
             context = declarationUnderCursor->internalContext();
 

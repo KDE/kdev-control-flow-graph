@@ -1,23 +1,26 @@
-project(controlflowgraph)
 cmake_minimum_required(VERSION 2.8.12)
 
-find_package(ECM REQUIRED NO_MODULE)
+project(controlflowgraph)
+
+find_package(ECM 1.0 REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH
     ${ECM_MODULE_PATH}
     ${ECM_KDE_MODULE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules
 )
 
+include(KDECompilerSettings NO_POLICY_SCOPE)
 include(KDEInstallDirs)
-include(KDECompilerSettings)
 include(KDECMakeSettings)
 include(FeatureSummary)
 
-find_package(KDevPlatform REQUIRED)
+find_package(KDevPlatform 5.1.40 REQUIRED)
 find_package(GraphViz REQUIRED)
 
+set(QT_MIN_VERSION "5.4.0")
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED Core Widgets)
-find_package(KF5 "5.6.0" REQUIRED COMPONENTS
+set(KF5_DEP_VERSION "5.18.0")
+find_package(KF5 ${KF5_DEP_VERSION} REQUIRED COMPONENTS
     I18n
     TextEditor
     ThreadWeaver
@@ -25,18 +28,9 @@ find_package(KF5 "5.6.0" REQUIRED COMPONENTS
     ItemModels
 )
 
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-endif()
-
 include_directories(
     ${GraphViz_INCLUDE_DIRECTORIES}
-    ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}
 )
-
-add_definitions(-DKDE_DEFAULT_DEBUG_AREA=9528)
 
 set(kdevcontrolflowgraphview_PART_SRCS
     kdevcontrolflowgraphviewplugin.cpp

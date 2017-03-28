@@ -47,7 +47,7 @@ QString ControlFlowGraphNavigationContext::name() const
 QString ControlFlowGraphNavigationContext::html(bool shorten)
 {
     clear();
-    m_shorten = shorten;
+    AbstractNavigationContext::html(shorten);
     modifyHtml() += "<html><body><p><small><small>";
 
     QStringList nodes = m_label.split("->");

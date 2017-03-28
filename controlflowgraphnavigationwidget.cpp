@@ -31,7 +31,11 @@ ControlFlowGraphNavigationWidget::ControlFlowGraphNavigationWidget(const QString
     setFocusPolicy(Qt::NoFocus);
     ControlFlowGraphNavigationContext *context = new ControlFlowGraphNavigationContext(label, arcUses, TopDUContextPointer(0));
     setContext(NavigationContextPointer(context));
+#if 0
+    TODO: in AbstractNavigationWidget expose browser or click signal,
+    or make AbstractNavigationContext::acceptLink virtual (needs better understanding what the intent here is)
     connect(m_browser, SIGNAL(anchorClicked(QUrl)), context, SLOT(slotAnchorClicked(QUrl)));
+#endif
 }
 
 ControlFlowGraphNavigationWidget::~ControlFlowGraphNavigationWidget()
