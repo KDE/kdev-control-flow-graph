@@ -92,23 +92,26 @@ m_abort(false)
 {
     core()->uiController()->addToolView(i18n("Control Flow Graph"), m_toolViewFactory);
 
-    QObject::connect(core()->documentController(), SIGNAL(textDocumentCreated(KDevelop::IDocument*)),
-                     SLOT(textDocumentCreated(KDevelop::IDocument*)));
-    QObject::connect(core()->projectController(), SIGNAL(projectOpened(KDevelop::IProject*)),
-                     SLOT(projectOpened(KDevelop::IProject*)));
-    QObject::connect(core()->projectController(), SIGNAL(projectClosed(KDevelop::IProject*)),
-                     SLOT(projectClosed(KDevelop::IProject*)));
-    QObject::connect(core()->languageController()->backgroundParser(), SIGNAL(parseJobFinished(KDevelop::ParseJob*)),
-                     SLOT(parseJobFinished(KDevelop::ParseJob*)));
+    connect(core()->documentController(), &IDocumentController::textDocumentCreated,
+            this, &KDevControlFlowGraphViewPlugin::textDocumentCreated);
+    connect(core()->projectController(), &IProjectController::projectOpened,
+            this, &KDevControlFlowGraphViewPlugin::projectOpened);
+    connect(core()->projectController(), &IProjectController::projectClosed,
+            this, &KDevControlFlowGraphViewPlugin::projectClosed);
+    connect(core()->languageController()->backgroundParser(), &BackgroundParser::parseJobFinished,
+            this, &KDevControlFlowGraphViewPlugin::parseJobFinished);
                      
     m_exportControlFlowGraph = new QAction(i18n("Export Control Flow Graph"), this);
-    connect(m_exportControlFlowGraph, SIGNAL(triggered(bool)), SLOT(slotExportControlFlowGraph(bool)), Qt::UniqueConnection);
+    connect(m_exportControlFlowGraph, &QAction::triggered,
+            this, &KDevControlFlowGraphViewPlugin::slotExportControlFlowGraph, Qt::UniqueConnection);
 
     m_exportClassControlFlowGraph = new QAction(i18n("Export Class Control Flow Graph"), this);
-    connect(m_exportClassControlFlowGraph, SIGNAL(triggered(bool)), SLOT(slotExportClassControlFlowGraph(bool)), Qt::UniqueConnection);
+    connect(m_exportClassControlFlowGraph, &QAction::triggered,
+            this, &KDevControlFlowGraphViewPlugin::slotExportClassControlFlowGraph, Qt::UniqueConnection);
 
     m_exportProjectControlFlowGraph = new QAction(i18n("Export Project Control Flow Graph"), this);
-    connect(m_exportProjectControlFlowGraph, SIGNAL(triggered(bool)), SLOT(slotExportProjectControlFlowGraph(bool)), Qt::UniqueConnection);
+    connect(m_exportProjectControlFlowGraph, &QAction::triggered,
+            this, &KDevControlFlowGraphViewPlugin::slotExportProjectControlFlowGraph, Qt::UniqueConnection);
 }
 
 KDevControlFlowGraphViewPlugin::~KDevControlFlowGraphViewPlugin()
@@ -232,17 +235,19 @@ void KDevControlFlowGraphViewPlugin::parseJobFinished(KDevelop::ParseJob* parseJ
 
 void KDevControlFlowGraphViewPlugin::textDocumentCreated(KDevelop::IDocument *document)
 {
-    connect(document->textDocument(), SIGNAL(viewCreated(KTextEditor::Document*, KTextEditor::View*)),
-            SLOT(viewCreated(KTextEditor::Document*, KTextEditor::View*)));
+    connect(document->textDocument(), &KTextEditor::Document::viewCreated,
+            this, &KDevControlFlowGraphViewPlugin::viewCreated);
 }
 
 void KDevControlFlowGraphViewPlugin::viewCreated(KTextEditor::Document *document, KTextEditor::View *view)
 {
     Q_UNUSED(document);
-    connect(view, SIGNAL(cursorPositionChanged(KTextEditor::View*, KTextEditor::Cursor)),
-            SLOT(cursorPositionChanged(KTextEditor::View*, KTextEditor::Cursor)));
-    connect(view, SIGNAL(destroyed(QObject*)), SLOT(viewDestroyed(QObject*)));
-    connect(view, SIGNAL(focusIn(KTextEditor::View*)), SLOT(focusIn(KTextEditor::View*)));
+    connect(view, &KTextEditor::View::cursorPositionChanged,
+            this, &KDevControlFlowGraphViewPlugin::cursorPositionChanged);
+    connect(view, &KTextEditor::View::destroyed,
+            this, &KDevControlFlowGraphViewPlugin::viewDestroyed);
+    connect(view, &KTextEditor::View::focusIn,
+            this, &KDevControlFlowGraphViewPlugin::focusIn);
 }
 
 void KDevControlFlowGraphViewPlugin::viewDestroyed(QObject *object)
@@ -309,7 +314,8 @@ void KDevControlFlowGraphViewPlugin::slotExportControlFlowGraph(bool value)
         DUChainControlFlowJob *job = new DUChainControlFlowJob(declaration->qualifiedIdentifier().toString(), this);
         job->setControlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobBatchForFunction);
         m_ideclaration = IndexedDeclaration(declaration);
-        connect (job, SIGNAL(result(KJob*)), SLOT(generationDone(KJob*)));
+        connect(job, &DUChainControlFlowJob::result,
+                this, &KDevControlFlowGraphViewPlugin::generationDone);
         ICore::self()->runController()->registerJob(job);
     }
     action->setData(QVariant::fromValue(DUChainBasePointer()));
@@ -345,7 +351,8 @@ void KDevControlFlowGraphViewPlugin::slotExportClassControlFlowGraph(bool value)
         DUChainControlFlowJob *job = new DUChainControlFlowJob(declaration->qualifiedIdentifier().toString(), this);
         job->setControlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobBatchForClass);
         m_ideclaration = IndexedDeclaration(declaration);
-        connect (job, SIGNAL(result(KJob*)), SLOT(generationDone(KJob*)));
+        connect(job, &DUChainControlFlowJob::result,
+                this, &KDevControlFlowGraphViewPlugin::generationDone);
         ICore::self()->runController()->registerJob(job);
     }
     action->setData(QVariant::fromValue(DUChainBasePointer()));
@@ -386,7 +393,8 @@ void KDevControlFlowGraphViewPlugin::slotExportProjectControlFlowGraph(bool valu
         DUChainControlFlowJob *job = new DUChainControlFlowJob(projectName, this);
         job->setControlFlowJobType(DUChainControlFlowInternalJob::ControlFlowJobBatchForProject);
         m_project = project;
-        connect (job, SIGNAL(result(KJob*)), SLOT(generationDone(KJob*)));
+        connect(job, &DUChainControlFlowJob::result,
+                this, &KDevControlFlowGraphViewPlugin::generationDone);
         ICore::self()->runController()->registerJob(job);
     }
     action->setData(QVariant::fromValue(QString()));

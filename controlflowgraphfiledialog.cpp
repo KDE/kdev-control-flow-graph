@@ -64,15 +64,22 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(QWidget *parent, OpeningM
         m_configurationWidget->useFolderNameCheckBox->setIcon(QIcon::fromTheme("folder-favorites"));
         m_configurationWidget->useShortNamesCheckBox->setIcon(QIcon::fromTheme("application-x-arc"));
 
-        connect(m_configurationWidget->controlFlowFunctionRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
-        connect(m_configurationWidget->controlFlowClassRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
-        connect(m_configurationWidget->controlFlowNamespaceRadioButton, SIGNAL(toggled(bool)), SLOT(setControlFlowMode(bool)));
+        connect(m_configurationWidget->controlFlowFunctionRadioButton, &QRadioButton::toggled,
+                this, &ControlFlowGraphFileDialog::setControlFlowMode);
+        connect(m_configurationWidget->controlFlowClassRadioButton, &QRadioButton::toggled,
+                this, &ControlFlowGraphFileDialog::setControlFlowMode);
+        connect(m_configurationWidget->controlFlowNamespaceRadioButton, &QRadioButton::toggled,
+                this, &ControlFlowGraphFileDialog::setControlFlowMode);
 
-        connect(m_configurationWidget->clusteringClassCheckBox, SIGNAL(stateChanged(int)), SLOT(setClusteringModes(int)));
-        connect(m_configurationWidget->clusteringNamespaceCheckBox, SIGNAL(stateChanged(int)), SLOT(setClusteringModes(int)));
-        connect(m_configurationWidget->clusteringProjectCheckBox, SIGNAL(stateChanged(int)), SLOT(setClusteringModes(int)));
+        connect(m_configurationWidget->clusteringClassCheckBox, &QCheckBox::stateChanged,
+                this, &ControlFlowGraphFileDialog::setClusteringModes);
+        connect(m_configurationWidget->clusteringNamespaceCheckBox, &QCheckBox::stateChanged,
+                this, &ControlFlowGraphFileDialog::setClusteringModes);
+        connect(m_configurationWidget->clusteringProjectCheckBox, &QCheckBox::stateChanged,
+                this, &ControlFlowGraphFileDialog::setClusteringModes);
 
-        connect(m_configurationWidget->limitMaxLevelCheckBox, SIGNAL(stateChanged(int)), SLOT(slotLimitMaxLevelChanged(int)));
+        connect(m_configurationWidget->limitMaxLevelCheckBox, &QCheckBox::stateChanged,
+                this, &ControlFlowGraphFileDialog::slotLimitMaxLevelChanged);
 
         if (ICore::self()->projectController()->projectCount() > 0)
         {

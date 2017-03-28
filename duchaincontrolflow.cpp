@@ -148,7 +148,8 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
             delete m_collector;
             m_collector = new ControlFlowGraphUsesCollector(declaration);
             m_collector->setProcessDeclarations(true);
-            connect(m_collector, SIGNAL(processFunctionCall(Declaration*, Declaration*, Use)), SLOT(processFunctionCall(Declaration*, Declaration*, Use)));
+            connect(m_collector, &ControlFlowGraphUsesCollector::processFunctionCall,
+                    this, &DUChainControlFlow::processFunctionCall);
             m_collector->startCollecting();
         }
     }
@@ -258,7 +259,8 @@ void DUChainControlFlow::cursorPositionChanged(KTextEditor::View *view, const KT
 
         m_graphThreadRunning = true;
         DUChainControlFlowJob *job = new DUChainControlFlowJob(context->scopeIdentifier().toString(), this);
-        connect (job, SIGNAL(result(KJob*)), SLOT(jobDone(KJob*)));
+        connect(job, &DUChainControlFlowJob::result,
+                this, static_cast<void(DUChainControlFlow::*)(KJob*)>(&DUChainControlFlow::jobDone));
 	emit startingJob();
 	ICore::self()->runController()->registerJob(job);
     }

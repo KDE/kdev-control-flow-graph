@@ -95,42 +95,65 @@ m_graphLocked(false)
     updateLockIcon(lockControlFlowGraphToolButton->isChecked());
 
     // Control flow mode buttons signals
-    connect(modeFunctionToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowFunction(bool)));
-    connect(modeClassToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowClass(bool)));
-    connect(modeNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setControlFlowNamespace(bool)));
+    connect(modeFunctionToolButton, &QToolButton::toggled,
+            this, &ControlFlowGraphView::setControlFlowFunction);
+    connect(modeClassToolButton, &QToolButton::toggled,
+            this, &ControlFlowGraphView::setControlFlowClass);
+    connect(modeNamespaceToolButton, &QToolButton::toggled,
+            this, &ControlFlowGraphView::setControlFlowNamespace);
 
     // Clustering buttons signals
-    connect(clusteringClassToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringClass(bool)));
-    connect(clusteringNamespaceToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringNamespace(bool)));
-    connect(clusteringProjectToolButton, SIGNAL(toggled(bool)), SLOT(setClusteringProject(bool)));
+    connect(clusteringClassToolButton, &QToolButton::toggled,
+            this, &ControlFlowGraphView::setClusteringClass);
+    connect(clusteringNamespaceToolButton, &QToolButton::toggled,
+            this, &ControlFlowGraphView::setClusteringNamespace);
+    connect(clusteringProjectToolButton, &QToolButton::toggled,
+            this, &ControlFlowGraphView::setClusteringProject);
 
     // Configuration buttons signals
-    connect(maxLevelSpinBox, SIGNAL(valueChanged(int)), SLOT(setMaxLevel(int)));
-    connect(maxLevelToolButton, SIGNAL(toggled(bool)), SLOT(setUseMaxLevel(bool)));
-    connect(drawIncomingArcsToolButton, SIGNAL(toggled(bool)), SLOT(setDrawIncomingArcs(bool)));
-    connect(useFolderNameToolButton, SIGNAL(toggled(bool)), SLOT(setUseFolderName(bool)));
-    connect(useShortNamesToolButton, SIGNAL(toggled(bool)), SLOT(setUseShortNames(bool)));
-    connect(lockControlFlowGraphToolButton, SIGNAL(toggled(bool)), SLOT(updateLockIcon(bool)));
+    connect(maxLevelSpinBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+            this, &ControlFlowGraphView::setMaxLevel);
+    connect(maxLevelToolButton, &QToolButton::toggled,
+            this, &ControlFlowGraphView::setUseMaxLevel);
+    connect(drawIncomingArcsToolButton, &QToolButton::toggled,
+            this, &ControlFlowGraphView::setDrawIncomingArcs);
+    connect(useFolderNameToolButton, &QToolButton::toggled,
+            this, &ControlFlowGraphView::setUseFolderName);
+    connect(useShortNamesToolButton, &QToolButton::toggled,
+            this, &ControlFlowGraphView::setUseShortNames);
+    connect(lockControlFlowGraphToolButton, &QToolButton::toggled,
+            this, &ControlFlowGraphView::updateLockIcon);
 
     // Left buttons signals
-    connect(zoomoutToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_out"), SIGNAL(triggered()));
-    connect(zoominToolButton, SIGNAL(clicked()), m_part->actionCollection()->action("view_zoom_in"), SIGNAL(triggered()));
-    m_part->actionCollection()->action("view_bev_enabled")->setIcon(QIcon::fromTheme("edit-find"));
-    m_part->actionCollection()->action("view_bev_enabled")->setChecked(false);
-    birdseyeToolButton->setDefaultAction(m_part->actionCollection()->action("view_bev_enabled"));
+    auto partActionCollection = m_part->actionCollection();
+    connect(zoomoutToolButton, &QToolButton::clicked,
+            partActionCollection->action("view_zoom_out"), &QAction::triggered);
+    connect(zoominToolButton, &QToolButton::clicked,
+            partActionCollection->action("view_zoom_in"), &QAction::triggered);
+    partActionCollection->action("view_bev_enabled")->setIcon(QIcon::fromTheme("edit-find"));
+    partActionCollection->action("view_bev_enabled")->setChecked(false);
+    birdseyeToolButton->setDefaultAction(partActionCollection->action("view_bev_enabled"));
+    // TODO: create and use declared extra interface of graphviewer part
+    // instead of blind string-based connection
     connect(m_part, SIGNAL(selectionIs(const QList<QString>, const QPoint&)),
             m_duchainControlFlow, SLOT(slotGraphElementSelected(QList<QString>,QPoint)));
     connect(m_part, SIGNAL(hoverEnter(QString)), m_duchainControlFlow, SLOT(slotEdgeHover(QString)));
-    connect(exportToolButton, SIGNAL(clicked()), SLOT(exportControlFlowGraph()));
-    connect(usesHoverToolButton, SIGNAL(toggled(bool)), m_duchainControlFlow, SLOT(setShowUsesOnEdgeHover(bool)));
+    connect(exportToolButton, &QToolButton::clicked,
+            this, &ControlFlowGraphView::exportControlFlowGraph);
+    connect(usesHoverToolButton, &QToolButton::toggled,
+            m_duchainControlFlow, &DUChainControlFlow::setShowUsesOnEdgeHover);
 
     // Make sure we have a graph before we hook up signals to act on it
     m_dotControlFlowGraph->prepareNewGraph();
 
     // Graph generation signals
+    // TODO: create and use declared extra interface of graphviewer part
+    // instead of blind string-based connection
     connect(m_dotControlFlowGraph, SIGNAL(loadLibrary(graph_t*)), m_part, SLOT(slotLoadLibrary(graph_t*)));
-    connect(m_duchainControlFlow, SIGNAL(startingJob()), SLOT(startingJob()));
-    connect(m_duchainControlFlow, SIGNAL(jobDone()), SLOT(graphDone()));
+    connect(m_duchainControlFlow, &DUChainControlFlow::startingJob,
+            this, &ControlFlowGraphView::startingJob);
+    connect(m_duchainControlFlow, static_cast<void(DUChainControlFlow::*)()>(&DUChainControlFlow::jobDone),
+            this, &ControlFlowGraphView::graphDone);
 
     m_plugin->registerToolView(this);
             
