@@ -14,7 +14,7 @@ include(KDEInstallDirs)
 include(KDECMakeSettings)
 include(FeatureSummary)
 
-set(QT_MIN_VERSION "5.4.0")
+set(QT_MIN_VERSION "5.5.0")
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED Core Widgets)
 set(KF5_DEP_VERSION "5.18.0")
 find_package(KF5 ${KF5_DEP_VERSION} REQUIRED COMPONENTS
@@ -31,6 +31,13 @@ set_package_properties(KDevPlatform PROPERTIES
 find_package(GraphViz)
 set_package_properties(GraphViz PROPERTIES
     TYPE REQUIRED
+)
+
+add_definitions(
+    -DQT_DEPRECATED_WARNINGS
+    -DQT_DISABLE_DEPRECATED_BEFORE=0x050500
+    -DQT_NO_SIGNALS_SLOTS_KEYWORDS
+    -DQT_STRICT_ITERATORS
 )
 
 

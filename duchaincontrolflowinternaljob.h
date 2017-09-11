@@ -39,7 +39,7 @@ public:
 
     void requestAbort() override;
 
-signals:
+Q_SIGNALS:
     void done();
 
 protected:
