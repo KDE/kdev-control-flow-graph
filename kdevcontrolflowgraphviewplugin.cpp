@@ -155,8 +155,10 @@ QPointer<ControlFlowGraphFileDialog> KDevControlFlowGraphViewPlugin::exportContr
 }
 
 KDevelop::ContextMenuExtension
-KDevControlFlowGraphViewPlugin::contextMenuExtension(KDevelop::Context* context)
+KDevControlFlowGraphViewPlugin::contextMenuExtension(KDevelop::Context* context, QWidget* parent)
 {
+    Q_UNUSED(parent);
+
     KDevelop::ContextMenuExtension extension;
 
     if (context->hasType(Context::CodeContext) || context->hasType(Context::EditorContext))

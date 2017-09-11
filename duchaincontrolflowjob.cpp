@@ -76,7 +76,7 @@ void DUChainControlFlowJob::start()
     m_internalJob->setControlFlowJobType(m_controlFlowJobType);
     connect(m_internalJob, &DUChainControlFlowInternalJob::done,
             this, &DUChainControlFlowJob::done);
-    ThreadWeaver::Queue::instance()->enqueue(ThreadWeaver::JobPointer(m_internalJob));
+    ThreadWeaver::Queue::instance()->enqueue(ThreadWeaver::JobPointer(m_internalJob.data()));
 }
 
 bool DUChainControlFlowJob::doKill()

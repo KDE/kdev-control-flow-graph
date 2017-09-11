@@ -68,7 +68,7 @@ public:
     void unRegisterToolView(ControlFlowGraphView *view);
     QPointer<ControlFlowGraphFileDialog> exportControlFlowGraph(ControlFlowGraphFileDialog::OpeningMode mode = ControlFlowGraphFileDialog::ConfigurationButtons);
 
-    KDevelop::ContextMenuExtension contextMenuExtension(KDevelop::Context* context) override;
+    KDevelop::ContextMenuExtension contextMenuExtension(KDevelop::Context* context, QWidget* parent) override;
     void generateControlFlowGraph();
     void generateClassControlFlowGraph();
     void generateProjectControlFlowGraph();
