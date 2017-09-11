@@ -59,7 +59,7 @@ m_graphLocked(false)
         return;
     }
     
-    m_part = factory->create<KParts::ReadOnlyPart>("kgraphviewerpart", this);
+    m_part = factory->create<KParts::ReadOnlyPart>(this);
     if (!m_part) {
         QMessageBox::critical((QWidget *) m_plugin->core()->uiController()->activeMainWindow(), 
                               i18n("Could not load the KGraphViewer KPart"),
