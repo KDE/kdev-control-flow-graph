@@ -14,9 +14,6 @@ include(KDEInstallDirs)
 include(KDECMakeSettings)
 include(FeatureSummary)
 
-find_package(KDevPlatform 5.1.40 REQUIRED)
-find_package(GraphViz REQUIRED)
-
 set(QT_MIN_VERSION "5.4.0")
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED Core Widgets)
 set(KF5_DEP_VERSION "5.18.0")
@@ -27,6 +24,15 @@ find_package(KF5 ${KF5_DEP_VERSION} REQUIRED COMPONENTS
     ConfigWidgets
     ItemModels
 )
+find_package(KDevPlatform 5.1.40 )
+set_package_properties(KDevPlatform PROPERTIES
+    TYPE REQUIRED
+)
+find_package(GraphViz)
+set_package_properties(GraphViz PROPERTIES
+    TYPE REQUIRED
+)
+
 
 include_directories(
     ${GraphViz_INCLUDE_DIRECTORIES}
@@ -63,3 +69,4 @@ target_link_libraries(kdevcontrolflowgraphview
     KDev::Util
     gvc cgraph cdt)
 
+feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
