@@ -47,8 +47,8 @@ void ControlFlowGraphUsesCollector::processUses(ReferencedTopDUContext topContex
 
 void ControlFlowGraphUsesCollector::processContext(DUContext *context, CodeRepresentation::Ptr code)
 {
-    foreach (const IndexedDeclaration &ideclaration, declarations())
-    {
+    const auto declarations = this->declarations();
+    for (const IndexedDeclaration& ideclaration : declarations) {
         Declaration *declaration = ideclaration.data();
         if (!declaration)
             continue;
@@ -80,6 +80,8 @@ void ControlFlowGraphUsesCollector::processContext(DUContext *context, CodeRepre
             }
         }
     }
-    foreach (DUContext *child, context->childContexts())
+    const auto childContexts = context->childContexts();
+    for (DUContext* child : childContexts) {
         processContext(child, code);
+    }
 }

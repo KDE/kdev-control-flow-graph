@@ -545,8 +545,7 @@ void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration*
         strGlobalNamespaceOrFolderNames = ((namespaceDefinition->internalContext() && namespaceDefinition->internalContext()->type() != DUContext::Namespace) ?
                                                               globalNamespaceOrFolderNames(namespaceDefinition):
                                                               shortNameFromContainers(containers, prependFolderNames(namespaceDefinition)));
-        foreach(const QString &container, strGlobalNamespaceOrFolderNames.split(QLatin1String("::")))
-            containers << container;
+        containers << strGlobalNamespaceOrFolderNames.split(QLatin1String("::"));
     }
 
     // Handling class clustering
@@ -570,8 +569,7 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
 
         QString folderName, smallestDirectory, declarationUrl = declaration->url().str();
 
-        foreach (const Path &url, m_includeDirectories)
-        {
+        for (const Path& url : qAsConst(m_includeDirectories)) {
             QString urlString = url.toLocalFile();
             if (urlString.length() <= minLength && declarationUrl.startsWith(urlString))
             {
@@ -619,11 +617,12 @@ QString DUChainControlFlow::shortNameFromContainers(const QList<QString> &contai
 
     if (m_useShortNames)
     {
-        foreach(const QString &container, containers)
+        for (const QString& container : containers) {
             if (shortName.contains(container)) {
                 const QString containerPrefix = container + QLatin1String("::");
                 shortName.remove(shortName.indexOf(containerPrefix), containerPrefix.length());
             }
+        }
     }
     return shortName;
 }

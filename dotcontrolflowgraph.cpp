@@ -103,8 +103,7 @@ void DotControlFlowGraph::foundRootNode(const QStringList &containers, const QSt
         return;
     }
     QString absoluteContainer;
-    foreach (const QString& container, containers)
-    {
+    for (const QString& container : containers) {
         absoluteContainer += container;
         graph = m_namedGraphs[absoluteContainer] = agsubg(graph, (QLatin1String("cluster_") + absoluteContainer).toUtf8().data(), 1);
         agsafeset(graph, LABEL, container.toUtf8().data(), EMPTY);
@@ -132,8 +131,7 @@ void DotControlFlowGraph::foundFunctionCall(const QStringList &sourceContainers,
     sourceGraph = targetGraph = m_rootGraph;
     QString absoluteContainer;
 
-    foreach (const QString& container, sourceContainers)
-    {
+    for (const QString& container : sourceContainers) {
         Agraph_t *previousGraph = sourceGraph;
         absoluteContainer += container;
         if (!m_namedGraphs.contains(absoluteContainer))
@@ -145,8 +143,7 @@ void DotControlFlowGraph::foundFunctionCall(const QStringList &sourceContainers,
         sourceGraph = m_namedGraphs[absoluteContainer];
     }
     absoluteContainer.clear();
-    foreach (const QString& container, targetContainers)
-    {
+    for (const QString& container : targetContainers) {
         Agraph_t *previousGraph = targetGraph;
         absoluteContainer += container;
         if (!m_namedGraphs.contains(absoluteContainer))

@@ -191,9 +191,8 @@ KDevControlFlowGraphViewPlugin::contextMenuExtension(KDevelop::Context* context,
         KDevelop::ProjectItemContext *projectItemContext = dynamic_cast<KDevelop::ProjectItemContext*>(context);
         if (projectItemContext)
         {
-            QList<ProjectBaseItem *> items = projectItemContext->items();
-            foreach(ProjectBaseItem *item, items)
-            {
+            const QList<ProjectBaseItem *> items = projectItemContext->items();
+            for (ProjectBaseItem* item : items) {
                 ProjectFolderItem *folder = item->folder();
                 if (folder && !folder->parent())
                 {
@@ -209,8 +208,9 @@ KDevControlFlowGraphViewPlugin::contextMenuExtension(KDevelop::Context* context,
 void KDevControlFlowGraphViewPlugin::projectOpened(KDevelop::IProject* project)
 {
     Q_UNUSED(project);
-    foreach (ControlFlowGraphView *controlFlowGraphView, m_toolViews)
+    for (ControlFlowGraphView* controlFlowGraphView : qAsConst(m_toolViews)) {
         controlFlowGraphView->setProjectButtonsEnabled(true);
+    }
     refreshActiveToolView();
 }
 
@@ -219,8 +219,7 @@ void KDevControlFlowGraphViewPlugin::projectClosed(KDevelop::IProject* project)
     Q_UNUSED(project);
     if (core()->projectController()->projectCount() == 0)
     {
-        foreach (ControlFlowGraphView *controlFlowGraphView, m_toolViews)
-        {
+        for (ControlFlowGraphView* controlFlowGraphView : qAsConst(m_toolViews)) {
             controlFlowGraphView->setProjectButtonsEnabled(false);
             controlFlowGraphView->newGraph();
         }
@@ -437,11 +436,11 @@ void KDevControlFlowGraphViewPlugin::generateClassControlFlowGraph()
     if (!declaration->isForwardDeclaration() && declaration->internalContext())
     {
         int i = 0;
-        int max = declaration->internalContext()->localDeclarations().size();
+        const auto localDeclarations = declaration->internalContext()->localDeclarations();
+        int max = localDeclarations.size();
         // For each function declaration
         ClassFunctionDeclaration *functionDeclaration;
-        foreach (Declaration *decl, declaration->internalContext()->localDeclarations())
-        {
+        for (Declaration* decl : localDeclarations) {
             if (m_abort)
                 break;
 
@@ -479,10 +478,10 @@ void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph()
     DUChainReadLocker readLock(DUChain::lock());
 
     int i = 0;
-    int max = m_project->fileSet().size();
+    const auto projectFiles = m_project->fileSet();
+    const int max = projectFiles.size();
     // For each source file
-    foreach(const IndexedString &file, m_project->fileSet())
-    {
+    for (const IndexedString& file : projectFiles) {
         emit showProgress(this, 0, max-1, i);
         ++i;
 
@@ -507,8 +506,8 @@ void KDevControlFlowGraphViewPlugin::generateProjectControlFlowGraph()
                     {
                         // For each function declaration
                         ClassFunctionDeclaration *functionDeclaration;
-                        foreach (Declaration *decl, declaration->internalContext()->localDeclarations())
-                        {
+                        const auto localDeclarations = declaration->internalContext()->localDeclarations();
+                        for (Declaration* decl : localDeclarations) {
                             emit showMessage(this, i18n("Generating graph for %1 - %2", file.str(), decl->qualifiedIdentifier().toString()));
                             if ((functionDeclaration = dynamic_cast<ClassFunctionDeclaration *>(decl)))
                             {
