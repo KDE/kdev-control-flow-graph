@@ -49,6 +49,9 @@ void DUChainControlFlowInternalJob::requestAbort()
 
 void DUChainControlFlowInternalJob::run(ThreadWeaver::JobPointer self, ThreadWeaver::Thread *thread)
 {
+    Q_UNUSED(self);
+    Q_UNUSED(thread);
+
     switch(m_controlFlowJobType)
     {
         case ControlFlowJobInteractive:
