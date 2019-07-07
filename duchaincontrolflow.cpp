@@ -528,8 +528,11 @@ void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration*
     QString strGlobalNamespaceOrFolderNames;
 
     // Handling project clustering
-    if (m_clusteringModes.testFlag(ClusteringProject) && ICore::self()->projectController()->findProjectForUrl(definition->url().str()))
-        containers << ICore::self()->projectController()->findProjectForUrl(definition->url().str())->name();
+    if (m_clusteringModes.testFlag(ClusteringProject)) {
+        if (auto* project = ICore::self()->projectController()->findProjectForUrl(definition->url().toUrl())) {
+            containers << project->name();
+        }
+    }
 
     // Handling namespace clustering
     if (m_clusteringModes.testFlag(ClusteringNamespace))
