@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.0)
 
 project(controlflowgraph)
 
-find_package(ECM 1.0 REQUIRED NO_MODULE)
+set(QT_MIN_VERSION "5.7.0")
+set(KF_MIN_VERSION "5.28.0")
+
+find_package(ECM ${KF_MIN_VERSION} REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 
 include(KDECompilerSettings NO_POLICY_SCOPE)
@@ -10,17 +13,18 @@ include(KDEInstallDirs)
 include(KDECMakeSettings)
 include(FeatureSummary)
 
-set(QT_MIN_VERSION "5.5.0")
-find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED Core Widgets)
-set(KF5_DEP_VERSION "5.18.0")
-find_package(KF5 ${KF5_DEP_VERSION} REQUIRED COMPONENTS
+find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED
+    Core
+    Widgets
+)
+find_package(KF5 ${KF_MIN_VERSION} REQUIRED COMPONENTS
     I18n
     TextEditor
     ThreadWeaver
     ConfigWidgets
     ItemModels
 )
-find_package(KDevPlatform 5.1.40 )
+find_package(KDevPlatform 5.3.40 )
 set_package_properties(KDevPlatform PROPERTIES
     TYPE REQUIRED
 )
@@ -31,7 +35,7 @@ set_package_properties(GraphViz PROPERTIES
 
 add_definitions(
     -DQT_DEPRECATED_WARNINGS
-    -DQT_DISABLE_DEPRECATED_BEFORE=0x050500
+    -DQT_DISABLE_DEPRECATED_BEFORE=0x050700
     -DQT_NO_SIGNALS_SLOTS_KEYWORDS
     -DQT_STRICT_ITERATORS
 )
