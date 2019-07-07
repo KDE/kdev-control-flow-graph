@@ -44,7 +44,6 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(QWidget *parent, OpeningM
               << "text/vnd.graphviz";
     setMimeTypeFilters(mimeTypes);
     setAcceptMode(QFileDialog::AcceptSave);
-    setConfirmOverwrite(true);
     setFileMode(QFileDialog::AnyFile);
 
     if (mode != NoConfigurationButtons)
