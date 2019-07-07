@@ -130,7 +130,7 @@ void DUChainControlFlow::generateControlFlowForDeclaration(IndexedDeclaration id
                                                                           shortName);
         ++m_currentLevel;
         m_visitedFunctions.insert(idefinition);
-        m_identifierDeclarationMap[containers.join("") + shortName] = IndexedDeclaration(nodeDefinition);
+        m_identifierDeclarationMap[containers.join(QString()) + shortName] = IndexedDeclaration(nodeDefinition);
         useDeclarationsFromDefinition(definition, topContext, uppermostExecutableContext);
     }
 
@@ -306,7 +306,7 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     if (sender() && dynamic_cast<ControlFlowGraphUsesCollector *>(sender()))
     {
         sourceContainers.prepend(i18n("Uses of %1", targetLabel));
-        m_identifierDeclarationMap[sourceContainers.join("") + sourceShortName] = IndexedDeclaration(nodeSource);
+        m_identifierDeclarationMap[sourceContainers.join(QString()) + sourceShortName] = IndexedDeclaration(nodeSource);
     }
 
     IndexedDeclaration ideclaration = IndexedDeclaration(calledFunctionDefinition);
@@ -317,20 +317,22 @@ void DUChainControlFlow::processFunctionCall(Declaration *source, Declaration *t
     else
     {
         // Store method declaration for navigation
-        m_identifierDeclarationMap[targetContainers.join("") + targetShortName] = IndexedDeclaration(nodeTarget);
+        m_identifierDeclarationMap[targetContainers.join(QString()) + targetShortName] = IndexedDeclaration(nodeTarget);
         // Store use for edge inspection
         QPair<RangeInRevision, IndexedString> pair(use.m_range, source->url());
-        if (!m_arcUsesMap.values(sourceLabel + "->" + targetLabel).contains(pair))
-            m_arcUsesMap.insertMulti(sourceLabel + "->" + targetLabel, pair);
+        const QString edgeTag = sourceLabel + QLatin1String("->") + targetLabel;
+        if (!m_arcUsesMap.values(edgeTag).contains(pair))
+            m_arcUsesMap.insertMulti(edgeTag, pair);
         return;
     }
 
     // Store use for edge inspection
     QPair<RangeInRevision, IndexedString> pair(use.m_range, source->url());
-    if (!m_arcUsesMap.values(sourceLabel + "->" + targetLabel).contains(pair))
-        m_arcUsesMap.insertMulti(sourceLabel + "->" + targetLabel, pair);
+    const QString edgeTag = sourceLabel + QLatin1String("->") + targetLabel;
+    if (!m_arcUsesMap.values(edgeTag).contains(pair))
+        m_arcUsesMap.insertMulti(edgeTag, pair);
     // Store method definition for navigation
-    m_identifierDeclarationMap[targetContainers.join("") + targetShortName] = IndexedDeclaration(declarationFromControlFlowMode(calledFunctionDefinition));
+    m_identifierDeclarationMap[targetContainers.join(QString()) + targetShortName] = IndexedDeclaration(declarationFromControlFlowMode(calledFunctionDefinition));
 
     if (calledFunctionContext && (m_currentLevel < m_maxLevel || m_maxLevel == 0))
     {
@@ -385,7 +387,7 @@ void DUChainControlFlow::slotGraphElementSelected(QList<QString> list, const QPo
 
 void DUChainControlFlow::slotEdgeHover(QString label)
 {
-    if (label.contains("->") && m_ShowUsesOnEdgeHover) // Edge click, show uses contained in the edge
+    if (label.contains(QLatin1String("->")) && m_ShowUsesOnEdgeHover) // Edge click, show uses contained in the edge
     {
         KParts::ReadOnlyPart *part = dynamic_cast<KParts::ReadOnlyPart *>(sender());
         if (!part)
@@ -543,7 +545,7 @@ void DUChainControlFlow::prepareContainers(QStringList &containers, Declaration*
         strGlobalNamespaceOrFolderNames = ((namespaceDefinition->internalContext() && namespaceDefinition->internalContext()->type() != DUContext::Namespace) ?
                                                               globalNamespaceOrFolderNames(namespaceDefinition):
                                                               shortNameFromContainers(containers, prependFolderNames(namespaceDefinition)));
-        foreach(const QString &container, strGlobalNamespaceOrFolderNames.split("::"))
+        foreach(const QString &container, strGlobalNamespaceOrFolderNames.split(QLatin1String("::")))
             containers << container;
     }
 
@@ -579,11 +581,11 @@ QString DUChainControlFlow::globalNamespaceOrFolderNames(Declaration *declaratio
         }
         declarationUrl = declarationUrl.remove(0, smallestDirectory.length());
         declarationUrl = declarationUrl.remove(declaration->url().str());
-        if (declarationUrl.endsWith('/'))
+        if (declarationUrl.endsWith(QLatin1Char('/')))
             declarationUrl.chop(1);
-        if (declarationUrl.startsWith('/'))
+        if (declarationUrl.startsWith(QLatin1Char('/')))
             declarationUrl.remove(0, 1);
-        declarationUrl = declarationUrl.replace('/', "::");
+        declarationUrl = declarationUrl.replace(QLatin1Char('/'), QLatin1String("::"));
         if (!declarationUrl.isEmpty())
             return declarationUrl;
     }
@@ -605,7 +607,7 @@ QString DUChainControlFlow::prependFolderNames(Declaration *declaration)
         if (namespaceDefinition && namespaceDefinition->internalContext() &&
             namespaceDefinition->internalContext()->type() != DUContext::Namespace &&
             prefix != i18n("Global Namespace"))
-            prependedQualifiedName.prepend(prefix + "::");
+            prependedQualifiedName.prepend(prefix + QLatin1String("::"));
     }
 
     return prependedQualifiedName;
@@ -618,8 +620,10 @@ QString DUChainControlFlow::shortNameFromContainers(const QList<QString> &contai
     if (m_useShortNames)
     {
         foreach(const QString &container, containers)
-            if (shortName.contains(container))
-                shortName.remove(shortName.indexOf(container + "::"), (container + "::").length());
+            if (shortName.contains(container)) {
+                const QString containerPrefix = container + QLatin1String("::");
+                shortName.remove(shortName.indexOf(containerPrefix), containerPrefix.length());
+            }
     }
     return shortName;
 }

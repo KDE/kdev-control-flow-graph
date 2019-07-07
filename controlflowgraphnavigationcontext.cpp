@@ -48,13 +48,13 @@ QString ControlFlowGraphNavigationContext::html(bool shorten)
 {
     clear();
     AbstractNavigationContext::html(shorten);
-    modifyHtml() += "<html><body><p><small><small>";
+    modifyHtml() += QLatin1String("<html><body><p><small><small>");
 
-    QStringList nodes = m_label.split("->");
+    QStringList nodes = m_label.split(QLatin1String("->"));
     if (nodes.size() < 2)
-        return "";
+        return QString();
 
-    modifyHtml() += importantHighlight(i18n("Uses of %1 from %2", nodes[1], nodes[0])) + "<hr>";
+    modifyHtml() += importantHighlight(i18n("Uses of %1 from %2", nodes[1], nodes[0])) + QLatin1String("<hr>");
     unsigned int i = m_arcUses.size()-1;
     QPair<RangeInRevision, IndexedString> pair;
     QListIterator< QPair<RangeInRevision, IndexedString> > iterator(m_arcUses);
@@ -65,10 +65,10 @@ QString ControlFlowGraphNavigationContext::html(bool shorten)
     {
         pair = iterator.previous();
         CodeRepresentation::Ptr code = createCodeRepresentation(pair.second);
-        modifyHtml() += "<a href='" + QString::number(i--) + "'>" + pair.second.toUrl().fileName() + " (" + QString::number(pair.first.start.line+1) + ")</a>: " + code->line(pair.first.start.line).trimmed().toHtmlEscaped() + "<br>";
+        modifyHtml() += QLatin1String("<a href='") + QString::number(i--) + QLatin1String("'>") + pair.second.toUrl().fileName() + QLatin1String(" (") + QString::number(pair.first.start.line+1) + QLatin1String(")</a>: ") + code->line(pair.first.start.line).trimmed().toHtmlEscaped() + QLatin1String("<br>");
     }
 
-    modifyHtml() += "</small></small></p></body></html>";
+    modifyHtml() += QLatin1String("</small></small></p></body></html>");
 
     return currentHtml();
 }

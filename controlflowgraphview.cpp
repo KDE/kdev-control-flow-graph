@@ -51,7 +51,7 @@ m_duchainControlFlow(new DUChainControlFlow(m_dotControlFlowGraph)),
 m_graphLocked(false)
 {
     setupUi(this);
-    KPluginFactory *factory = KPluginLoader("kgraphviewerpart").factory();
+    KPluginFactory *factory = KPluginLoader(QStringLiteral("kgraphviewerpart")).factory();
     if (!factory) {
         QMessageBox::critical((QWidget *) m_plugin->core()->uiController()->activeMainWindow(), 
                               i18n("Could not load the KGraphViewer KPart"),
@@ -71,27 +71,27 @@ m_graphLocked(false)
 
     verticalLayout->addWidget(m_part->widget());
 
-    modeFunctionToolButton->setIcon(QIcon::fromTheme("code-function"));
-    modeClassToolButton->setIcon(QIcon::fromTheme("code-class"));
-    modeNamespaceToolButton->setIcon(QIcon::fromTheme("namespace"));
-    clusteringClassToolButton->setIcon(QIcon::fromTheme("code-class"));
-    clusteringNamespaceToolButton->setIcon(QIcon::fromTheme("namespace"));
-    clusteringProjectToolButton->setIcon(QIcon::fromTheme("folder-development"));
-    useFolderNameToolButton->setIcon(QIcon::fromTheme("folder-favorites"));
-    drawIncomingArcsToolButton->setIcon(QIcon::fromTheme("draw-arrow-down"));
-    maxLevelToolButton->setIcon(QIcon::fromTheme("zoom-fit-height"));
-    exportToolButton->setIcon(QIcon::fromTheme("document-export"));
+    modeFunctionToolButton->setIcon(QIcon::fromTheme(QStringLiteral("code-function")));
+    modeClassToolButton->setIcon(QIcon::fromTheme(QStringLiteral("code-class")));
+    modeNamespaceToolButton->setIcon(QIcon::fromTheme(QStringLiteral("namespace")));
+    clusteringClassToolButton->setIcon(QIcon::fromTheme(QStringLiteral("code-class")));
+    clusteringNamespaceToolButton->setIcon(QIcon::fromTheme(QStringLiteral("namespace")));
+    clusteringProjectToolButton->setIcon(QIcon::fromTheme(QStringLiteral("folder-development")));
+    useFolderNameToolButton->setIcon(QIcon::fromTheme(QStringLiteral("folder-favorites")));
+    drawIncomingArcsToolButton->setIcon(QIcon::fromTheme(QStringLiteral("draw-arrow-down")));
+    maxLevelToolButton->setIcon(QIcon::fromTheme(QStringLiteral("zoom-fit-height")));
+    exportToolButton->setIcon(QIcon::fromTheme(QStringLiteral("document-export")));
     m_duchainControlFlow->setMaxLevel(2);
 
-    birdseyeToolButton->setIcon(QIcon::fromTheme("edit-find"));
-    usesHoverToolButton->setIcon(QIcon::fromTheme("input-mouse"));
-    zoominToolButton->setIcon(QIcon::fromTheme("zoom-in"));
-    zoomoutToolButton->setIcon(QIcon::fromTheme("zoom-out"));
+    birdseyeToolButton->setIcon(QIcon::fromTheme(QStringLiteral("edit-find")));
+    usesHoverToolButton->setIcon(QIcon::fromTheme(QStringLiteral("input-mouse")));
+    zoominToolButton->setIcon(QIcon::fromTheme(QStringLiteral("zoom-in")));
+    zoomoutToolButton->setIcon(QIcon::fromTheme(QStringLiteral("zoom-out")));
 
     if (ICore::self()->projectController()->projectCount() > 0)
         setProjectButtonsEnabled(true);
 
-    useShortNamesToolButton->setIcon(QIcon::fromTheme("application-x-arc"));
+    useShortNamesToolButton->setIcon(QIcon::fromTheme(QStringLiteral("application-x-arc")));
     updateLockIcon(lockControlFlowGraphToolButton->isChecked());
 
     // Control flow mode buttons signals
@@ -127,12 +127,12 @@ m_graphLocked(false)
     // Left buttons signals
     auto partActionCollection = m_part->actionCollection();
     connect(zoomoutToolButton, &QToolButton::clicked,
-            partActionCollection->action("view_zoom_out"), &QAction::triggered);
+            partActionCollection->action(QStringLiteral("view_zoom_out")), &QAction::triggered);
     connect(zoominToolButton, &QToolButton::clicked,
-            partActionCollection->action("view_zoom_in"), &QAction::triggered);
-    partActionCollection->action("view_bev_enabled")->setIcon(QIcon::fromTheme("edit-find"));
-    partActionCollection->action("view_bev_enabled")->setChecked(false);
-    birdseyeToolButton->setDefaultAction(partActionCollection->action("view_bev_enabled"));
+            partActionCollection->action(QStringLiteral("view_zoom_in")), &QAction::triggered);
+    partActionCollection->action(QStringLiteral("view_bev_enabled"))->setIcon(QIcon::fromTheme(QStringLiteral("edit-find")));
+    partActionCollection->action(QStringLiteral("view_bev_enabled"))->setChecked(false);
+    birdseyeToolButton->setDefaultAction(partActionCollection->action(QStringLiteral("view_bev_enabled")));
     // TODO: create and use declared extra interface of graphviewer part
     // instead of blind string-based connection
     connect(m_part, SIGNAL(selectionIs(const QList<QString>, const QPoint&)),
@@ -210,7 +210,7 @@ void ControlFlowGraphView::exportControlFlowGraph()
 
 void ControlFlowGraphView::updateLockIcon(bool checked)
 {
-    lockControlFlowGraphToolButton->setIcon(QIcon::fromTheme(checked ? "document-encrypt":"document-decrypt"));
+    lockControlFlowGraphToolButton->setIcon(QIcon::fromTheme(checked ? QStringLiteral("document-encrypt"):QStringLiteral("document-decrypt")));
     lockControlFlowGraphToolButton->setToolTip(checked ? i18n("Unlock control flow graph"):i18n("Lock control flow graph"));
     m_duchainControlFlow->setLocked(checked);
     m_graphLocked = checked;

@@ -76,7 +76,7 @@ public:
     }
     QString id() const override
     {
-        return "org.kdevelop.ControlFlowGraphView";
+        return QStringLiteral("org.kdevelop.ControlFlowGraphView");
     }
 private:
     KDevControlFlowGraphViewPlugin *m_plugin;

@@ -83,7 +83,7 @@ void DotControlFlowGraph::exportGraph(const QString &fileName)
     if (m_rootGraph)
     {
         gvLayout(m_gvc, m_rootGraph, SUFFIX);
-        gvRenderFilename(m_gvc, m_rootGraph, fileName.right(fileName.size()-fileName.lastIndexOf('.')-1).toUtf8().data(), fileName.toUtf8().data());
+        gvRenderFilename(m_gvc, m_rootGraph, fileName.right(fileName.size()-fileName.lastIndexOf(QLatin1Char('.'))-1).toUtf8().data(), fileName.toUtf8().data());
         gvFreeLayout(m_gvc, m_rootGraph);
     }
 }
@@ -106,11 +106,11 @@ void DotControlFlowGraph::foundRootNode(const QStringList &containers, const QSt
     foreach (const QString& container, containers)
     {
         absoluteContainer += container;
-        graph = m_namedGraphs[absoluteContainer] = agsubg(graph, ("cluster_" + absoluteContainer).toUtf8().data(), 1);
+        graph = m_namedGraphs[absoluteContainer] = agsubg(graph, (QLatin1String("cluster_") + absoluteContainer).toUtf8().data(), 1);
         agsafeset(graph, LABEL, container.toUtf8().data(), EMPTY);
     }
 
-    Agnode_t *node = agnode(graph, (containers.join("") + label).toUtf8().data(), 1);
+    Agnode_t *node = agnode(graph, (containers.join(QString()) + label).toUtf8().data(), 1);
     agsafeset(node, SHAPE, BOX, EMPTY);
     QColor c = colorFromQualifiedIdentifier(label);
     char color[8];
@@ -138,7 +138,7 @@ void DotControlFlowGraph::foundFunctionCall(const QStringList &sourceContainers,
         absoluteContainer += container;
         if (!m_namedGraphs.contains(absoluteContainer))
         {
-            newGraph = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data(), 1);
+            newGraph = agsubg(previousGraph, (QLatin1String("cluster_") + absoluteContainer).toUtf8().data(), 1);
             m_namedGraphs.insert(absoluteContainer, newGraph);
             agsafeset(newGraph, LABEL, container.toUtf8().data(), EMPTY);
         }
@@ -151,15 +151,15 @@ void DotControlFlowGraph::foundFunctionCall(const QStringList &sourceContainers,
         absoluteContainer += container;
         if (!m_namedGraphs.contains(absoluteContainer))
         {
-            Agraph_t *newGraph = agsubg(previousGraph, ("cluster_" + absoluteContainer).toUtf8().data(), 1);
+            Agraph_t *newGraph = agsubg(previousGraph, (QLatin1String("cluster_") + absoluteContainer).toUtf8().data(), 1);
             m_namedGraphs.insert(absoluteContainer, newGraph);
             agsafeset(newGraph, LABEL, container.toUtf8().data(), EMPTY);
         }
         targetGraph = m_namedGraphs[absoluteContainer];
     }
 
-    Agnode_t* src = agnode(sourceGraph, (sourceContainers.join("") + source).toUtf8().data(), 1);
-    Agnode_t* tgt = agnode(targetGraph, (targetContainers.join("") + target).toUtf8().data(), 1);
+    Agnode_t* src = agnode(sourceGraph, (sourceContainers.join(QString()) + source).toUtf8().data(), 1);
+    Agnode_t* tgt = agnode(targetGraph, (targetContainers.join(QString()) + target).toUtf8().data(), 1);
 
     char color[8];
     char ID[] = "id";
@@ -183,13 +183,15 @@ void DotControlFlowGraph::foundFunctionCall(const QStringList &sourceContainers,
         edge = agedge(sourceGraph, src, tgt, nullptr, 1);
     else
         edge = agedge(m_rootGraph, src, tgt, nullptr, 1);
-    agsafeset(edge, ID, (source + "->" + target).toUtf8().data(), EMPTY);
+    agsafeset(edge, ID, (source + QLatin1String("->") + target).toUtf8().data(), EMPTY);
 }
 
 const QColor& DotControlFlowGraph::colorFromQualifiedIdentifier(const QString &label)
 {
-    if (m_colorMap.contains(label.split("::")[0]))
-        return m_colorMap[label.split("::")[0]];
-    else
-        return m_colorMap[label.split("::")[0]] = QColor::fromHsv(qrand() % 256, 255, 190);
+    const QString qid = label.split(QLatin1String("::")).value(0);
+    auto it = m_colorMap.find(qid);
+    if (it == m_colorMap.end()) {
+        it = m_colorMap.insert(qid, QColor::fromHsv(qrand() % 256, 255, 190));
+    }
+    return *it;
 }

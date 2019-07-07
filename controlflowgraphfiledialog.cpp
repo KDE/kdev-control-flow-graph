@@ -32,16 +32,17 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(QWidget *parent, OpeningM
     QFileDialog(parent, i18n("Export Control Flow Graph")),
     m_configurationWidget(nullptr)
 {
-    QStringList mimeTypes;
-    mimeTypes << "image/png"
-              << "image/jpeg"
-              << "image/gif"
-              << "image/svg+xml"
-              << "image/svg+xml-compressed"
-              << "application/x-dia-diagram"
-              << "image/x-xfig"
-              << "application/pdf"
-              << "text/vnd.graphviz";
+    const QStringList mimeTypes {
+        QStringLiteral("image/png"),
+        QStringLiteral("image/jpeg"),
+        QStringLiteral("image/gif"),
+        QStringLiteral("image/svg+xml"),
+        QStringLiteral("image/svg+xml-compressed"),
+        QStringLiteral("application/x-dia-diagram"),
+        QStringLiteral("image/x-xfig"),
+        QStringLiteral("application/pdf"),
+        QStringLiteral("text/vnd.graphviz"),
+    };
     setMimeTypeFilters(mimeTypes);
     setAcceptMode(QFileDialog::AcceptSave);
     setFileMode(QFileDialog::AnyFile);
@@ -52,16 +53,16 @@ ControlFlowGraphFileDialog::ControlFlowGraphFileDialog(QWidget *parent, OpeningM
         QWidget *widget = new QWidget;
         m_configurationWidget->setupUi(widget);
 
-        m_configurationWidget->controlFlowFunctionRadioButton->setIcon(QIcon::fromTheme("flag-blue"));
-        m_configurationWidget->controlFlowClassRadioButton->setIcon(QIcon::fromTheme("flag-green"));
-        m_configurationWidget->controlFlowNamespaceRadioButton->setIcon(QIcon::fromTheme("flag-red"));
-        m_configurationWidget->clusteringClassCheckBox->setIcon(QIcon::fromTheme("code-class"));
-        m_configurationWidget->clusteringNamespaceCheckBox->setIcon(QIcon::fromTheme("namespace"));
-        m_configurationWidget->clusteringProjectCheckBox->setIcon(QIcon::fromTheme("folder-development"));
-        m_configurationWidget->limitMaxLevelCheckBox->setIcon(QIcon::fromTheme("zoom-fit-height"));
-        m_configurationWidget->drawIncomingArcsCheckBox->setIcon(QIcon::fromTheme("draw-arrow-down"));
-        m_configurationWidget->useFolderNameCheckBox->setIcon(QIcon::fromTheme("folder-favorites"));
-        m_configurationWidget->useShortNamesCheckBox->setIcon(QIcon::fromTheme("application-x-arc"));
+        m_configurationWidget->controlFlowFunctionRadioButton->setIcon(QIcon::fromTheme(QStringLiteral("flag-blue")));
+        m_configurationWidget->controlFlowClassRadioButton->setIcon(QIcon::fromTheme(QStringLiteral("flag-green")));
+        m_configurationWidget->controlFlowNamespaceRadioButton->setIcon(QIcon::fromTheme(QStringLiteral("flag-red")));
+        m_configurationWidget->clusteringClassCheckBox->setIcon(QIcon::fromTheme(QStringLiteral("code-class")));
+        m_configurationWidget->clusteringNamespaceCheckBox->setIcon(QIcon::fromTheme(QStringLiteral("namespace")));
+        m_configurationWidget->clusteringProjectCheckBox->setIcon(QIcon::fromTheme(QStringLiteral("folder-development")));
+        m_configurationWidget->limitMaxLevelCheckBox->setIcon(QIcon::fromTheme(QStringLiteral("zoom-fit-height")));
+        m_configurationWidget->drawIncomingArcsCheckBox->setIcon(QIcon::fromTheme(QStringLiteral("draw-arrow-down")));
+        m_configurationWidget->useFolderNameCheckBox->setIcon(QIcon::fromTheme(QStringLiteral("folder-favorites")));
+        m_configurationWidget->useShortNamesCheckBox->setIcon(QIcon::fromTheme(QStringLiteral("application-x-arc")));
 
         connect(m_configurationWidget->controlFlowFunctionRadioButton, &QRadioButton::toggled,
                 this, &ControlFlowGraphFileDialog::setControlFlowMode);
@@ -150,19 +151,16 @@ void ControlFlowGraphFileDialog::setControlFlowMode(bool checked)
     if (checked)
     {
         QRadioButton *radioButton = qobject_cast<QRadioButton *>(sender());
-        if (radioButton->objectName() == "controlFlowFunctionRadioButton")
-        {
+        if (radioButton->objectName() == QLatin1String("controlFlowFunctionRadioButton")) {
             m_configurationWidget->clusteringClassCheckBox->setEnabled(true);
             m_configurationWidget->clusteringNamespaceCheckBox->setEnabled(true);
         }
-        if (radioButton->objectName() == "controlFlowClassRadioButton")
-        {
+        if (radioButton->objectName() == QLatin1String("controlFlowClassRadioButton")) {
             m_configurationWidget->clusteringClassCheckBox->setChecked(false);
             m_configurationWidget->clusteringClassCheckBox->setEnabled(false);
             m_configurationWidget->clusteringNamespaceCheckBox->setEnabled(true);
         }
-        if (radioButton->objectName() == "controlFlowNamespaceRadioButton")
-        {
+        if (radioButton->objectName() == QLatin1String("controlFlowNamespaceRadioButton")) {
             m_configurationWidget->clusteringClassCheckBox->setChecked(false);
             m_configurationWidget->clusteringClassCheckBox->setEnabled(false);
             m_configurationWidget->clusteringNamespaceCheckBox->setChecked(false);
